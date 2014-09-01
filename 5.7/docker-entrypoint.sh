@@ -38,5 +38,7 @@ if [ -z "$(ls -A /var/lib/mysql)" -a "${1%_safe}" = 'mysqld' ]; then
 	set -- "$@" --init-file="$TEMP_FILE"
 fi
 
+mysql -u root -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE < $MYSQL_BACKUP
+
 chown -R mysql:mysql /var/lib/mysql
 exec "$@"
