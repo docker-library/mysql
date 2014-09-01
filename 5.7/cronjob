@@ -1,5 +1,5 @@
 #!/bin/bash
 
-mysqldump -u root -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE > /data/backup/$MYSQL_DATABASE_$(date +%y-%m-%d-%h).sql
+mysqldump -u root -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE > /backup/$MYSQL_DATABASE_$(date +%y-%m-%d-%h).sql
 
-find /backup
+find /backup/$MYSQL_DATABASE* -mtime +2 -exec rm {} \;

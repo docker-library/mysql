@@ -36,8 +36,20 @@ RUN apt-get update && apt-get install -y curl --no-install-recommends && rm -rf 
 	&& apt-get purge -y --auto-remove binutils
 ENV PATH $PATH:/usr/local/mysql/bin:/usr/local/mysql/scripts
 
+RUN mkdir /config \
+  && mkdir /backup
+
+ADD crontab.txt /config/crontab.txt \
+  && cronjob /config/cronjob
+
+RUN chmod +x /config/cronjob \
+  && crontab /config/crontab.txt \
+  && cron
+
 WORKDIR /usr/local/mysql
-VOLUME /var/lib/mysql
+
+VOLUME /var/lib/mysql \
+  && /backup
 
 ADD docker-entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]

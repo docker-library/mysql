@@ -1,1 +1,1 @@
-00 3 * * * /config/cronjob
+0 */03 * * * /config/cronjob
