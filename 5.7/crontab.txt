@@ -1,0 +1,1 @@
+00 3 * * * /config/cronjob
