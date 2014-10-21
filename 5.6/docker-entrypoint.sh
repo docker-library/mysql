@@ -22,14 +22,18 @@ if [ -z "$(ls -A /var/lib/mysql)" -a "${1%_safe}" = 'mysqld' ]; then
 	EOSQL
 	
 	if [ "$MYSQL_DATABASE" ]; then
-		echo "CREATE DATABASE IF NOT EXISTS $MYSQL_DATABASE ;" >> "$TEMP_FILE"
+		for DATABASE in $MYSQL_DATABASE; do
+			echo "CREATE DATABASE IF NOT EXISTS $DATABASE ;" >> "$TEMP_FILE"
+		done
 	fi
 	
 	if [ "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
 		echo "CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD' ;" >> "$TEMP_FILE"
 		
 		if [ "$MYSQL_DATABASE" ]; then
-			echo "GRANT ALL ON $MYSQL_DATABASE.* TO '$MYSQL_USER'@'%' ;" >> "$TEMP_FILE"
+			for DATABASE in $MYSQL_DATABASE; do
+				echo "GRANT ALL ON $DATABASE.* TO '$MYSQL_USER'@'%' ;" >> "$TEMP_FILE"
+			done
 		fi
 	fi
 	
