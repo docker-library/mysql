@@ -33,6 +33,13 @@ if [ ! -d '/var/lib/mysql/mysql' -a "${1%_safe}" = 'mysqld' ]; then
 		fi
 	fi
 	
+	INIT_DIR='/docker-entrypoint-initdb.d'
+        for f in $INIT_DIR/*.sql
+        do 
+                echo "Appending sql script: $f"
+                cat $f >> "$TEMP_FILE"
+        done
+	
 	echo 'FLUSH PRIVILEGES ;' >> "$TEMP_FILE"
 	
 	set -- "$@" --init-file="$TEMP_FILE"
