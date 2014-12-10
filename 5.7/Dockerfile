@@ -37,9 +37,14 @@ RUN apt-get update && apt-get install -y curl --no-install-recommends && rm -rf 
 ENV PATH $PATH:/usr/local/mysql/bin:/usr/local/mysql/scripts
 
 WORKDIR /usr/local/mysql
+RUN mysql_install_db --user=mysql --datadir=/var/lib/mysql
+
+RUN chown -R mysql:mysql /var/lib/mysql
+
 VOLUME /var/lib/mysql
 
 COPY docker-entrypoint.sh /entrypoint.sh
+
 ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 3306
