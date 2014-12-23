@@ -34,9 +34,19 @@ if [ ! -d '/var/lib/mysql/mysql' -a "${1%_safe}" = 'mysqld' ]; then
 	fi
 	
 	echo 'FLUSH PRIVILEGES ;' >> "$TEMP_FILE"
-	
-	set -- "$@" --init-file="$TEMP_FILE"
+	chown -R mysql:mysql /var/lib/mysql
 fi
 
-chown -R mysql:mysql /var/lib/mysql
+if [[ "$@" = 'mysqld' ]]; then
+	set -- "$@" --datadir=/var/lib/mysql --user=mysql
+
+	if [ -n "$TEMP_FILE" ]; then
+		set -- "$@" --init-file="$TEMP_FILE"
+	fi
+
+	if [ -n "$MYSQLD_FLAGS" ]; then
+		set -- "$@" "$MYSQLD_FLAGS"
+	fi
+fi
+
 exec "$@"
