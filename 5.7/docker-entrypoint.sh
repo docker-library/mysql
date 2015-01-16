@@ -1,8 +1,9 @@
 #!/bin/bash
 set -e
 
-# TODO read this from the MySQL config?
-DATADIR='/var/lib/mysql'
+if [ -z "$DATADIR" ]; then
+	DATADIR='/var/lib/mysql'
+fi
 
 if [ "${1:0:1}" = '-' ]; then
 	set -- mysqld "$@"
