@@ -71,7 +71,7 @@ if [ ! -d "$DATADIR/mysql" -a "${1%_safe}" = 'mysqld' ]; then
 	#
         if [ "$MYSQL_MASTER_SERVER" ]; then
                 MYSQL_MASTER_PORT=${MYSQL_MASTER_PORT:-3306}
-		MYSQL_MASTER_WAIT_TIME=${MYSQL_MASTER_WAIT_TIME:-1}
+		MYSQL_MASTER_WAIT_TIME=${MYSQL_MASTER_WAIT_TIME:-3}
 
                 if [ -z "$MYSQL_REPLICA_USER" ]; then
                         echo >&2 'error: MYSQL_REPLICA_USER not set'
@@ -83,7 +83,8 @@ if [ ! -d "$DATADIR/mysql" -a "${1%_safe}" = 'mysqld' ]; then
                 fi
 
 		# Wait for eg. 10 seconds for the master to come up
-		for i in $(seq $MYSQL_MASTER_WAIT_TIME); do
+		# do at least one iteration
+		for i in $(seq $((MYSQL_MASTER_WAIT_TIME + 1))); do
 			if ! mysql "-u$MYSQL_REPLICA_USER" "-p$MYSQL_REPLICA_PASS" "-h$MYSQL_MASTER_SERVER" -e 'select 1;' |grep -q 1; then
 				echo >&2 "Waiting for $MYSQL_REPLICA_USER@$MYSQL_MASTER_SERVER"
 				sleep 1
@@ -92,7 +93,7 @@ if [ ! -d "$DATADIR/mysql" -a "${1%_safe}" = 'mysqld' ]; then
 			fi
 		done
 
-		if [ $i == 3 ]; then
+		if [ "$i" -gt "$MYSQL_MASTER_WAIT_TIME" ]; then
 			echo 2>&1 "Master is not reachable"
 			exit 1
 		fi
