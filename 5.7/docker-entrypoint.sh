@@ -1,9 +1,7 @@
 #!/bin/bash
 set -e
 
-if [ -z "$DATADIR" ]; then
-	DATADIR='/var/lib/mysql'
-fi
+DATADIR=$(grep datadir /etc/mysql/my.cnf | awk '{print $3}')
 
 if [ "${1:0:1}" = '-' ]; then
 	set -- mysqld "$@"
