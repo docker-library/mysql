@@ -1,8 +1,7 @@
 #!/bin/bash
 set -e
 
-# TODO read this from the MySQL config?
-DATADIR='/var/lib/mysql'
+DATADIR=$(grep datadir /etc/mysql/my.cnf | awk '{print $3}')
 
 if [ "${1:0:1}" = '-' ]; then
 	set -- mysqld "$@"
