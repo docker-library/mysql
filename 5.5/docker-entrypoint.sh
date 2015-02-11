@@ -9,7 +9,7 @@ if [ "$1" = 'mysqld' ]; then
 	# read DATADIR from the MySQL config
 	DATADIR="$("$@" --verbose --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
 	
-	if [ ! -d "$DATADIR/mysql" ]; then
+	if [ ! -d "$DATADIR" ]; then
 		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" ]; then
 			echo >&2 'error: database is uninitialized and MYSQL_ROOT_PASSWORD not set'
 			echo >&2 '  Did you forget to add -e MYSQL_ROOT_PASSWORD=... ?'
