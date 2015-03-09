@@ -76,6 +76,9 @@ if [ "$1" = 'mysqld' ]; then
 		cat /etc/my.cnf
 		rm -f $tempSqlFile
 		kill $(cat $PIDFILE)
+
+		# Wait to ensure server is stopped (below check doesn't work right for 5.7.5)
+		sleep 10
                 for i in $(seq 30 -1 0); do
 		    [ -S $SOCKET ] || break
 		    echo 'MySQL init process in progress...'
