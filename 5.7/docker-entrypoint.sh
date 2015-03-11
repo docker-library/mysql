@@ -29,10 +29,13 @@ if [ "$1" = 'mysqld' ]; then
 		if [ ! -d "$DATADIR" ]; then
 			mkdir -p $DATADIR
 		fi
-		echo 'Running mysql_install_db'
-		mysql_install_db --user=mysql --datadir=$DATADIR --insecure
-		echo 'Finished mysql_install_db'
-
+		# Workaround for bug related to --verbose --help
+		rm $DATADIR/ib_logfile0
+		rm $DATADIR/ib_logfile1
+		rm $DATADIR/ibdata1
+		echo 'Initializing database'
+		mysqld --initialize-insecure=on --user=mysql --datadir=$DATADIR
+		echo 'Finished database init'
 		mysqld --user=mysql --datadir=$DATADIR --skip-networking &
                 for i in $(seq 30 -1 0); do
 		    [ -S $SOCKET ] && break
