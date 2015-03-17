@@ -84,8 +84,7 @@ if [ "$1" = 'mysqld' ]; then
 		echo 'FLUSH PRIVILEGES ;' >> "$tempSqlFile"
 
 		mysql -uroot < $tempSqlFile
-		sed -i -e '/^log-error/d' /etc/my.cnf
-		cat /etc/my.cnf
+
 		rm -f $tempSqlFile
 		kill $(cat $PIDFILE)
 
