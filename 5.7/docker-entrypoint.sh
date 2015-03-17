@@ -32,9 +32,15 @@ if [ "$1" = 'mysqld' ]; then
 		chown -R mysql:mysql "$DATADIR"
 
 		# Workaround for bug related to --verbose --help
-		rm $DATADIR/ib_logfile0
-		rm $DATADIR/ib_logfile1
-		rm $DATADIR/ibdata1
+		if [ -f "$DATADIR/ib_logfile0" ]; then
+			rm $DATADIR/ib_logfile0
+		fi
+		if [ -f "$DATADIR/ib_logfile1" ]; then
+			rm $DATADIR/ib_logfile1
+		fi
+		if [ -f "$DATADIR/ibdata1" ]; then
+			rm $DATADIR/ibdata1
+		fi
 		echo 'Initializing database'
 		mysqld --initialize-insecure=on --user=mysql --datadir=$DATADIR
 		echo 'Finished database init'
@@ -84,7 +90,7 @@ if [ "$1" = 'mysqld' ]; then
 		kill $(cat $PIDFILE)
 
 		for i in $(seq 30 -1 0); do
-			[ -S $SOCKET ] || break
+			[ -f "$PIDFILE" ] || break
 			echo 'MySQL init process in progress...'
 			sleep 1
 		done

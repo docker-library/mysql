@@ -77,7 +77,7 @@ if [ "$1" = 'mysqld' ]; then
 		rm -f $tempSqlFile
 		kill $(cat $PIDFILE)
 		for i in $(seq 30 -1 0); do
-			[ -S $SOCKET ] || break
+			[ -f "$PIDFILE" ] || break
 			echo 'MySQL init process in progress...'
 			sleep 1
 		done
