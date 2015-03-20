@@ -16,9 +16,9 @@ if [ "$1" = 'mysqld' ]; then
 			exit 1
 		fi
 		
-		echo 'Running mysql_install_db ...'
-		mysql_install_db --datadir="$DATADIR" --mysqld-file="$(which "$1")"
-		echo 'Finished mysql_install_db'
+		echo 'Initializing database'
+		mysqld --initialize-insecure=on --datadir="$DATADIR"
+		echo 'Database initialized'
 		
 		# These statements _must_ be on individual lines, and _must_ end with
 		# semicolons (no line breaks or comments are permitted).
