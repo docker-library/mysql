@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 
+# if command starts with an option, prepend mysqld
 if [ "${1:0:1}" = '-' ]; then
 	set -- mysqld "$@"
 fi
@@ -17,7 +18,9 @@ if [ "$1" = 'mysqld' ]; then
 		fi
 		
 		echo 'Running mysql_install_db ...'
-		mysql_install_db --datadir="$DATADIR"
+		# pass --defaults-file and --defaults-extra-file to mysql_install_db
+		DEFAULTS_FILE_ARGS=$(egrep -o -- '--defaults(|-extra)-file=[^ ]+' <<< "$@")
+		mysql_install_db --datadir="$DATADIR" $DEFAULTS_FILE_ARGS
 		echo 'Finished mysql_install_db'
 		
 		# These statements _must_ be on individual lines, and _must_ end with
@@ -26,6 +29,10 @@ if [ "$1" = 'mysqld' ]; then
 		
 		tempSqlFile='/tmp/mysql-first-time.sql'
 		cat > "$tempSqlFile" <<-EOSQL
+		        -- What's done in this file shouldn't be replicated
+			--  or products like mysql-fabric won't work
+       			SET @@SESSION.SQL_LOG_BIN=0;
+
 			DELETE FROM mysql.user ;
 			CREATE USER 'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' ;
 			GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;
