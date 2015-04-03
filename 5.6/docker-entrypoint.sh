@@ -18,9 +18,7 @@ if [ "$1" = 'mysqld' ]; then
 		fi
 		
 		echo 'Running mysql_install_db ...'
-		# pass --defaults-file and --defaults-extra-file to mysql_install_db
-		DEFAULTS_FILE_ARGS=$(egrep -o -- '--defaults(|-extra)-file=[^ ]+' <<< "$@")
-		mysql_install_db --datadir="$DATADIR" $DEFAULTS_FILE_ARGS
+		mysql_install_db --datadir="$DATADIR"
 		echo 'Finished mysql_install_db'
 		
 		# These statements _must_ be on individual lines, and _must_ end with
