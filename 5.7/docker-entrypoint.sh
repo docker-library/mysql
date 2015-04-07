@@ -18,7 +18,7 @@ fi
 if [ "$1" = 'mysqld' ]; then
 	# Get config
 	DATADIR="$("$@" --verbose --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
-	SOCKET=$(get_option  mysqld socket "$datadir/mysql.sock")
+	SOCKET=$(get_option  mysqld socket "$DATADIR/mysql.sock")
 	PIDFILE=$(get_option mysqld pid-file "/var/run/mysqld/mysqld.pid")
 
 	if [ ! -d "$DATADIR/mysql" ]; then
@@ -28,13 +28,13 @@ if [ "$1" = 'mysqld' ]; then
 			exit 1
 		fi
 
-		mkdir -p $DATADIR
+		mkdir -p "$DATADIR"
 		chown -R mysql:mysql "$DATADIR"
 		echo 'Initializing database'
 		mysqld --initialize-insecure=on --datadir="$DATADIR"
 		echo 'Database initialized'
 
-		mysqld --user=mysql --datadir=$DATADIR --skip-networking &
+		mysqld --user=mysql --datadir="$DATADIR" --skip-networking &
 		for i in $(seq 30 -1 0); do
 			[ -S $SOCKET ] && break
 			echo 'MySQL init process in progress...'
@@ -79,8 +79,8 @@ if [ "$1" = 'mysqld' ]; then
 
 		echo 'FLUSH PRIVILEGES ;' >> "$tempSqlFile"
 
-		mysql -uroot < $tempSqlFile
-		rm -f $tempSqlFile
+		mysql -uroot < "$tempSqlFile"
+		rm -f "$tempSqlFile"
 		kill $(cat $PIDFILE)
 		for i in $(seq 30 -1 0); do
 			[ -S $SOCKET ] || break

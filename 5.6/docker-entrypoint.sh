@@ -18,7 +18,7 @@ fi
 if [ "$1" = 'mysqld' ]; then
 	# Get config
 	DATADIR="$("$@" --verbose --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
-	SOCKET=$(get_option  mysqld socket "$datadir/mysql.sock")
+	SOCKET=$(get_option  mysqld socket "$DATADIR/mysql.sock")
 	PIDFILE=$(get_option mysqld pid-file "/var/run/mysqld/mysqld.pid")
 
 	if [ ! -d "$DATADIR/mysql" ]; then
@@ -27,16 +27,16 @@ if [ "$1" = 'mysqld' ]; then
 			echo >&2 '  Did you forget to add -e MYSQL_ROOT_PASSWORD=... ?'
 			exit 1
 		fi
-		mkdir -p $DATADIR
+		mkdir -p "$DATADIR"
 		chown -R mysql:mysql "$DATADIR"
 
 		echo 'Running mysql_install_db'
-		mysql_install_db --user=mysql --datadir=$DATADIR --rpm --keep-my-cnf
+		mysql_install_db --user=mysql --datadir="$DATADIR" --rpm --keep-my-cnf
 		echo 'Finished mysql_install_db'
 
-		mysqld --user=mysql --datadir=$DATADIR --skip-networking &
+		mysqld --user=mysql --datadir="$DATADIR" --skip-networking &
 		for i in $(seq 30 -1 0); do
-			[ -S $SOCKET ] && break
+			[ -S "$SOCKET" ] && break
 			echo 'MySQL init process in progress...'
 			sleep 1
 		done
@@ -75,9 +75,9 @@ if [ "$1" = 'mysqld' ]; then
 
 		echo 'FLUSH PRIVILEGES ;' >> "$tempSqlFile"
 
-		mysql -uroot < $tempSqlFile
+		mysql -uroot < "$tempSqlFile"
 
-		rm -f $tempSqlFile
+		rm -f "$tempSqlFile"
 		kill $(cat $PIDFILE)
 		for i in $(seq 30 -1 0); do
 			[ -S $SOCKET ] || break
