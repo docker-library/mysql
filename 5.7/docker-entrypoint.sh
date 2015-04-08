@@ -41,6 +41,9 @@ if [ "$1" = 'mysqld' ]; then
 		if [ -f "$DATADIR/ibdata1" ]; then
 			rm $DATADIR/ibdata1
 		fi
+		if [ -f "$DATADIR/ib_buffer_pool" ]; then
+			rm $DATADIR/ib_buffer_pool
+		fi
 		echo 'Initializing database'
 		mysqld --initialize-insecure=on --user=mysql --datadir=$DATADIR
 		echo 'Finished database init'
