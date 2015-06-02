@@ -16,7 +16,7 @@ fi
 
 if [ "$1" = 'mysqld' ]; then
 	# Get config
-	DATADIR="$("$@" --verbose --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
+	DATADIR="$("$@" --verbose --help --innodb-read-only 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
 	SOCKET=$(get_option  mysqld socket "$datadir/mysql.sock")
 	PIDFILE=$(get_option mysqld pid-file "/var/run/mysqld/mysqld.pid")
 
@@ -31,19 +31,6 @@ if [ "$1" = 'mysqld' ]; then
 		fi
 		chown -R mysql:mysql "$DATADIR"
 
-		# Workaround for bug related to --verbose --help
-		if [ -f "$DATADIR/ib_logfile0" ]; then
-			rm $DATADIR/ib_logfile0
-		fi
-		if [ -f "$DATADIR/ib_logfile1" ]; then
-			rm $DATADIR/ib_logfile1
-		fi
-		if [ -f "$DATADIR/ibdata1" ]; then
-			rm $DATADIR/ibdata1
-		fi
-		if [ -f "$DATADIR/ib_buffer_pool" ]; then
-			rm $DATADIR/ib_buffer_pool
-		fi
 		echo 'Initializing database'
 		mysqld --initialize-insecure=on --user=mysql --datadir=$DATADIR
 		echo 'Finished database init'
