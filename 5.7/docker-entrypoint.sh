@@ -17,7 +17,7 @@ fi
 
 if [ "$1" = 'mysqld' ]; then
 	# Get config
-	DATADIR="$("$@" --verbose --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
+	DATADIR="$("$@" --verbose --help --innodb-read-only 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
 	SOCKET=$(get_option  mysqld socket "$DATADIR/mysql.sock")
 	PIDFILE=$(get_option mysqld pid-file "/var/run/mysqld/mysqld.pid")
 
