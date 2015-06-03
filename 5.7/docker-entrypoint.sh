@@ -46,10 +46,6 @@ if [ "$1" = 'mysqld' ]; then
 			exit 1
 		fi
 
-		# Workaround for bug in 5.7 that doesn't clean up after itself correctly 
-		rm -f $DATADIR/ib_logfile0
-		rm -f $DATADIR/ib_logfile1
-		rm -f $DATADIR/ibdata1
 		# These statements _must_ be on individual lines, and _must_ end with
 		# semicolons (no line breaks or comments are permitted).
 		# TODO proper SQL escaping on ALL the things D:
