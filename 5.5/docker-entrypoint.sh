@@ -5,7 +5,9 @@ get_option () {
 	local section=$1
 	local option=$2
 	local default=$3
-	ret=$(my_print_defaults $section | grep '^--'${option}'=' | cut -d= -f2-)
+	# my_print_defaults can output duplicates, if an option exists both globally and in
+	# a custom config file. We pick the last occurence, which is from the custom config.
+	ret=$(my_print_defaults $section | grep '^--'${option}'=' | cut -d= -f2- | tail -n1)
 	[ -z $ret ] && ret=$default
 	echo $ret
 }
