@@ -6,7 +6,7 @@ get_option () {
 	local option=$2
 	local default=$3
 	ret=$(my_print_defaults $section | grep '^--'${option}'=' | cut -d= -f2-)
-	[ -z $ret ] && ret=$default
+	[ -z "$ret" ] && ret=$default
 	echo $ret
 }
 
@@ -27,17 +27,17 @@ if [ "$1" = 'mysqld' ]; then
 			exit 1
 		fi
 		if [ ! -d "$DATADIR" ]; then
-			mkdir -p $DATADIR
+			mkdir -p "$DATADIR"
 		fi
 		chown -R mysql:mysql "$DATADIR"
 
 		echo 'Initializing database'
-		mysqld --initialize-insecure=on --user=mysql --datadir=$DATADIR
+		mysqld --initialize-insecure=on --user=mysql --datadir="$DATADIR"
 		echo 'Finished database init'
 
-		mysqld --user=mysql --datadir=$DATADIR --skip-networking &
+		mysqld --user=mysql --datadir="$DATADIR" --skip-networking &
 		for i in $(seq 30 -1 0); do
-			[ -S $SOCKET ] && break
+			[ -S "$SOCKET" ] && break
 			echo 'MySQL init process in progress...'
 			sleep 1
 		done
@@ -62,7 +62,7 @@ if [ "$1" = 'mysqld' ]; then
 		EOSQL
 
 		if [ "$MYSQL_DATABASE" ]; then
-			echo "CREATE DATABASE IF NOT EXISTS \`"$MYSQL_DATABASE"\` ;" >> "$tempSqlFile"
+			echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;" >> "$tempSqlFile"
 		fi
 
 		if [ "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
@@ -75,10 +75,10 @@ if [ "$1" = 'mysqld' ]; then
 
 		echo 'FLUSH PRIVILEGES ;' >> "$tempSqlFile"
 
-		mysql -uroot < $tempSqlFile
+		mysql -uroot < "$tempSqlFile"
 
-		rm -f $tempSqlFile
-		kill $(cat $PIDFILE)
+		rm -f "$tempSqlFile"
+		kill $(cat "$PIDFILE")
 
 		for i in $(seq 30 -1 0); do
 			[ -f "$PIDFILE" ] || break
