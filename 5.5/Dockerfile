@@ -1,5 +1,4 @@
 FROM debian:wheezy
-
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
 RUN groupadd -r mysql && useradd -r -g mysql mysql
 
@@ -41,13 +40,10 @@ ENV PATH $PATH:/usr/local/mysql/bin:/usr/local/mysql/scripts
 RUN mkdir -p /etc/mysql/conf.d \
 	&& { \
 		echo '[mysqld]'; \
-		echo '!includedir /etc/mysql/conf.d/'; \
-	} > /etc/mysql/my.cnf \
-	&& { \
-		echo '[mysqld]'; \
 		echo 'user = mysql'; \
 		echo 'datadir = /var/lib/mysql'; \
-	} > /etc/mysql/conf.d/docker.cnf
+		echo '!includedir /etc/mysql/conf.d/'; \
+	} > /etc/mysql/my.cnf
 
 VOLUME /var/lib/mysql
 

@@ -79,7 +79,7 @@ if [ "$1" = 'mysqld' ]; then
 
 		echo 'FLUSH PRIVILEGES ;' >> "$tempSqlFile"
 
-		mysql -uroot < "$tempSqlFile"
+		mysql --protocol=socket -uroot < "$tempSqlFile"
 
 		rm -f "$tempSqlFile"
 		kill $(cat $PIDFILE)
