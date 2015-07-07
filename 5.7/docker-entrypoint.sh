@@ -48,6 +48,8 @@ if [ "$1" = 'mysqld' ]; then
 			exit 1
 		fi
 
+		mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql --protocol=socket -uroot mysql
+
 		# These statements _must_ be on individual lines, and _must_ end with
 		# semicolons (no line breaks or comments are permitted).
 		# TODO proper SQL escaping on ALL the things D:

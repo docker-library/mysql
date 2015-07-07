@@ -48,6 +48,9 @@ if [ "$1" = 'mysqld' ]; then
 			exit 1
 		fi
 
+		# sed is for https://bugs.mysql.com/bug.php?id=20545
+		mysql_tzinfo_to_sql /usr/share/zoneinfo | sed 's/Local time zone must be set--see zic manual page/FCTY/' | mysql --protocol=socket -uroot mysql
+
 		# These statements _must_ be on individual lines, and _must_ end with
 		# semicolons (no line breaks or comments are permitted).
 		# TODO proper SQL escaping on ALL the things D:
