@@ -66,9 +66,26 @@ if [ "$1" = 'mysqld' ]; then
 			DROP DATABASE IF EXISTS test ;
 		EOSQL
 
-		if [ "$MYSQL_DATABASE" ]; then
-			echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;" >> "$tempSqlFile"
-		fi
+
+                # Create database if specified on command line
+                if [ "$MYSQL_DATABASE" ]; then
+                        echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;" >> "$tempSqlFile"
+                fi
+
+                # Create even more databases if specified on command line
+                i=1
+                while :
+                do
+                        this_varname=MYSQL_DATABASE$i
+                        thisdb=${!this_varname}
+                        if [ "$thisdb" ]; then
+                                echo "CREATE DATABASE IF NOT EXISTS \`$thisdb\` ;" >> "$tempSqlFile"
+                                ((i++))
+                        else
+                                break
+                        fi
+                done
+
 
 		if [ "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
 			echo "CREATE USER '"$MYSQL_USER"'@'%' IDENTIFIED BY '"$MYSQL_PASSWORD"' ;" >> "$tempSqlFile"
