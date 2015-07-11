@@ -138,7 +138,7 @@ if [ "$1" = 'mysqld' ]; then
 			fi
 
 			# Yet another user?
-			if [ "$user" ] || [ "$pass" ]; then
+			if [ "$user" ] || [ "$pass" ] || [ "$db" ]; then
 				let ++i
 			else
 				break
