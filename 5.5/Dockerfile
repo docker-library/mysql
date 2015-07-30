@@ -40,6 +40,8 @@ ENV PATH $PATH:/usr/local/mysql/bin:/usr/local/mysql/scripts
 RUN mkdir -p /etc/mysql/conf.d \
 	&& { \
 		echo '[mysqld]'; \
+		echo 'skip-host-cache'; \
+		echo 'skip-name-resolve'; \
 		echo 'user = mysql'; \
 		echo 'datadir = /var/lib/mysql'; \
 		echo '!includedir /etc/mysql/conf.d/'; \
