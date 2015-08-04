@@ -83,6 +83,14 @@ if [ "$1" = 'mysqld' ]; then
 		mysql --protocol=socket -uroot < "$tempSqlFile"
 
 		rm -f "$tempSqlFile"
+
+		# Call each entrypoint init script
+		if [ -d /docker-entrypoint-initdb.d ]; then
+			for f in /docker-entrypoint-initdb.d/*.sh; do
+				[ -f "$f" ] && . "$f"
+			done
+		fi
+
 		kill $(cat $PIDFILE)
 		for i in $(seq 30 -1 0); do
 			[ -f "$PIDFILE" ] || break
