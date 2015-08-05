@@ -65,18 +65,85 @@ if [ "$1" = 'mysqld' ]; then
 			GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;
 			DROP DATABASE IF EXISTS test ;
 		EOSQL
+               
+ 
+		# Create databases if specified on command line
+                i=0
+                while :
+                do
+                        if [ "$i" -eq "0" ]; then             # support "legacy" option before multiple database support
+                                this_varname=MYSQL_DATABASE
+                        else
+                                this_varname=MYSQL_DATABASE$i
+                        fi
+                        thisdb=${!this_varname}
+                        
+			if [ "$thisdb" ]; then
+                                echo "CREATE DATABASE IF NOT EXISTS \`$thisdb\` ;" >> "$tempSqlFile"
+                        fi
 
-		if [ "$MYSQL_DATABASE" ]; then
-			echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;" >> "$tempSqlFile"
-		fi
+                        # Yet another DB?
+                        if [ "$thisdb" ] || [ "$i" -eq "0" ]; then
+                                let ++i
+                        else
+                                break
+                        fi
+                done
 
-		if [ "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
-			echo "CREATE USER '"$MYSQL_USER"'@'%' IDENTIFIED BY '"$MYSQL_PASSWORD"' ;" >> "$tempSqlFile"
+                # Create users and grant them rights on the appropriate databases
+                # If no number is used this user is granted rights on *all* DBs.
+                if [ "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
+                        echo "CREATE USER '"$MYSQL_USER"'@'%' IDENTIFIED BY '"$MYSQL_PASSWORD"' ;" >> "$tempSqlFile"
 
-			if [ "$MYSQL_DATABASE" ]; then
-				echo "GRANT ALL ON \`"$MYSQL_DATABASE"\`.* TO '"$MYSQL_USER"'@'%' ;" >> "$tempSqlFile"
+                        i=0
+                        while :
+                        do
+                                if [ "$i" -eq "0" ]; then             # support "legacy" option before multiple database support
+                                        this_varname=MYSQL_DATABASE
+                                else
+                                        this_varname=MYSQL_DATABASE$i
+                                fi
+
+                                thisdb=${!this_varname}
+                                if [ "$thisdb" ]; then
+                                        echo "GRANT ALL ON \`"$thisdb"\`.* TO '"$MYSQL_USER"'@'%' ;" >> "$tempSqlFile"
+                                fi
+
+                                # Yet another DB?
+                                if [ "$thisdb" ] || [ "$i" -eq "0" ]; then
+                                        let ++i
+                                else
+                                        break
+                                fi
+                        done
+                fi
+		
+		# If numbers are used on user specification they get rights on the database with the same number
+                i=1
+                while :
+                do
+			db_varname=MYSQL_DATABASE$i
+			user_varname=MYSQL_USER$i
+			pass_varname=MYSQL_PASSWORD$i
+
+			db=${!db_varname}
+			user=${!user_varname}
+			pass=${!pass_varname}
+			
+			if [ "$user" -a "$pass" ]; then
+				echo "CREATE USER '"$user"'@'%' IDENTIFIED BY '"$pass"' ;" >> "$tempSqlFile"
+				if [ "$db" ]; then
+					echo "GRANT ALL ON \`"$db"\`.* TO '"$user"'@'%' ;" >> "$tempSqlFile"	
+				fi
 			fi
-		fi
+
+			# Yet another user?
+			if [ "$user" ] || [ "$pass" ] || [ "$db" ]; then
+				let ++i
+			else
+				break
+			fi
+		done
 
 		echo 'FLUSH PRIVILEGES ;' >> "$tempSqlFile"
 
