@@ -1,17 +1,6 @@
 #!/bin/bash
 set -e
 
-get_option () {
-	local section=$1
-	local option=$2
-	local default=$3
-	# my_print_defaults can output duplicates, if an option exists both globally and in
-	# a custom config file. We pick the last occurence, which is from the custom config.
-	ret=$(my_print_defaults $section | grep '^--'${option}'=' | cut -d= -f2- | tail -n1)
-	[ -z $ret ] && ret=$default
-	echo $ret
-}
-
 # if command starts with an option, prepend mysqld
 if [ "${1:0:1}" = '-' ]; then
 	set -- mysqld "$@"
@@ -20,9 +9,6 @@ fi
 if [ "$1" = 'mysqld' ]; then
 	# Get config
 	DATADIR="$("$@" --verbose --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
-	SOCKET=$(get_option  mysqld socket "/tmp/mysql.sock")
-	HOSTNAME=$(hostname)
-	PIDFILE=$(get_option mysqld pid-file "$DATADIR/mysqld.pid")
 
 	if [ ! -d "$DATADIR/mysql" ]; then
 		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" ]; then
@@ -38,25 +24,26 @@ if [ "$1" = 'mysqld' ]; then
 		mysql_install_db --user=mysql --datadir="$DATADIR" --rpm --basedir=/usr/local/mysql
 		echo 'Finished mysql_install_db'
 
-		mysqld --user=mysql --datadir="$DATADIR" --skip-networking --basedir=/usr/local/mysql --pid-file="$PIDFILE" &
-		for i in $(seq 30 -1 0); do
-			[ -S "$SOCKET" ] && break
+		mysqld --user=mysql --datadir="$DATADIR" --skip-networking --basedir=/usr/local/mysql &
+		pid="$!"
+
+		mysql=( mysql --protocol=socket -uroot )
+
+		for i in {30..0}; do
+			if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
+				break
+			fi
 			echo 'MySQL init process in progress...'
 			sleep 1
 		done
-		if [ $i = 0 ]; then
+		if [ "$i" = 0 ]; then
 			echo >&2 'MySQL init process failed.'
 			exit 1
 		fi
 
-		mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql --protocol=socket -uroot mysql
+		mysql_tzinfo_to_sql /usr/share/zoneinfo | "${mysql[@]}" mysql
 
-		# These statements _must_ be on individual lines, and _must_ end with
-		# semicolons (no line breaks or comments are permitted).
-		# TODO proper SQL escaping on ALL the things D:
-
-		tempSqlFile=$(mktemp /tmp/mysql-first-time.XXXXXX.sql)
-		cat > "$tempSqlFile" <<-EOSQL
+		"${mysql[@]}" <<-EOSQL
 			-- What's done in this file shouldn't be replicated
 			--  or products like mysql-fabric won't work
 			SET @@SESSION.SQL_LOG_BIN=0;
@@ -65,36 +52,43 @@ if [ "$1" = 'mysqld' ]; then
 			CREATE USER 'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' ;
 			GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION ;
 			DROP DATABASE IF EXISTS test ;
+			FLUSH PRIVILEGES ;
 		EOSQL
+		mysql+=( -p"${MYSQL_ROOT_PASSWORD}" )
 
 		if [ "$MYSQL_DATABASE" ]; then
-			echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;" >> "$tempSqlFile"
+			echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;" | "${mysql[@]}"
+			mysql+=( "$MYSQL_DATABASE" )
 		fi
 
 		if [ "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
-			echo "CREATE USER '"$MYSQL_USER"'@'%' IDENTIFIED BY '"$MYSQL_PASSWORD"' ;" >> "$tempSqlFile"
+			echo "CREATE USER '"$MYSQL_USER"'@'%' IDENTIFIED BY '"$MYSQL_PASSWORD"' ;" | "${mysql[@]}"
 
 			if [ "$MYSQL_DATABASE" ]; then
-				echo "GRANT ALL ON \`"$MYSQL_DATABASE"\`.* TO '"$MYSQL_USER"'@'%' ;" >> "$tempSqlFile"
+				echo "GRANT ALL ON \`"$MYSQL_DATABASE"\`.* TO '"$MYSQL_USER"'@'%' ;" | "${mysql[@]}"
 			fi
+
+			echo 'FLUSH PRIVILEGES ;' | "${mysql[@]}"
 		fi
 
-		echo 'FLUSH PRIVILEGES ;' >> "$tempSqlFile"
-
-		mysql --protocol=socket -uroot < "$tempSqlFile"
-
-		rm -f "$tempSqlFile"
-		kill $(cat $PIDFILE)
-		for i in $(seq 30 -1 0); do
-			[ -f "$PIDFILE" ] || break
-			echo 'MySQL init process in progress...'
-			sleep 1
+		echo
+		for f in /docker-entrypoint-initdb.d/*; do
+			case "$f" in
+				*.sh)  echo "$0: running $f"; . "$f" ;;
+				*.sql) echo "$0: running $f"; "${mysql[@]}" < "$f" && echo ;;
+				*)     echo "$0: ignoring $f" ;;
+			esac
+			echo
 		done
-		if [ $i = 0 ]; then
-			echo >&2 'MySQL hangs during init process.'
+
+		if ! kill -s TERM "$pid" || ! wait "$pid"; then
+			echo >&2 'MySQL init process failed.'
 			exit 1
 		fi
+
+		echo
 		echo 'MySQL init process done. Ready for start up.'
+		echo
 	fi
 
 	chown -R mysql:mysql "$DATADIR"
