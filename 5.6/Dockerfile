@@ -1,14 +1,13 @@
 FROM oraclelinux:latest
 
-## -- The environment variables set using ENV will persist when a container
-## -- is run from the resulting image. -- ##
-
 ENV PACKAGE_URL https://repo.mysql.com/yum/mysql-5.6-community/docker/x86_64/mysql-community-server-minimal-5.6.26-2.el7.x86_64.rpm
 
 # Install server
 RUN rpmkeys --import http://repo.mysql.com/RPM-GPG-KEY-mysql \
   && yum install -y $PACKAGE_URL \
   && rm -rf /var/cache/yum/*
+
+RUN mkdir /docker-entrypoint-initdb.d
 
 VOLUME /var/lib/mysql
 
