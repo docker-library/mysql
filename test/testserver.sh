@@ -41,10 +41,6 @@ then
 	fi
 fi
 
-echo "Running cleanup."
-docker kill testserver
-docker rm testserver
-echo "Cleanup complete."
 if [ $SUCCESS == true ];
 then
 	echo "Test passed"

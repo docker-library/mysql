@@ -16,7 +16,6 @@ fi
 
 	
 IMAGELIST=$(docker images | grep $VERSION)
-docker rmi "mysql/mysql-server:$VERSION" || :
 versionregex="mysql/mysql-server   $VERSION"
 if [[ $IMAGELIST =~ $versionregex ]];
 then
