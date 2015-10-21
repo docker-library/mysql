@@ -10,10 +10,14 @@ fi
 versions=( "${versions[@]%/}" )
 
 for version in "${versions[@]}"; do
-	fullVersion="$(curl -sSL "https://dev.mysql.com/downloads/mysql/$version.html?os=2" \
-		| grep '">(mysql-'"$version"'.*-linux.*-x86_64\.tar\.gz)<' \
-		| sed -r 's!.*\(mysql-([^<)]+)-linux.*-x86_64\.tar\.gz\).*!\1!' \
-		| sort -V | tail -1)"
+	if [ "$version" = '5.5' ]; then
+		fullVersion="$(curl -sSL "https://dev.mysql.com/downloads/mysql/$version.html?os=2" \
+			| grep '">(mysql-'"$version"'.*-linux.*-x86_64\.tar\.gz)<' \
+			| sed -r 's!.*\(mysql-([^<)]+)-linux.*-x86_64\.tar\.gz\).*!\1!' \
+			| sort -V | tail -1)"
+	else
+		fullVersion="$(curl -fsSL "http://repo.mysql.com/apt/debian/dists/jessie/mysql-$version/binary-amd64/Packages.gz" | gunzip | awk -F ': ' '$1 == "Package" { pkg = $2; next } pkg == "mysql-server" && $1 == "Version" { print $2 }')"
+	fi
 	
 	(
 		set -x
