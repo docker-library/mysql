@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y perl --no-install-recommends && rm -rf 
 RUN apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys A4A9406876FCBD3C456770C88C718D3B5072E1F5
 
 ENV MYSQL_MAJOR 5.6
-ENV MYSQL_VERSION 5.6.27
+ENV MYSQL_VERSION 5.6.27-1debian8
 
 RUN echo "deb http://repo.mysql.com/apt/debian/ jessie mysql-${MYSQL_MAJOR}" > /etc/apt/sources.list.d/mysql.list
 
@@ -28,7 +28,7 @@ RUN { \
 		echo mysql-community-server mysql-community-server/re-root-pass password ''; \
 		echo mysql-community-server mysql-community-server/remove-test-db select false; \
 	} | debconf-set-selections \
-	&& apt-get update && apt-get install -y mysql-server="${MYSQL_VERSION}"* && rm -rf /var/lib/apt/lists/* \
+	&& apt-get update && apt-get install -y mysql-server="${MYSQL_VERSION}" && rm -rf /var/lib/apt/lists/* \
 	&& rm -rf /var/lib/mysql && mkdir -p /var/lib/mysql
 
 # comment out a few problematic configuration values
