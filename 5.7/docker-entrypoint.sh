@@ -24,7 +24,7 @@ if [ "$1" = 'mysqld' ]; then
 		mysqld --initialize-insecure=on --datadir="$DATADIR"
 		echo 'Database initialized'
 
-		mysqld --user=mysql --datadir="$DATADIR" --skip-networking &
+		"$@" --skip-networking &
 		pid="$!"
 
 		mysql=( mysql --protocol=socket -uroot )
@@ -41,7 +41,10 @@ if [ "$1" = 'mysqld' ]; then
 			exit 1
 		fi
 
-		mysql_tzinfo_to_sql /usr/share/zoneinfo | "${mysql[@]}" mysql
+		if [ -z "$MYSQL_INITDB_SKIP_TZINFO" ]; then
+			# sed is for https://bugs.mysql.com/bug.php?id=20545
+			mysql_tzinfo_to_sql /usr/share/zoneinfo | sed 's/Local time zone must be set--see zic manual page/FCTY/' | "${mysql[@]}" mysql
+		fi
 
 		"${mysql[@]}" <<-EOSQL
 			-- What's done in this file shouldn't be replicated
@@ -65,10 +68,10 @@ if [ "$1" = 'mysqld' ]; then
 		fi
 
 		if [ "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
-			echo "CREATE USER '"$MYSQL_USER"'@'%' IDENTIFIED BY '"$MYSQL_PASSWORD"' ;" | "${mysql[@]}"
+			echo "CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD' ;" | "${mysql[@]}"
 
 			if [ "$MYSQL_DATABASE" ]; then
-				echo "GRANT ALL ON \`"$MYSQL_DATABASE"\`.* TO '"$MYSQL_USER"'@'%' ;" | "${mysql[@]}"
+				echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* TO '$MYSQL_USER'@'%' ;" | "${mysql[@]}"
 			fi
 
 			echo 'FLUSH PRIVILEGES ;' | "${mysql[@]}"
