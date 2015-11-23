@@ -10,6 +10,10 @@ if [ "$1" = 'mysqld' ]; then
 	# Get config
 	DATADIR="$("$@" --verbose --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
 
+	# Set the default charset to UTF8 if not set.
+	MYSQL_DATABASE_CHARSET=${MYSQL_DATABASE_CHARSET:-utf8}
+	MYSQL_DATABASE_COLLATE=${MYSQL_DATABASE_COLLATE:-utf8_general_ci}
+
 	if [ ! -d "$DATADIR/mysql" ]; then
 		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" ]; then
 			echo >&2 'error: database is uninitialized and MYSQL_ROOT_PASSWORD not set'
@@ -63,7 +67,10 @@ if [ "$1" = 'mysqld' ]; then
 		fi
 
 		if [ "$MYSQL_DATABASE" ]; then
-			echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;" | "${mysql[@]}"
+			echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\`
+			      CHARACTER SET $MYSQL_DATABASE_CHARSET
+						COLLATE $MYSQL_DATABASE_COLLATE;" | "${mysql[@]}"
+
 			mysql+=( "$MYSQL_DATABASE" )
 		fi
 
