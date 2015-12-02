@@ -13,7 +13,7 @@ RUN mkdir /docker-entrypoint-initdb.d
 RUN apt-get update && apt-get install -y perl --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
 # mysqld: error while loading shared libraries: libaio.so.1: cannot open shared object file: No such file or directory
-RUN apt-get update && apt-get install -y libaio1 && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y libaio1 pwgen && rm -rf /var/lib/apt/lists/*
 
 # gpg: key 5072E1F5: public key "MySQL Release Engineering <mysql-build@oss.oracle.com>" imported
 RUN gpg --keyserver ha.pool.sks-keyservers.net --recv-keys A4A9406876FCBD3C456770C88C718D3B5072E1F5
