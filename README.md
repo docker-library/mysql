@@ -137,6 +137,22 @@ Note that users on systems with SELinux enabled may experience problems with thi
 
 If you start your MySQL container instance with a data directory that already contains a database (specifically, a `mysql` subdirectory), the `$MYSQL_ROOT_PASSWORD` variable should be omitted from the `docker run` command line; it will in any case be ignored, and the pre-existing database will not be changed in any way.
 
+## Port forwarding
+
+Docker allows mapping of ports on the container to ports on the host system by using the -p option. If you start the container as follows, you can connect to the database by connecting your client to a port on the host machine, in this example port 6603:
+
+    docker run --name my-container-name -p 6603:3306 -d mysql/mysql-server
+
+## Passing options to the server
+
+You can pass arbitrary command line options to the MySQL server by appending them to the `run command`:
+
+    docker run --name my-container-name -d mysql/mysql-server --option1=value --option2=value
+
+In this case, the values of option1 and option2 will be passed directly to the server when it is started. The following command will for instance start your container with UTF-8 as the default setting for character set and collation for all databases in MySQL:
+
+    docker run --name my-container-name -d mysql/mysql-server --character-set-server=utf8 --collation-server=utf8_general_ci
+
 ## Using a Custom MySQL Config File
 
 The MySQL startup configuration in these Docker images is specified in the file `/etc/my.cnf`. If you want to customize this configuration for your own purposes, you can create your alternative configuration file in a directory on the host machine and then mount this file in the appropriate location inside the MySQL container, effectively replacing the standard configuration file.
