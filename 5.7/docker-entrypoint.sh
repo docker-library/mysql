@@ -16,6 +16,10 @@ if [ "$1" = 'mysqld' ]; then
 			echo >&2 '  You need to specify one of MYSQL_ROOT_PASSWORD, MYSQL_ALLOW_EMPTY_PASSWORD and MYSQL_RANDOM_ROOT_PASSWORD'
 			exit 1
 		fi
+		# If the password variable is a filename we use the contents of the file
+		if [ -f "$MYSQL_ROOT_PASSWORD" ]; then
+			MYSQL_ROOT_PASSWORD="$(cat $MYSQL_ROOT_PASSWORD)"
+		fi
 		mkdir -p "$DATADIR"
 		chown -R mysql:mysql "$DATADIR"
 
