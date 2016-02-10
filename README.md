@@ -64,6 +64,8 @@ Most of the variables listed below are optional, but one of the variables `MYSQL
 
 This variable specifies a password that will be set for the MySQL root superuser account. In the above example, it was set `to my-secret-pw`. **NOTE:** Setting the MySQL root user password on the command line is insecure. See the section *Secure Container Startup* below for an alternative.
 
+As an alternative to specifying the password explicitly, if the variable is set to a file path, the contents of the file will be used as the root password.
+
 ## `MYSQL_RANDOM_ROOT_PASSWORD`
 
 When this variable is set to `yes`, a random password for the server's root user will be generated. The password will be printed to stdout in the container, and it can be obtained by using the command `docker logs my-container-name`.
@@ -110,6 +112,10 @@ Start the MySQL command line client and log in using the randomly set root passw
 And finally, on the mysql client command line, set a new, secure root password for MySQL:
 
     ALTER USER root IDENTIFIED BY 'my-secret-pw';
+
+An alternative is to use MYSQL_ROOT_PASSWORD, but set it to point to a file that contains the password. This provides better security than having the password on the command line and is easier to use in automated processes than the random password:
+
+    docker run --name my-container-name -e MYSQL_ROOT_PASSWORD=/tmp/password.txt -v mypasswordfile:/tmp/password.txt -e MYSQL_ONETIME_PASSWORD=yes -d mysql/mysql-server:tag
 
 ## Where to Store Data
 
