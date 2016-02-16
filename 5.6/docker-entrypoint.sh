@@ -107,6 +107,13 @@ if [ "$1" = 'mysqld' ]; then
 		echo
 	fi
 
+  if [ ! -z "$MYSQL_CUSTOM_DIR" ]; then
+    for dir in $MYSQL_CUSTOM_DIR; do
+        mkdir -p $dir
+        chown -R mysql:mysql $dir
+    done
+  fi
+
 	chown -R mysql:mysql "$DATADIR"
 fi
 
