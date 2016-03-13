@@ -108,7 +108,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 			echo >&2 'Sorry, this version of MySQL does not support "PASSWORD EXPIRE" (required for MYSQL_ONETIME_PASSWORD).'
 			echo >&2
 		fi
-		if ! kill -s TERM "$pid" || wait "$pid"; then
+		if ! kill -s TERM "$pid" || ! wait; then
 			echo >&2 'MySQL init process failed.'
 			exit 1
 		fi
