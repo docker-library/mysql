@@ -108,7 +108,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 				ALTER USER 'root'@'%' PASSWORD EXPIRE;
 			EOSQL
 		fi
-		if ! kill -s TERM "$pid" || ! wait "$pid"; then
+		if ! kill -s TERM "$pid" || wait "$pid"; then
 			echo >&2 'MySQL init process failed.'
 			exit 1
 		fi
