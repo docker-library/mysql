@@ -24,10 +24,10 @@ if [ "$1" = 'mysqld' ]; then
 		chown -R mysql:mysql "$DATADIR"
 
 		echo 'Initializing database'
-		mysqld --initialize-insecure=on --user=mysql --datadir="$DATADIR"
+		"$@" --initialize-insecure=on
 		echo 'Database initialized'
 
-		mysqld --user=mysql --datadir="$DATADIR" --skip-networking &
+		"$@" --skip-networking &
 		pid="$!"
 
 		mysql=( mysql --protocol=socket -uroot )
