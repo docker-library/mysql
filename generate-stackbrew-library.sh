@@ -52,24 +52,52 @@ join() {
 }
 
 for version in "${versions[@]}"; do
+
 	commit="$(dirCommit "$version")"
 
 	fullVersion="$(git show "$commit":"$version/Dockerfile" | awk '$1 == "ENV" && $2 == "MYSQL_VERSION" { gsub(/-.*$/, "", $3); print $3; exit }')"
 
-	versionAliases=()
-	while [ "$fullVersion" != "$version" -a "${fullVersion%[.-]*}" != "$fullVersion" ]; do
-		versionAliases+=( $fullVersion )
-		fullVersion="${fullVersion%[.-]*}"
-	done
-	versionAliases+=(
+	versionAliases=(
+		$fullVersion
 		$version
 		${aliases[$version]:-}
 	)
 
+	variantAliases=( "${versionAliases[@]/%/}" )
+	variantAliases=( "${variantAliases[@]//latest-/}" )
+
 	echo
 	cat <<-EOE
-		Tags: $(join ', ' "${versionAliases[@]}")
+		Tags: $(join ', ' "${variantAliases[@]}")
 		GitCommit: $commit
 		Directory: $version
 	EOE
+
+	for variant in \
+		ubuntu \
+	; do
+		[ -f "$version/$variant/Dockerfile" ] || continue
+
+		commit="$(dirCommit "$version/$variant")"
+
+		fullVersion="$(git show "$commit":"$version/$variant/Dockerfile" | awk '$1 == "ENV" && $2 == "MYSQL_VERSION" { gsub(/-.*$/, "", $3); print $3; exit }')"
+
+		versionAliases=(
+			$fullVersion
+			$version
+			${aliases[$version]:-}
+		)
+
+		slash='/'
+		variantAliases=( "${versionAliases[@]/%/-${variant//$slash/-}}" )
+		variantAliases=( "${variantAliases[@]//latest-/}" )
+
+		echo
+		cat <<-EOE
+			Tags: $(join ', ' "${variantAliases[@]}")
+			GitCommit: $commit
+			Directory: $version/$variant
+		EOE
+	done
 done
+
