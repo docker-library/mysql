@@ -2,18 +2,10 @@ language: bash
 services: docker
 
 env:
-  - MYSQL_VERSION=5.7
-  - MYSQL_VERSION=5.6
-  - MYSQL_VERSION=5.5
-  - DISTRIB=''
-  - DISTRIB=ubuntu
-
-matrix:
-  exclude:
-    - DISTRIB='ubuntu'
-        MYSQL_VERSION=5.6
-    - DISTRIB='ubuntu'
-        MYSQL_VERSION=5.5
+  - MYSQL_VERSION=5.7 DISTRIB=''
+  - MYSQL_VERSION=5.6 DISTRIB=''
+  - MYSQL_VERSION=5.5 DISTRIB=''
+  - MYSQL_VERSION=5.7 DISTRIB='ubuntu'
 
 install:
   - git clone https://github.com/docker-library/official-images.git ~/official-images
