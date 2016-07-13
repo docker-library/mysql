@@ -1,7 +1,11 @@
 FROM ubuntu:xenial
 
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
-RUN groupadd -r mysql && useradd -r -g mysql mysql
+RUN mkdir -p /var/lib/mysql/ \
+	&& groupadd -r mysql \
+	&& useradd -r -g mysql -d /var/lib/mysql/ mysql \
+	&& chown mysql:mysql /var/lib/mysql \
+	&& chmod 700 /var/lib/mysql
 
 # add gosu for easy step-down from root
 ENV GOSU_VERSION 1.7
