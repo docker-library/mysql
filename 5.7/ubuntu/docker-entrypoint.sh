@@ -22,7 +22,9 @@ _datadir() {
 }
 
 _logdir() {
-	dirname `"$@" --verbose --help 2>/dev/null | awk '$1 == "log-error" { print $2; exit }'`
+	echo "/var/log/mysql/"
+	# it returns stderr
+	#dirname `"$@" --verbose --help 2>/dev/null | awk '$1 == "log-error" { print $2; exit }'`
 }
 
 # allow the container to be started with `--user`
