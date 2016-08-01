@@ -18,7 +18,7 @@ for arg; do
 done
 
 _datadir() {
-	"$@" --verbose --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }'
+	"$@" --verbose --innodb-read-only --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }'
 }
 
 _logdir() {
