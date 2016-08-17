@@ -7,6 +7,16 @@ if [ "${1:0:1}" = '-' ]; then
 fi
 
 if [ "$1" = 'mysqld' ]; then
+	# Test we're able to startup without errors. We redirect stdout to /dev/null so
+	# only the error messages are left.
+	result=0
+	output=$("$@" --verbose --help 2>&1 > /dev/null) || result=$?
+	if [ ! "$result" = "0" ]; then
+		echo >&2 'error: could not run mysql. This could be caused by a misconfigured my.cnf'
+		echo >&2 "$output"
+		exit 1
+	fi
+
 	# Get config
 	DATADIR="$("$@" --verbose --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }')"
 
