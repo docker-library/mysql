@@ -19,7 +19,11 @@ for arg; do
 done
 
 _datadir() {
-	"$@" --verbose --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }'
+   if [ -z ${DATADIR+x} ]; then
+      "$@" --verbose --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }'
+   else
+      echo $DATADIR
+   fi
 }
 
 # allow the container to be started with `--user`
