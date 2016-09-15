@@ -13,10 +13,11 @@ These are optimized MySQL Server Docker images, created and maintained by the My
     MySQL Server 5.5 (tag: 5.5)
     MySQL Server 5.6 (tag: 5.6)
     MySQL Server 5.7, the latest GA version (tag: 5.7 or latest)
+    MySQL Server 8.0 Development Milestone 1, preview release (tag: 8.0)
 
-Images are updated when new MySQL Server maintenance releases and development milestones are published.
+Images are updated when new MySQL Server maintenance releases and development milestones are published. Please note that milestone releases are for preview purposes only and should not be used in production setups.
 
-We also publish experimental early previews of MySQL Server from time to time. Please visit the [MySQL Labs Docker image page](https://hub.docker.com/r/mysql/mysql-labs/) to see what is available.
+We also from time to time publish special MySQL Server images that contain experimental features. Please visit the [MySQL Labs Docker image page](https://hub.docker.com/r/mysql/mysql-labs/) to see what is available.
 
 # How to Use the MySQL Images
 
