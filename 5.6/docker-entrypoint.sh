@@ -18,12 +18,27 @@ for arg; do
 	esac
 done
 
+_check_config() {
+	toRun=( "$@" --verbose --help --log-bin-index="$(mktemp -u)" )
+	if ! errors="$("${toRun[@]}" 2>&1 >/dev/null)"; then
+		cat >&2 <<-EOM
+
+			ERROR: mysqld failed while attempting to determine datadir
+			command was: "${toRun[*]}"
+
+			$errors
+		EOM
+		exit 1
+	fi
+}
+
 _datadir() {
-	"$@" --verbose --help --log-bin-index=`mktemp -u` 2>/dev/null | awk '$1 == "datadir" { print $2; exit }'
+	"$@" --verbose --help --log-bin-index="$(mktemp -u)" 2>/dev/null | awk '$1 == "datadir" { print $2; exit }'
 }
 
 # allow the container to be started with `--user`
 if [ "$1" = 'mysqld' -a -z "$wantHelp" -a "$(id -u)" = '0' ]; then
+	_check_config "$@"
 	DATADIR="$(_datadir "$@")"
 	mkdir -p "$DATADIR"
 	chown -R mysql:mysql "$DATADIR"
@@ -31,6 +46,8 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" -a "$(id -u)" = '0' ]; then
 fi
 
 if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
+	# still need to check config, container may have started with --user
+	_check_config "$@"
 	# Get config
 	DATADIR="$(_datadir "$@")"
 
