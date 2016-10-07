@@ -23,7 +23,7 @@ _check_config() {
 	if ! errors="$("${toRun[@]}" 2>&1 >/dev/null)"; then
 		cat >&2 <<-EOM
 
-			ERROR: mysqld failed while attempting to determine datadir
+			ERROR: mysqld failed while attempting to check config
 			command was: "${toRun[*]}"
 
 			$errors
