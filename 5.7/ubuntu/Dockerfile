@@ -34,7 +34,7 @@ RUN apt-get update && apt-get install -y perl pwgen --no-install-recommends && r
 RUN apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys A4A9406876FCBD3C456770C88C718D3B5072E1F5
 
 ENV MYSQL_MAJOR 5.7
-ENV MYSQL_VERSION 5.7.15-1ubuntu16.04
+ENV MYSQL_VERSION 5.7.16-1ubuntu16.04
 
 RUN echo "deb http://repo.mysql.com/apt/ubuntu/ xenial mysql-${MYSQL_MAJOR}" > /etc/apt/sources.list.d/mysql.list
 
