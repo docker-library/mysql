@@ -67,7 +67,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		"$@" --skip-networking &
 		pid="$!"
 
-		mysql=( mysql --protocol=socket -uroot )
+		mysql=( mysql --protocol=socket -uroot -hlocalhost)
 
 		for i in {30..0}; do
 			if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
