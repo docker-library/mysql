@@ -18,6 +18,28 @@ for arg; do
 	esac
 done
 
+# usage: file_env VAR [DEFAULT]
+#    ie: file_env 'XYZ_DB_PASSWORD' 'example'
+# (will allow for "$XYZ_DB_PASSWORD_FILE" to fill in the value of
+#  "$XYZ_DB_PASSWORD" from a file, especially for Docker's secrets feature)
+file_env() {
+	local var="$1"
+	local fileVar="${var}_FILE"
+	local def="${2:-}"
+	if [ "${!var:-}" ] && [ "${!fileVar:-}" ]; then
+		echo >&2 "error: both $var and $fileVar are set (but are exclusive)"
+		exit 1
+	fi
+	local val="$def"
+	if [ "${!var:-}" ]; then
+		val="${!var}"
+	elif [ "${!fileVar:-}" ]; then
+		val="$(< "${!fileVar}")"
+	fi
+	export "$var"="$val"
+	unset "$fileVar"
+}
+
 _check_config() {
 	toRun=( "$@" --verbose --help --log-bin-index="$(mktemp -u)" )
 	if ! errors="$("${toRun[@]}" 2>&1 >/dev/null)"; then
@@ -52,6 +74,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 	DATADIR="$(_datadir "$@")"
 
 	if [ ! -d "$DATADIR/mysql" ]; then
+		file_env 'MYSQL_ROOT_PASSWORD'
 		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
 			echo >&2 'error: database is uninitialized and password option is not specified '
 			echo >&2 '  You need to specify one of MYSQL_ROOT_PASSWORD, MYSQL_ALLOW_EMPTY_PASSWORD and MYSQL_RANDOM_ROOT_PASSWORD'
@@ -87,7 +110,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		fi
 
 		if [ ! -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
-			MYSQL_ROOT_PASSWORD="$(pwgen -1 32)"
+			export MYSQL_ROOT_PASSWORD="$(pwgen -1 32)"
 			echo "GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
 		fi
 		"${mysql[@]}" <<-EOSQL
@@ -106,11 +129,14 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 			mysql+=( -p"${MYSQL_ROOT_PASSWORD}" )
 		fi
 
+		file_env 'MYSQL_DATABASE'
 		if [ "$MYSQL_DATABASE" ]; then
 			echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;" | "${mysql[@]}"
 			mysql+=( "$MYSQL_DATABASE" )
 		fi
 
+		file_env 'MYSQL_USER'
+		file_env 'MYSQL_PASSWORD'
 		if [ "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
 			echo "CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD' ;" | "${mysql[@]}"
 
