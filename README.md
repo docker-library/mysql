@@ -37,11 +37,11 @@ This image exposes the standard MySQL port (3306), so container linking makes th
 
 ## Connect to MySQL from the MySQL Command Line Client
 
-The following command starts another MySQL container instance and runs the `mysql` command line client against your original MySQL container, allowing you to execute SQL statements against your database:
+The following command starts a new process inside an existing MySQL container instance and runs the `mysql` command line client against your original MySQL server, allowing you to execute SQL statements against your database:
 
-    docker run -it --link my-container-name:mysql --rm mysql/mysql-server:tag sh -c 'exec mysql -h"$MYSQL_PORT_3306_TCP_ADDR" -P"$MYSQL_PORT_3306_TCP_PORT" -uroot -p"$MYSQL_ENV_MYSQL_ROOT_PASSWORD"'
+    docker exec -it my-container-name mysql -uroot -p
 
-... where `my-container-name` is the name of your original MySQL Server container.
+... where `my-container-name` is the name of your original MySQL Server container. Note that if the main container process (the server) exits, the process started by exec will also exit.
 
 More information about the MySQL command line client can be found in the MySQL reference documentation at http://dev.mysql.com/doc/refman/en/
 
@@ -88,6 +88,10 @@ Do note that there is no need to use this mechanism to create the `root` superus
 ## `MYSQL_ALLOW_EMPTY_PASSWORD`
 
 Set to `yes` to allow the container to be started with a blank password for the root user. **NOTE:** Setting this variable to `yes` is not recommended unless you really know what you are doing, since this will leave your MySQL instance completely unprotected, allowing anyone to gain complete superuser access.
+
+## `MYSQL_ROOT_HOST`
+
+By default, MySQL creates the 'root'@'localhost' command. This account can only be connected to from inside the container, requiring the use of the docker exec command as noted under `Connect to MySQL from the MySQL Command Line Client`. To allow connections from other hosts, set this environment variable. As an example, the value "172.17.0.1", which is the default Docker gateway IP, will allow connections from the Docker host machine.
 
 # Notes, Tips, Gotchas
 
