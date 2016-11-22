@@ -91,7 +91,7 @@ Set to `yes` to allow the container to be started with a blank password for the 
 
 ## `MYSQL_ROOT_HOST`
 
-By default, MySQL creates the 'root'@'localhost' command. This account can only be connected to from inside the container, requiring the use of the docker exec command as noted under `Connect to MySQL from the MySQL Command Line Client`. To allow connections from other hosts, set this environment variable. As an example, the value "172.17.0.1", which is the default Docker gateway IP, will allow connections from the Docker host machine.
+By default, MySQL creates the 'root'@'localhost' account. This account can only be connected to from inside the container, requiring the use of the docker exec command as noted under `Connect to MySQL from the MySQL Command Line Client`. To allow connections from other hosts, set this environment variable. As an example, the value "172.17.0.1", which is the default Docker gateway IP, will allow connections from the Docker host machine.
 
 # Notes, Tips, Gotchas
 
