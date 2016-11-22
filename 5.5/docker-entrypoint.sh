@@ -37,10 +37,10 @@ if [ "$1" = 'mysqld' ]; then
 		mysql_install_db --user=mysql --datadir="$DATADIR" --rpm
 		echo 'Finished mysql_install_db'
 
-		"$@" --skip-networking &
+		"$@" --skip-networking --socket=/var/run/mysqld/mysqld.sock &
 		pid="$!"
 
-		mysql=( mysql --protocol=socket -uroot )
+		mysql=( mysql --protocol=socket -uroot --socket=/var/run/mysqld/mysqld.sock)
 
 		for i in {30..0}; do
 			if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
