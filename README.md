@@ -17,7 +17,7 @@ These are optimized MySQL Server Docker images, created and maintained by the My
 
 Images are updated when new MySQL Server maintenance releases and development milestones are published. Please note that milestone releases are for preview purposes only and should not be used in production setups.
 
-We also from time to time publish special MySQL Server images that contain experimental features. Please visit the [MySQL Labs Docker image page](https://hub.docker.com/r/mysql/mysql-labs/) to see what is available.
+We also from time to time publish special MySQL Server images that contain experimental features. Please take a look at the [MySQL Docker image list](https://hub.docker.com/r/mysql/) to see what is available.
 
 # How to Use the MySQL Images
 
