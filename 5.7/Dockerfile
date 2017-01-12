@@ -26,8 +26,14 @@ RUN mkdir /docker-entrypoint-initdb.d
 # Data::Dumper
 RUN apt-get update && apt-get install -y perl pwgen --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
+RUN set -ex; \
 # gpg: key 5072E1F5: public key "MySQL Release Engineering <mysql-build@oss.oracle.com>" imported
-RUN apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys A4A9406876FCBD3C456770C88C718D3B5072E1F5
+	key='A4A9406876FCBD3C456770C88C718D3B5072E1F5'; \
+	export GNUPGHOME="$(mktemp -d)"; \
+	gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$key"; \
+	gpg --export "$key" > /etc/apt/trusted.gpg.d/mysql.gpg; \
+	rm -r "$GNUPGHOME"; \
+	apt-key list > /dev/null
 
 ENV MYSQL_MAJOR 5.7
 ENV MYSQL_VERSION 5.7.17-1debian8
