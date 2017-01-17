@@ -55,6 +55,12 @@ The MySQL Server log is located at `/var/log/mysqld.log` inside the container, a
 
     more /var/log/mysqld.log
 
+## Running custom init scripts at database creation
+
+After the database is created, the entrypoint script will execute any .sh or .sql scripts found in /docker-entrypoint-initdb.d/
+If you wish to execute any custom initialization scripts (e.g. for extra database or user creation), map them to this location
+the first time you start up the image.
+
 # Environment Variables
 
 When you start the MySQL image, you can adjust the configuration of the MySQL instance by passing one or more environment variables on the `docker run` command line. Do note that none of the variables below will have any effect if you start the container with a data directory that already contains a database: any pre-existing database will always be left untouched on container startup.
