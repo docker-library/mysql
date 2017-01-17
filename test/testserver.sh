@@ -5,7 +5,7 @@ SERVERSTART=0
 SERVERCONNECT=0
 SUCCESS=false
 echo "Starting image with MySQL version $VERSION"
-docker run -e MYSQL_ROOT_PASSWORD=rot --name=testserver -p 3306:3306 -d mysql/mysql-server:$VERSION
+docker run -e MYSQL_ROOT_PASSWORD=rot -e MYSQL_ROOT_HOST="%" --name=testserver -p 3306:3306 -d mysql/mysql-server:$VERSION
 RES=$?
 if [ ! $RES = 0 ]; then
 	echo "Server start failed with error code $RES"
