@@ -87,6 +87,13 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		"$@" --initialize-insecure
 		echo 'Database initialized'
 
+		if command -v mysql_ssl_rsa_setup > /dev/null && [ ! -e "$DATADIR/server-key.pem" ]; then
+			# https://github.com/mysql/mysql-server/blob/23032807537d8dd8ee4ec1c4d40f0633cd4e12f9/packaging/deb-in/extra/mysql-systemd-start#L81-L84
+			echo 'Initializing certificates'
+			mysql_ssl_rsa_setup --datadir="$DATADIR"
+			echo 'Certificates initialized'
+		fi
+
 		"$@" --skip-networking --socket=/var/run/mysqld/mysqld.sock &
 		pid="$!"
 
