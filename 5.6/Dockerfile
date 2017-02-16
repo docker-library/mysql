@@ -1,4 +1,4 @@
-FROM oraclelinux:7
+FROM oraclelinux:7-slim
 
 ENV PACKAGE_URL https://repo.mysql.com/yum/mysql-5.6-community/docker/x86_64/mysql-community-server-minimal-5.6.35-2.el7.x86_64.rpm
 
