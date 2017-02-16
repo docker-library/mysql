@@ -60,7 +60,7 @@ _datadir() {
 
 # For use with the client if user passes the --socket argument
 _socket() {
-	"$@" --verbose --help --log-bin-index="$(mktemp -u)" 2>/dev/null | awk '$1 == "socket" { print $2; exit }'
+	"$@" --verbose --help 2>/dev/null | awk '$1 == "socket" { print $2; exit }'
 }
 
 # allow the container to be started with `--user`
