@@ -58,6 +58,11 @@ _datadir() {
 	"$@" --verbose --help 2>/dev/null | awk '$1 == "datadir" { print $2; exit }'
 }
 
+# For use with the client if user passes the --socket argument
+_socket() {
+	"$@" --verbose --help --log-bin-index="$(mktemp -u)" 2>/dev/null | awk '$1 == "socket" { print $2; exit }'
+}
+
 # allow the container to be started with `--user`
 if [ "$1" = 'mysqld' -a -z "$wantHelp" -a "$(id -u)" = '0' ]; then
 	_check_config "$@"
@@ -94,10 +99,11 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 			echo 'Certificates initialized'
 		fi
 
-		"$@" --skip-networking --socket=/var/run/mysqld/mysqld.sock &
+		SOCKET="$(_socket "$@")"
+		"$@" --skip-networking --socket="${SOCKET}" &
 		pid="$!"
 
-		mysql=( mysql --protocol=socket -uroot -hlocalhost --socket=/var/run/mysqld/mysqld.sock)
+		mysql=( mysql --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" )
 
 		for i in {30..0}; do
 			if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
