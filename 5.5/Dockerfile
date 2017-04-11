@@ -1,6 +1,6 @@
 FROM oraclelinux:7-slim
 
-ENV PACKAGE_URL https://repo.mysql.com/yum/mysql-5.5-community/docker/x86_64/mysql-community-server-minimal-5.5.54-2.el7.x86_64.rpm
+ENV PACKAGE_URL http://repo.mysql.com/yum/mysql-5.5-community/docker/x86_64/mysql-community-server-minimal-5.5.55-2.el7.x86_64.rpm
 
 # Install server
 RUN rpmkeys --import http://repo.mysql.com/RPM-GPG-KEY-mysql \
