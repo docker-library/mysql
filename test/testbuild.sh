@@ -16,7 +16,7 @@ fi
 
 	
 IMAGELIST=$(docker images | grep $VERSION)
-versionregex="mysql/mysql-server   $VERSION"
+versionregex="mysql/mysql-server\s*$VERSION"
 if [[ $IMAGELIST =~ $versionregex ]];
 then
 	echo "Test passed"
