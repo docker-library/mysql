@@ -97,7 +97,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 
 		mysql=( mysql --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" )
 
-		for i in {30..0}; do
+		for i in $(seq ${MYSQL_START_TIMEOUT:-30} -1 0); do
 			if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
 				break
 			fi
@@ -105,7 +105,8 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 			sleep 1
 		done
 		if [ "$i" = 0 ]; then
-			echo >&2 'MySQL init process failed.'
+			echo >&2 'MySQL init process failed. Cleaning up..'
+			rm -rf $DATADIR/mysql
 			exit 1
 		fi
 
