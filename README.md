@@ -13,7 +13,7 @@ These are optimized MySQL Server Docker images, created and maintained by the My
     MySQL Server 5.5 (tag: 5.5)
     MySQL Server 5.6 (tag: 5.6)
     MySQL Server 5.7, the latest GA version (tag: 5.7 or latest)
-    MySQL Server 8.0 Development Milestone 1, preview release (tag: 8.0)
+    MySQL Server 8.0, preview release (tag: 8.0)
 
 Images are updated when new MySQL Server maintenance releases and development milestones are published. Please note that milestone releases are for preview purposes only and should not be used in production setups.
 
@@ -122,7 +122,7 @@ Start the MySQL command line client and log in using the randomly set root passw
 
 And finally, on the mysql client command line, set a new, secure root password for MySQL:
 
-    ALTER USER root IDENTIFIED BY 'my-secret-pw';
+    ALTER USER 'root'@'localhost' IDENTIFIED BY 'my-secret-pw';
 
 An alternative is to use MYSQL_ROOT_PASSWORD, but set it to point to a file that contains the password. This provides better security than having the password on the command line and is easier to use in automated processes than the random password:
 
