@@ -77,6 +77,10 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 	# Get config
 	DATADIR="$(_get_config 'datadir' "$@")"
 
+	# Set the default charset to UTF8 if not set.
+	MYSQL_DATABASE_CHARSET=${MYSQL_DATABASE_CHARSET:-utf8}
+	MYSQL_DATABASE_COLLATE=${MYSQL_DATABASE_COLLATE:-utf8_general_ci}
+
 	if [ ! -d "$DATADIR/mysql" ]; then
 		file_env 'MYSQL_ROOT_PASSWORD'
 		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
@@ -157,7 +161,10 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 
 		file_env 'MYSQL_DATABASE'
 		if [ "$MYSQL_DATABASE" ]; then
-			echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;" | "${mysql[@]}"
+			echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\`
+			      CHARACTER SET $MYSQL_DATABASE_CHARSET
+						COLLATE $MYSQL_DATABASE_COLLATE;" | "${mysql[@]}"
+
 			mysql+=( "$MYSQL_DATABASE" )
 		fi
 
