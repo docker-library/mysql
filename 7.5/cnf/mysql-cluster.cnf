@@ -22,7 +22,7 @@ IndexMemory=18M
 [ndb_mgmd]
 NodeId=1
 hostname=192.168.0.2
-datadir=/usr/mysql-cluster
+datadir=/var/lib/mysql
 
 [ndbd]
 NodeId=2

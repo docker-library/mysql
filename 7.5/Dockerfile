@@ -16,24 +16,16 @@
 FROM oraclelinux:7-slim
 
 ENV PACKAGE_URL http://repo.mysql.com/yum/mysql-cluster-7.5-community/docker/x86_64/mysql-cluster-community-server-minimal-7.5.6-1.el7.x86_64.rpm
-ENV MYSQL_BASE "/usr/" 
-ENV MYSQL_DATA "/var/lib/mysql" 
-ENV MYSQL_MYCNF "/etc/my.cnf" 
-ENV MYSQL_CONFIGINI "/usr/mysql-cluster/config.ini" 
-ENV MYSQL_USER "mysql" 
-ENV MYSQL_GROUP "mysql"
 
 RUN	yum install -y $PACKAGE_URL && \
 	rm -rf /var/cache/yum/* && \
-	mkdir -p "$MYSQL_DATA" && \
-	chown -R $MYSQL_USER:$MYSQL_GROUP "$MYSQL_DATA"
+	chown -R mysql:mysql /var/lib/mysql
 
-VOLUME $MYSQL_DATA
-VOLUME /usr/mysql-cluster
+VOLUME /var/lib/mysql
 
 COPY docker-entrypoint.sh /entrypoint.sh
 COPY cnf/my.cnf /etc/
-COPY cnf/config.ini /usr/mysql-cluster/
+COPY cnf/mysql-cluster.cnf /etc/
 ENTRYPOINT ["/entrypoint.sh"]
 EXPOSE 3306 2202 1186
 

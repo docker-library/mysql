@@ -47,7 +47,7 @@ The server will be initialized with a randomized password that will need to be c
 If you get an error saying «ERROR 2002 (HY000): Can't connect to local MySQL server through socket» then the server has not finished initializing yet.
 
     docker logs mysql1 2>&1 | grep password
-    docker exec -it mysql1 -uroot -p
+    docker exec -it mysql1 mysql -uroot -p
     ALTER USER 'root'@'localhost' IDENTIFIED BY 'MyNewPass';
 
 Finally start a container with an interactive management client to verify that the cluster is up

@@ -24,21 +24,21 @@ echo "Launching with user arguments: $@"
 
 if [ $ACTION == "ndb_mgmd" ]; then
 	echo "Starting ndb_mgmd"
-	ndb_mgmd -f $MYSQL_CONFIGINI --nodaemon "$@"
+	ndb_mgmd -f /etc/mysql-cluster.cnf --nodaemon "$@"
 
 elif [ $ACTION == "ndbd" ]; then
 	echo "Starting ndbd"
 	ndbd --nodaemon "$@"
 
 elif [ $ACTION == "mysqld" ]; then
-	if [ ! -d "$MYSQL_DATA/mysql" ]; then
+	if [ ! -d "/var/lib/mysql/mysql" ]; then
 		echo "Initializing MySQL database"
 		echo "Check the following output for your one-time password"
-		mysqld --user=$MYSQL_USER --initialize
+		mysqld --user=mysql --initialize
 		echo "Done initializing database"
 	fi
 	echo "Starting mysqld"
-	mysqld --user=$MYSQL_USER "$@"
+	mysqld --user=mysql "$@"
 
 elif [ $ACTION == "ndb_mgm" ]; then
 	echo "Starting ndb_mgm"
