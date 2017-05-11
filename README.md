@@ -72,7 +72,14 @@ Run the SHOW command to print cluster status. You should see the following
     [mysqld(API)]	1 node(s)
     id=4	@192.168.0.10  (mysql-5.7.18 ndb-7.6.2)
 
-For more information about using MySQL cluster, refer to https://dev.mysql.com/doc/index-cluster.html
+## Customizing MySQL Cluster
+
+The default MySQL Cluster image includes two config files which are also available in the github repository at https://github.com/mysql/mysql-docker/tree/mysql-cluster
+* /etc/my.cnf
+* /etc/mysql-cluster.cnf
+To change the cluster, for instance by adding more nodes or change the network setup, these files must be updated. For more information on how to do so, please refer to the MySQL Cluster documentation at to https://dev.mysql.com/doc/index-cluster.html
+To map up custom config files when starting the container, add the -v flag to load an external file. Example:
+    docker run -d --net=cluster --name=management1 --ip=192.168.0.2 -v <path-to-your-file>/mysql-cluster.cnf:/etc/mysql-cluster.cnf mysql/mysql-cluster ndb_mgmd
 
 # Supported Docker Versions
 
