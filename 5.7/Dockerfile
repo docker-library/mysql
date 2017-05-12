@@ -1,7 +1,7 @@
 FROM debian:jessie
 
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
-RUN groupadd -r mysql && useradd -r -g mysql mysql
+RUN groupadd -r mysql && useradd -u 1000 -r -g mysql mysql
 
 # add gosu for easy step-down from root
 ENV GOSU_VERSION 1.7
