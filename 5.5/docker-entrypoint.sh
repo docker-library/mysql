@@ -166,6 +166,10 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 			echo 'FLUSH PRIVILEGES ;' | "${mysql[@]}"
 		fi
 
+                if [ "$MYSQL_INITIAL_SQL" ]; then
+			echo "$MYSQL_INITIAL_SQL" | "${mysql[@]}"
+		fi
+
 		echo
 		for f in /docker-entrypoint-initdb.d/*; do
 			case "$f" in
