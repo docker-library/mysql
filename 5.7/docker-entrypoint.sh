@@ -105,9 +105,16 @@ if [ "$1" = 'mysqld' ]; then
 		done
 
 		if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
-			"${mysql[@]}" <<-EOSQL
-				ALTER USER 'root'@'%' PASSWORD EXPIRE;
-			EOSQL
+			if [ ! -z "$MYSQL_ROOT_HOST" ]; then
+				"${mysql[@]}" <<-EOSQL
+					ALTER USER 'root'@'${MYSQL_ROOT_HOST}' PASSWORD EXPIRE;
+					ALTER USER 'root'@'localhost' PASSWORD EXPIRE;
+				EOSQL
+			else
+				"${mysql[@]}" <<-EOSQL
+					ALTER USER 'root'@'localhost' PASSWORD EXPIRE;
+				EOSQL
+			fi
 		fi
 		if ! kill -s TERM "$pid" || ! wait "$pid"; then
 			echo >&2 'MySQL init process failed.'
