@@ -84,4 +84,5 @@ do
   sed -i 's#%%INIT_STARTUP%%#'"${INIT_STARTUP[${VERSION}]}"'#g' tmpfile
   sed -i 's#%%STARTUP_WAIT%%#'"${STARTUP_WAIT[${VERSION}]}"'#g' tmpfile
   mv tmpfile ${VERSION}/docker-entrypoint.sh
+  chmod +x ${VERSION}/docker-entrypoint.sh
 done
