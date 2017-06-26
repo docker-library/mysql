@@ -85,4 +85,8 @@ do
   sed -i 's#%%STARTUP_WAIT%%#'"${STARTUP_WAIT[${VERSION}]}"'#g' tmpfile
   mv tmpfile ${VERSION}/docker-entrypoint.sh
   chmod +x ${VERSION}/docker-entrypoint.sh
+
+  # Healthcheck
+  cp template/healthcheck.sh ${VERSION}/
+  chmod +x ${VERSION}/healthcheck.sh
 done

@@ -159,6 +159,9 @@ if [ "$1" = 'mysqld' ]; then
 		echo
 	fi
 
+	# Used by healthcheck to make sure it doesn't mistakenly report container
+	# healthy during startup
+	touch /mysql-init-complete
 	chown -R mysql:mysql "$DATADIR"
 fi
 
