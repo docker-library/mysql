@@ -85,7 +85,6 @@ if [ "$1" = 'mysqld' ]; then
 		fi
 
 		pid=$(cat $PIDFILE)
-		echo "Pidfile: $PIDFILE - pid: $pid"
 
 		mysql_tzinfo_to_sql /usr/share/zoneinfo | %%SED_TZINFO%%"${mysql[@]}" mysql
 		
@@ -136,23 +135,41 @@ if [ "$1" = 'mysqld' ]; then
 			echo
 		done
 
+		# To avoid using password on commandline, put it in a temporary file
+		PASSFILE=$(mktemp -u /var/lib/mysql-files/XXXXXXXXXX)
+		install /dev/null -m0600 -omysql -gmysql "${PASSFILE}"
+		cat >$PASSFILE <<EOF
+[client]
+password=${MYSQL_ROOT_PASSWORD}
+EOF
+		# When using a local socket, mysqladmin shutdown will only complete when the server is actually down
+		mysqladmin --defaults-extra-file=$PASSFILE shutdown -uroot --socket=/var/run/mysqld/mysqld.sock
+		rm -f $PASSFILE
+		unset PASSFILE
+		echo "Server shut down"
+
+		# This needs to be done outside the normal init, since mysqladmin shutdown will not work after
 		if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
 			if [ -z %%EXPIRE_SUPPORT%% ]; then
 				echo "User expiration is only supported in MySQL 5.6+"
 			else
+				echo "Setting root user as expired. Password will need to be changed before database can be used."
+				SQL=$(mktemp -u /var/lib/mysql-files/XXXXXXXXXX)
+				install /dev/null -m0600 -omysql -gmysql "${SQL}"
 				if [ ! -z "$MYSQL_ROOT_HOST" ]; then
-					"${mysql[@]}" <<-EOSQL
-						ALTER USER 'root'@'${MYSQL_ROOT_HOST}' PASSWORD EXPIRE;
-						ALTER USER 'root'@'localhost' PASSWORD EXPIRE;
-					EOSQL
+					cat << EOF > ${SQL}
+ALTER USER 'root'@'${MYSQL_ROOT_HOST}' PASSWORD EXPIRE;
+ALTER USER 'root'@'localhost' PASSWORD EXPIRE;
+EOF
 				else
-					"${mysql[@]}" <<-EOSQL
-						ALTER USER 'root'@'localhost' PASSWORD EXPIRE;
-					EOSQL
+					cat << EOF > ${SQL}
+ALTER USER 'root'@'localhost' PASSWORD EXPIRE;
+EOF
 				fi
+				set -- "$@" --init-file=$SQL
+				unset SQL
 			fi
 		fi
-		mysqladmin shutdown -uroot -p${MYSQL_ROOT_PASSWORD} --socket=/var/run/mysqld/mysqld.sock
 
 		echo
 		echo 'MySQL init process done. Ready for start up.'
