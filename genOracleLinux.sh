@@ -43,10 +43,10 @@ DATABASE_INIT["8.0"]="\"\$@\" --initialize-insecure"
 # 5.7+ has the --daemonize flag, which makes the process fork and then exit when
 # the server is ready, removing the need for a fragile wait loop
 declare -A INIT_STARTUP
-INIT_STARTUP["5.5"]="\"\$@\" --skip-networking --socket=/var/run/mysqld/mysqld.sock \&"
-INIT_STARTUP["5.6"]="\"\$@\" --skip-networking --socket=/var/run/mysqld/mysqld.sock \&"
-INIT_STARTUP["5.7"]="\"\$@\" --daemonize --skip-networking --socket=/var/run/mysqld/mysqld.sock"
-INIT_STARTUP["8.0"]="\"\$@\" --daemonize --skip-networking --socket=/var/run/mysqld/mysqld.sock"
+INIT_STARTUP["5.5"]="\"\$@\" --skip-networking --socket=\"\$SOCKET\" \&"
+INIT_STARTUP["5.6"]="\"\$@\" --skip-networking --socket=\"\$SOCKET\" \&"
+INIT_STARTUP["5.7"]="\"\$@\" --daemonize --skip-networking --socket=\"\$SOCKET\""
+INIT_STARTUP["8.0"]="\"\$@\" --daemonize --skip-networking --socket=\"\$SOCKET\""
 
 declare -A STARTUP_WAIT
 STARTUP_WAIT["5.5"]="\"yes\""

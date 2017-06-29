@@ -43,7 +43,6 @@ if [ "$1" = 'mysqld' ]; then
 
 	# Get config
 	DATADIR="$(_get_config 'datadir' "$@")"
-	PIDFILE="$(_get_config 'pid-file' "$@")"
 
 	if [ ! -d "$DATADIR/mysql" ]; then
 		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
@@ -65,14 +64,15 @@ if [ "$1" = 'mysqld' ]; then
 		%%DATABASE_INIT%%
 		echo 'Database initialized'
 
+		SOCKET="$(_get_config 'socket' "$@")"
 		%%INIT_STARTUP%%
 
-		mysql=( mysql --protocol=socket -uroot -hlocalhost --socket=/var/run/mysqld/mysqld.sock)
+		mysql=( mysql --protocol=socket -uroot -hlocalhost --socket="$SOCKET")
 
 		if [ ! -z %%STARTUP_WAIT%% ];
 		then
 			for i in {30..0}; do
-				if mysqladmin --socket=/var/run/mysqld/mysqld.sock ping &>/dev/null; then
+				if mysqladmin --socket="$SOCKET" ping &>/dev/null; then
 					break
 				fi
 				echo 'Waiting for server...'
@@ -83,8 +83,6 @@ if [ "$1" = 'mysqld' ]; then
 				exit 1
 			fi
 		fi
-
-		pid=$(cat $PIDFILE)
 
 		mysql_tzinfo_to_sql /usr/share/zoneinfo | %%SED_TZINFO%%"${mysql[@]}" mysql
 		
@@ -143,7 +141,7 @@ if [ "$1" = 'mysqld' ]; then
 password=${MYSQL_ROOT_PASSWORD}
 EOF
 		# When using a local socket, mysqladmin shutdown will only complete when the server is actually down
-		mysqladmin --defaults-extra-file="$PASSFILE" shutdown -uroot --socket=/var/run/mysqld/mysqld.sock
+		mysqladmin --defaults-extra-file="$PASSFILE" shutdown -uroot --socket="$SOCKET"
 		rm -f "$PASSFILE"
 		unset PASSFILE
 		echo "Server shut down"
