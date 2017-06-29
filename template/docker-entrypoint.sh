@@ -137,14 +137,14 @@ if [ "$1" = 'mysqld' ]; then
 
 		# To avoid using password on commandline, put it in a temporary file
 		PASSFILE=$(mktemp -u /var/lib/mysql-files/XXXXXXXXXX)
-		install /dev/null -m0600 -omysql -gmysql "${PASSFILE}"
-		cat >$PASSFILE <<EOF
+		install /dev/null -m0600 -omysql -gmysql "$PASSFILE"
+		cat >"$PASSFILE" <<EOF
 [client]
 password=${MYSQL_ROOT_PASSWORD}
 EOF
 		# When using a local socket, mysqladmin shutdown will only complete when the server is actually down
-		mysqladmin --defaults-extra-file=$PASSFILE shutdown -uroot --socket=/var/run/mysqld/mysqld.sock
-		rm -f $PASSFILE
+		mysqladmin --defaults-extra-file="$PASSFILE" shutdown -uroot --socket=/var/run/mysqld/mysqld.sock
+		rm -f "$PASSFILE"
 		unset PASSFILE
 		echo "Server shut down"
 
@@ -155,18 +155,18 @@ EOF
 			else
 				echo "Setting root user as expired. Password will need to be changed before database can be used."
 				SQL=$(mktemp -u /var/lib/mysql-files/XXXXXXXXXX)
-				install /dev/null -m0600 -omysql -gmysql "${SQL}"
+				install /dev/null -m0600 -omysql -gmysql "$SQL"
 				if [ ! -z "$MYSQL_ROOT_HOST" ]; then
-					cat << EOF > ${SQL}
+					cat << EOF > "$SQL"
 ALTER USER 'root'@'${MYSQL_ROOT_HOST}' PASSWORD EXPIRE;
 ALTER USER 'root'@'localhost' PASSWORD EXPIRE;
 EOF
 				else
-					cat << EOF > ${SQL}
+					cat << EOF > "$SQL"
 ALTER USER 'root'@'localhost' PASSWORD EXPIRE;
 EOF
 				fi
-				set -- "$@" --init-file=$SQL
+				set -- "$@" --init-file="$SQL"
 				unset SQL
 			fi
 		fi
