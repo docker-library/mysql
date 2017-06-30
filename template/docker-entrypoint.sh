@@ -36,8 +36,8 @@ if [ "$1" = 'mysqld' ]; then
 	result=0
 	output=$("$@" --verbose --help 2>&1 > /dev/null) || result=$?
 	if [ ! "$result" = "0" ]; then
-		echo >&2 'ERROR: Unable to start MySQL. Please check your configuration.'
-		echo >&2 "$output"
+		echo >&2 '[Entrypoint] ERROR: Unable to start MySQL. Please check your configuration.'
+		echo >&2 "[Entrypoint] $output"
 		exit 1
 	fi
 
@@ -46,11 +46,11 @@ if [ "$1" = 'mysqld' ]; then
 
 	if [ ! -d "$DATADIR/mysql" ]; then
 		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
-			echo >&2 'ERROR: No password option specified for new database.'
-			echo >&2 '  You need to specify one of the following:'
-			echo >&2 '  - MYSQL_RANDOM_ROOT_PASSWORD (recommended)'
-			echo >&2 '  - MYSQL_ROOT_PASSWORD'
-			echo >&2 '  - MYSQL_ALLOW_EMPTY_PASSWORD'
+			echo >&2 '[Entrypoint] ERROR: No password option specified for new database.'
+			echo >&2 '[Entrypoint]   You need to specify one of the following:'
+			echo >&2 '[Entrypoint]   - MYSQL_RANDOM_ROOT_PASSWORD (recommended)'
+			echo >&2 '[Entrypoint]   - MYSQL_ROOT_PASSWORD'
+			echo >&2 '[Entrypoint]   - MYSQL_ALLOW_EMPTY_PASSWORD'
 			exit 1
 		fi
 		# If the password variable is a filename we use the contents of the file
@@ -60,9 +60,9 @@ if [ "$1" = 'mysqld' ]; then
 		mkdir -p "$DATADIR"
 		chown -R mysql:mysql "$DATADIR"
 
-		echo 'Initializing database'
+		echo '[Entrypoint] Initializing database'
 		%%DATABASE_INIT%%
-		echo 'Database initialized'
+		echo '[Entrypoint] Database initialized'
 
 		SOCKET="$(_get_config 'socket' "$@")"
 		%%INIT_STARTUP%%
@@ -79,11 +79,11 @@ if [ "$1" = 'mysqld' ]; then
 				if mysqladmin --socket="$SOCKET" ping &>/dev/null; then
 					break
 				fi
-				echo 'Waiting for server...'
+				echo '[Entrypoint] Waiting for server...'
 				sleep 1
 			done
 			if [ "$i" = 0 ]; then
-				echo >&2 'Timeout during MySQL init.'
+				echo >&2 '[Entrypoint] Timeout during MySQL init.'
 				exit 1
 			fi
 		fi
@@ -92,7 +92,7 @@ if [ "$1" = 'mysqld' ]; then
 		
 		if [ ! -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
 			MYSQL_ROOT_PASSWORD="$(pwmake 128)"
-			echo "GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
+			echo "[Entrypoint] GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
 		fi
 		if [ -z "$MYSQL_ROOT_HOST" ]; then
 			ROOTCREATE="%%PASSWORDSET%%"
@@ -136,9 +136,9 @@ EOF
 		echo
 		for f in /docker-entrypoint-initdb.d/*; do
 			case "$f" in
-				*.sh)  echo "$0: running $f"; . "$f" ;;
-				*.sql) echo "$0: running $f"; "${mysql[@]}" < "$f" && echo ;;
-				*)     echo "$0: ignoring $f" ;;
+				*.sh)  echo "[Entrypoint] running $f"; . "$f" ;;
+				*.sql) echo "[Entrypoint] running $f"; "${mysql[@]}" < "$f" && echo ;;
+				*)     echo "[Entrypoint] ignoring $f" ;;
 			esac
 			echo
 		done
@@ -147,14 +147,14 @@ EOF
 		mysqladmin --defaults-extra-file="$PASSFILE" shutdown -uroot --socket="$SOCKET"
 		rm -f "$PASSFILE"
 		unset PASSFILE
-		echo "Server shut down"
+		echo "[Entrypoint] Server shut down"
 
 		# This needs to be done outside the normal init, since mysqladmin shutdown will not work after
 		if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
 			if [ -z %%EXPIRE_SUPPORT%% ]; then
-				echo "User expiration is only supported in MySQL 5.6+"
+				echo "[Entrypoint] User expiration is only supported in MySQL 5.6+"
 			else
-				echo "Setting root user as expired. Password will need to be changed before database can be used."
+				echo "[Entrypoint] Setting root user as expired. Password will need to be changed before database can be used."
 				SQL=$(mktemp -u /var/lib/mysql-files/XXXXXXXXXX)
 				install /dev/null -m0600 -omysql -gmysql "$SQL"
 				if [ ! -z "$MYSQL_ROOT_HOST" ]; then
@@ -173,7 +173,7 @@ EOF
 		fi
 
 		echo
-		echo 'MySQL init process done. Ready for start up.'
+		echo '[Entrypoint] MySQL init process done. Ready for start up.'
 		echo
 	fi
 
