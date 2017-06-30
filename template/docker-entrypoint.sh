@@ -106,6 +106,7 @@ if [ "$1" = 'mysqld' ]; then
 			--  or products like mysql-fabric won't work
 			SET @@SESSION.SQL_LOG_BIN=0;
 			DELETE FROM mysql.user WHERE user NOT IN ('mysql.session', 'mysql.sys', 'root') OR host NOT IN ('localhost');
+			CREATE USER 'healthchecker'@'localhost' IDENTIFIED BY 'healthcheckpass';
 			${ROOTCREATE}
 			FLUSH PRIVILEGES ;
 		EOSQL
@@ -178,6 +179,14 @@ EOF
 
 	# Used by healthcheck to make sure it doesn't mistakenly report container
 	# healthy during startup
+	# Put the password into the temporary config file
+	touch /healthcheck.cnf
+	cat >"/healthcheck.cnf" <<EOF
+[client]
+user=healthchecker
+socket=${SOCKET}
+password=healthcheckpass
+EOF
 	touch /mysql-init-complete
 	chown -R mysql:mysql "$DATADIR"
 fi
