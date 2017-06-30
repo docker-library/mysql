@@ -20,7 +20,7 @@ set -e
 # latter only show values present in config files, and not server defaults
 _get_config() {
 	local conf="$1"; shift
-	"$@" --verbose --help 2>/dev/null | awk '$1 == "'"$conf"'" { print $2; exit }'
+	"$@" --verbose --help 2>/dev/null | grep "^$conf" | awk '$1 == "'"$conf"'" { print $2; exit }'
 }
 
 # If command starts with an option, prepend mysqld
