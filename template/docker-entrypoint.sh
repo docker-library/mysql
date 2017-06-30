@@ -67,7 +67,11 @@ if [ "$1" = 'mysqld' ]; then
 		SOCKET="$(_get_config 'socket' "$@")"
 		%%INIT_STARTUP%%
 
-		mysql=( mysql --protocol=socket -uroot -hlocalhost --socket="$SOCKET")
+		# To avoid using password on commandline, put it in a temporary file.
+		# The file is only populated when and if the root password is set.
+		PASSFILE=$(mktemp -u /var/lib/mysql-files/XXXXXXXXXX)
+		install /dev/null -m0600 -omysql -gmysql "$PASSFILE"
+		mysql=( mysql --defaults-extra-file="$PASSFILE" --protocol=socket -uroot -hlocalhost --socket="$SOCKET")
 
 		if [ ! -z %%STARTUP_WAIT%% ];
 		then
@@ -106,7 +110,12 @@ if [ "$1" = 'mysqld' ]; then
 			FLUSH PRIVILEGES ;
 		EOSQL
 		if [ ! -z "$MYSQL_ROOT_PASSWORD" ]; then
-			mysql+=( -p"${MYSQL_ROOT_PASSWORD}" )
+			# Put the password into the temporary config file
+			cat >"$PASSFILE" <<EOF
+[client]
+password=${MYSQL_ROOT_PASSWORD}
+EOF
+			#mysql+=( -p"${MYSQL_ROOT_PASSWORD}" )
 		fi
 
 		if [ "$MYSQL_DATABASE" ]; then
@@ -133,13 +142,6 @@ if [ "$1" = 'mysqld' ]; then
 			echo
 		done
 
-		# To avoid using password on commandline, put it in a temporary file
-		PASSFILE=$(mktemp -u /var/lib/mysql-files/XXXXXXXXXX)
-		install /dev/null -m0600 -omysql -gmysql "$PASSFILE"
-		cat >"$PASSFILE" <<EOF
-[client]
-password=${MYSQL_ROOT_PASSWORD}
-EOF
 		# When using a local socket, mysqladmin shutdown will only complete when the server is actually down
 		mysqladmin --defaults-extra-file="$PASSFILE" shutdown -uroot --socket="$SOCKET"
 		rm -f "$PASSFILE"
