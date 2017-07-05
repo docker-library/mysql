@@ -13,6 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+
+# This script will simply use sed to replace placeholder variables in the
+# files in template/ with version-specific variants.
+# Example: mysql_install_db for 5.5 and 5.6, and mysqld --initialize for newer
 VERSIONS="5.5 5.6 5.7 8.0"
 
 declare -A PACKAGE_URL
