@@ -44,6 +44,7 @@ if [ "$1" = 'mysqld' ]; then
 
 	# Get config
 	DATADIR="$(_get_config 'datadir' "$@")"
+	SOCKET="$(_get_config 'socket' "$@")"
 
 	if [ ! -d "$DATADIR/mysql" ]; then
 		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
@@ -65,7 +66,6 @@ if [ "$1" = 'mysqld' ]; then
 		%%DATABASE_INIT%%
 		echo '[Entrypoint] Database initialized'
 
-		SOCKET="$(_get_config 'socket' "$@")"
 		%%INIT_STARTUP%%
 
 		# To avoid using password on commandline, put it in a temporary file.
