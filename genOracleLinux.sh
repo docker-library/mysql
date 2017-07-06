@@ -19,6 +19,12 @@
 # Example: mysql_install_db for 5.5 and 5.6, and mysqld --initialize for newer
 VERSIONS="5.5 5.6 5.7 8.0"
 
+declare -A SERVER_VERSION_FULL
+SERVER_VERSION_FULL["5.5"]="5.5.57-1.1.0"
+SERVER_VERSION_FULL["5.6"]="5.6.37-1.1.0"
+SERVER_VERSION_FULL["5.7"]="5.7.19-1.1.0"
+SERVER_VERSION_FULL["8.0"]="8.0.2-dmr-1.1.0"
+
 declare -A PACKAGE_URL
 PACKAGE_URL["5.5"]="https://repo.mysql.com/yum/mysql-5.5-community/docker/x86_64/mysql-community-server-minimal-5.5.55-2.el7.x86_64.rpm"
 PACKAGE_URL["5.6"]="https://repo.mysql.com/yum/mysql-5.6-community/docker/x86_64/mysql-community-server-minimal-5.6.36-2.el7.x86_64.rpm"
@@ -94,6 +100,7 @@ do
   sed -i 's#%%SED_TZINFO%%#'"${TZINFO_WORKAROUND[${VERSION}]}"'#g' tmpfile
   sed -i 's#%%INIT_STARTUP%%#'"${INIT_STARTUP[${VERSION}]}"'#g' tmpfile
   sed -i 's#%%STARTUP_WAIT%%#'"${STARTUP_WAIT[${VERSION}]}"'#g' tmpfile
+  sed -i 's#%%SERVER_VERSION_FULL%%#'"${SERVER_VERSION_FULL[${VERSION}]}"'#g' tmpfile
   mv tmpfile ${VERSION}/docker-entrypoint.sh
   chmod +x ${VERSION}/docker-entrypoint.sh
 
