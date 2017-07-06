@@ -114,7 +114,7 @@ if [ "$1" = 'mysqld' ]; then
 			# Put the password into the temporary config file
 			cat >"$PASSFILE" <<EOF
 [client]
-password=${MYSQL_ROOT_PASSWORD}
+password="${MYSQL_ROOT_PASSWORD}"
 EOF
 			#mysql+=( -p"${MYSQL_ROOT_PASSWORD}" )
 		fi
