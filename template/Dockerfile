@@ -20,8 +20,8 @@ ARG PACKAGE_URL=%%PACKAGE_URL%%
 RUN rpmkeys --import http://repo.mysql.com/RPM-GPG-KEY-mysql \
   && yum install -y $PACKAGE_URL \
   && yum install -y libpwquality \
-  && rm -rf /var/cache/yum/*
-RUN mkdir /docker-entrypoint-initdb.d
+  && yum clean all \
+  && mkdir /docker-entrypoint-initdb.d
 
 VOLUME /var/lib/mysql
 
