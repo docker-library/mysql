@@ -15,11 +15,11 @@
 FROM oraclelinux:7-slim
 
 ARG PACKAGE_URL=%%PACKAGE_URL%%
+ARG PACKAGE_URL_SHELL=%%PACKAGE_URL_SHELL%%
 
 # Install server
 RUN rpmkeys --import http://repo.mysql.com/RPM-GPG-KEY-mysql \
-  && yum install -y $PACKAGE_URL \
-  && yum install -y libpwquality \
+  && yum install -y $PACKAGE_URL $PACKAGE_URL_SHELL libpwquality \
   && yum clean all \
   && mkdir /docker-entrypoint-initdb.d
 

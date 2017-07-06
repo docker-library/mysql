@@ -25,6 +25,12 @@ PACKAGE_URL["5.6"]="https://repo.mysql.com/yum/mysql-5.6-community/docker/x86_64
 PACKAGE_URL["5.7"]="https://repo.mysql.com/yum/mysql-5.7-community/docker/x86_64/mysql-community-server-minimal-5.7.18-1.el7.x86_64.rpm"
 PACKAGE_URL["8.0"]="https://repo.mysql.com/yum/mysql-8.0-community/docker/x86_64/mysql-community-server-minimal-8.0.1-0.1.dmr.el7.x86_64.rpm"
 
+declare -A PACKAGE_URL_SHELL
+PACKAGE_URL_SHELL["5.5"]="\"\""
+PACKAGE_URL_SHELL["5.6"]="\"\""
+PACKAGE_URL_SHELL["5.7"]="https://repo.mysql.com/yum/mysql-tools-community/el/7/x86_64/mysql-shell-1.0.9-1.el7.x86_64.rpm"
+PACKAGE_URL_SHELL["8.0"]="https://repo.mysql.com/yum/mysql-tools-community/el/7/x86_64/mysql-shell-1.0.9-1.el7.x86_64.rpm"
+
 # 33060 is the default port for the mysqlx plugin, new to 5.7
 declare -A PORTS
 PORTS["5.5"]="3306"
@@ -77,6 +83,7 @@ for VERSION in ${VERSIONS}
 do
   # Dockerfile
   sed 's#%%PACKAGE_URL%%#'"${PACKAGE_URL[${VERSION}]}"'#g' template/Dockerfile > tmpfile
+  sed -i 's#%%PACKAGE_URL_SHELL%%#'"${PACKAGE_URL_SHELL[${VERSION}]}"'#g' tmpfile
   sed -i 's/%%PORTS%%/'"${PORTS[${VERSION}]}"'/g' tmpfile
   mv tmpfile ${VERSION}/Dockerfile
 
