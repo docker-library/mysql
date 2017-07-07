@@ -26,10 +26,10 @@ SERVER_VERSION_FULL["5.7"]="5.7.19-1.1.0"
 SERVER_VERSION_FULL["8.0"]="8.0.2-dmr-1.1.0"
 
 declare -A PACKAGE_URL
-PACKAGE_URL["5.5"]="https://repo.mysql.com/yum/mysql-5.5-community/docker/x86_64/mysql-community-server-minimal-5.5.55-2.el7.x86_64.rpm"
-PACKAGE_URL["5.6"]="https://repo.mysql.com/yum/mysql-5.6-community/docker/x86_64/mysql-community-server-minimal-5.6.36-2.el7.x86_64.rpm"
-PACKAGE_URL["5.7"]="https://repo.mysql.com/yum/mysql-5.7-community/docker/x86_64/mysql-community-server-minimal-5.7.18-1.el7.x86_64.rpm"
-PACKAGE_URL["8.0"]="https://repo.mysql.com/yum/mysql-8.0-community/docker/x86_64/mysql-community-server-minimal-8.0.1-0.1.dmr.el7.x86_64.rpm"
+PACKAGE_URL["5.5"]="https://repo.mysql.com/yum/mysql-5.5-community/docker/x86_64/mysql-community-server-minimal-5.5.57-2.el7.x86_64.rpm"
+PACKAGE_URL["5.6"]="https://repo.mysql.com/yum/mysql-5.6-community/docker/x86_64/mysql-community-server-minimal-5.6.37-2.el7.x86_64.rpm"
+PACKAGE_URL["5.7"]="https://repo.mysql.com/yum/mysql-5.7-community/docker/x86_64/mysql-community-server-minimal-5.7.19-1.el7.x86_64.rpm"
+PACKAGE_URL["8.0"]="https://repo.mysql.com/yum/mysql-8.0-community/docker/x86_64/mysql-community-server-minimal-8.0.2-0.1.dmr.el7.x86_64.rpm"
 
 declare -A PACKAGE_URL_SHELL
 PACKAGE_URL_SHELL["5.5"]="\"\""
