@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
@@ -12,21 +13,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
-FROM oraclelinux:7-slim
 
-ARG PACKAGE_URL=https://repo.mysql.com/yum/mysql-5.6-community/docker/x86_64/mysql-community-server-minimal-5.6.36-2.el7.x86_64.rpm
-ARG PACKAGE_URL_SHELL=""
-
-# Install server
-RUN rpmkeys --import https://repo.mysql.com/RPM-GPG-KEY-mysql \
-  && yum install -y $PACKAGE_URL $PACKAGE_URL_SHELL libpwquality \
-  && yum clean all \
-  && mkdir /docker-entrypoint-initdb.d
-
-COPY docker-entrypoint.sh /entrypoint.sh
-COPY healthcheck.sh /healthcheck.sh
-ENTRYPOINT ["/entrypoint.sh"]
-HEALTHCHECK CMD /healthcheck.sh
-EXPOSE 3306
-CMD ["mysqld"]
-
+# The mysql-init-complete file is touched by the entrypoint file before the
+# main server process is started
+if [ -f /mysql-init-complete ]; # The entrypoint script touches this file
+then # Ping server to see if it is ready
+  mysqladmin --defaults-extra-file=/healthcheck.cnf ping
+else # Initialization still in progress
+  exit 1
+fi
