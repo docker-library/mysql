@@ -192,6 +192,17 @@ EOF
 	touch /mysql-init-complete
 	chown -R mysql:mysql "$DATADIR"
 	echo "[Entrypoint] Starting MySQL %%SERVER_VERSION_FULL%%"
+
+elif [ "$1" == "ndb_mgmd" ]; then
+	echo "[Entrypoint] Starting ndb_mgmd"
+	set -- "$@" -f /etc/mysql-cluster.cnf --nodaemon
+
+elif [ "$1" == "ndbd" ]; then
+	echo "[Entrypoint] Starting ndbd"
+	set -- "$@" --nodaemon
+
+elif [ "$1" == "ndb_mgm" ]; then
+	echo "[Entrypoint] Starting ndb_mgm"
 fi
 
 exec "$@"
