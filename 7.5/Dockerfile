@@ -12,9 +12,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+
 FROM oraclelinux:7-slim
 
-ARG PACKAGE_URL=https://repo.mysql.com/yum/mysql-8.0-community/docker/x86_64/mysql-community-server-minimal-8.0.1-0.1.dmr.el7.x86_64.rpm
+ARG PACKAGE_URL=http://repo.mysql.com/yum/mysql-cluster-7.5-community/docker/x86_64/mysql-cluster-community-server-minimal-7.5.6-1.el7.x86_64.rpm
 ARG PACKAGE_URL_SHELL=https://repo.mysql.com/yum/mysql-tools-community/el/7/x86_64/mysql-shell-1.0.9-1.el7.x86_64.rpm
 
 # Install server
@@ -23,10 +24,14 @@ RUN rpmkeys --import https://repo.mysql.com/RPM-GPG-KEY-mysql \
   && yum clean all \
   && mkdir /docker-entrypoint-initdb.d
 
+VOLUME /var/lib/mysql
+
 COPY docker-entrypoint.sh /entrypoint.sh
 COPY healthcheck.sh /healthcheck.sh
+COPY cnf/my.cnf /etc/
+COPY cnf/mysql-cluster.cnf /etc/
+
 ENTRYPOINT ["/entrypoint.sh"]
-HEALTHCHECK CMD /healthcheck.sh
-EXPOSE 3306 33060
+EXPOSE 3306 33060 2202 1186
 CMD ["mysqld"]
 

@@ -13,9 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+
 set -e
 
-echo "[Entrypoint] MySQL Docker Image 8.0.2-dmr-1.1.0"
+echo "[Entrypoint] MySQL Docker Image 7.6.2-dmr-1.1.0"
 # Fetch value from server config
 # We use mysqld --verbose --help instead of my_print_defaults because the
 # latter only show values present in config files, and not server defaults
@@ -190,7 +191,18 @@ password=healthcheckpass
 EOF
 	touch /mysql-init-complete
 	chown -R mysql:mysql "$DATADIR"
-	echo "[Entrypoint] Starting MySQL 8.0.2-dmr-1.1.0"
+	echo "[Entrypoint] Starting MySQL 7.6.2-dmr-1.1.0"
+
+elif [ "$1" == "ndb_mgmd" ]; then
+	echo "[Entrypoint] Starting ndb_mgmd"
+	set -- "$@" -f /etc/mysql-cluster.cnf --nodaemon
+
+elif [ "$1" == "ndbd" ]; then
+	echo "[Entrypoint] Starting ndbd"
+	set -- "$@" --nodaemon
+
+elif [ "$1" == "ndb_mgm" ]; then
+	echo "[Entrypoint] Starting ndb_mgm"
 fi
 
 exec "$@"
