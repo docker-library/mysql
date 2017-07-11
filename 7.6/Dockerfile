@@ -15,7 +15,7 @@
 
 FROM oraclelinux:7-slim
 
-ARG PACKAGE_URL=http://repo.mysql.com/yum/mysql-cluster-7.6-community/docker/x86_64/mysql-cluster-community-server-minimal-7.6.2-1.el7.x86_64.rpm
+ARG PACKAGE_URL=https://dev.mysql.com/get/Downloads/MySQL-Cluster-7.6/mysql-cluster-community-server-minimal-7.6.3-1.el7.x86_64.rpm
 ARG PACKAGE_URL_SHELL=https://repo.mysql.com/yum/mysql-tools-community/el/7/x86_64/mysql-shell-1.0.9-1.el7.x86_64.rpm
 
 # Install server
