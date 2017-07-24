@@ -15,7 +15,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 set -e
 
-echo "[Entrypoint] MySQL Docker Image 5.6.37-1.1.0"
+echo "[Entrypoint] MySQL Docker Image %%SERVER_VERSION_FULL%%"
 # Fetch value from server config
 # We use mysqld --verbose --help instead of my_print_defaults because the
 # latter only show values present in config files, and not server defaults
@@ -63,10 +63,10 @@ if [ "$1" = 'mysqld' ]; then
 		chown -R mysql:mysql "$DATADIR"
 
 		echo '[Entrypoint] Initializing database'
-		mysql_install_db --user=mysql --datadir="$DATADIR" --rpm --keep-my-cnf
+		%%DATABASE_INIT%%
 		echo '[Entrypoint] Database initialized'
 
-		"$@" --skip-networking --socket="$SOCKET" &
+		%%INIT_STARTUP%%
 
 		# To avoid using password on commandline, put it in a temporary file.
 		# The file is only populated when and if the root password is set.
@@ -74,7 +74,7 @@ if [ "$1" = 'mysqld' ]; then
 		install /dev/null -m0600 -omysql -gmysql "$PASSFILE"
 		mysql=( mysql --defaults-extra-file="$PASSFILE" --protocol=socket -uroot -hlocalhost --socket="$SOCKET")
 
-		if [ ! -z "yes" ];
+		if [ ! -z %%STARTUP_WAIT%% ];
 		then
 			for i in {30..0}; do
 				if mysqladmin --socket="$SOCKET" ping &>/dev/null; then
@@ -89,16 +89,16 @@ if [ "$1" = 'mysqld' ]; then
 			fi
 		fi
 
-		mysql_tzinfo_to_sql /usr/share/zoneinfo | sed 's/Local time zone must be set--see zic manual page/FCTY/' | "${mysql[@]}" mysql
+		mysql_tzinfo_to_sql /usr/share/zoneinfo | %%SED_TZINFO%%"${mysql[@]}" mysql
 		
 		if [ ! -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
 			MYSQL_ROOT_PASSWORD="$(pwmake 128)"
 			echo "[Entrypoint] GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
 		fi
 		if [ -z "$MYSQL_ROOT_HOST" ]; then
-			ROOTCREATE="SET PASSWORD FOR 'root'@'localhost'=PASSWORD('${MYSQL_ROOT_PASSWORD}');"
+			ROOTCREATE="%%PASSWORDSET%%"
 		else
-			ROOTCREATE="SET PASSWORD FOR 'root'@'localhost'=PASSWORD('${MYSQL_ROOT_PASSWORD}'); \
+			ROOTCREATE="%%PASSWORDSET%% \
 			CREATE USER 'root'@'${MYSQL_ROOT_HOST}' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}'; \
 			GRANT ALL ON *.* TO 'root'@'${MYSQL_ROOT_HOST}' WITH GRANT OPTION ;"
 		fi
@@ -152,7 +152,7 @@ EOF
 
 		# This needs to be done outside the normal init, since mysqladmin shutdown will not work after
 		if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
-			if [ -z "yes" ]; then
+			if [ -z %%EXPIRE_SUPPORT%% ]; then
 				echo "[Entrypoint] User expiration is only supported in MySQL 5.6+"
 			else
 				echo "[Entrypoint] Setting root user as expired. Password will need to be changed before database can be used."
@@ -190,7 +190,7 @@ password=healthcheckpass
 EOF
 	touch /mysql-init-complete
 	chown -R mysql:mysql "$DATADIR"
-	echo "[Entrypoint] Starting MySQL 5.6.37-1.1.0"
+	echo "[Entrypoint] Starting MySQL %%SERVER_VERSION_FULL%%"
 fi
 
 exec "$@"
