@@ -15,18 +15,23 @@
 
 FROM oraclelinux:7-slim
 
-ENV PACKAGE_URL http://repo.mysql.com/yum/mysql-cluster-7.6-community/docker/x86_64/mysql-cluster-community-server-minimal-7.6.2-1.el7.x86_64.rpm
+ARG PACKAGE_URL=https://dev.mysql.com/get/Downloads/MySQL-Cluster-7.6/mysql-cluster-community-server-minimal-7.6.3-1.el7.x86_64.rpm
+ARG PACKAGE_URL_SHELL=https://repo.mysql.com/yum/mysql-tools-community/el/7/x86_64/mysql-shell-1.0.9-1.el7.x86_64.rpm
 
-RUN	yum install -y $PACKAGE_URL && \
-	rm -rf /var/cache/yum/* && \
-	chown -R mysql:mysql /var/lib/mysql
+# Install server
+RUN rpmkeys --import https://repo.mysql.com/RPM-GPG-KEY-mysql \
+  && yum install -y $PACKAGE_URL $PACKAGE_URL_SHELL libpwquality \
+  && yum clean all \
+  && mkdir /docker-entrypoint-initdb.d
 
 VOLUME /var/lib/mysql
 
 COPY docker-entrypoint.sh /entrypoint.sh
+COPY healthcheck.sh /healthcheck.sh
 COPY cnf/my.cnf /etc/
 COPY cnf/mysql-cluster.cnf /etc/
-ENTRYPOINT ["/entrypoint.sh"]
-EXPOSE 3306 2202 1186
 
-CMD ["ndb_mgm"]
+ENTRYPOINT ["/entrypoint.sh"]
+EXPOSE 3306 33060 2202 1186
+CMD ["mysqld"]
+

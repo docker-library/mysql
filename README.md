@@ -6,80 +6,205 @@ MySQL is the world's most popular open source database. With its proven performa
 
 For more information and related downloads for MySQL Server and other MySQL products, please visit http://www.mysql.com.
 
-# What is  MySQL Cluster?
+# MySQL Server Docker Images
 
-MySQL Cluster is built on the NDB storage engine and provides a highly scalable, real-time, ACID-compliant transactional database, combining 99.999% availability with the low TCO of open source. Designed around a distributed, multi-master architecture with no single point of failure, MySQL Cluster scales horizontally on commodity hardware to serve read and write intensive workloads, accessed via SQL and NoSQL interfaces.
+These are optimized MySQL Server Docker images, created and maintained by the MySQL team at Oracle. The available versions are:
 
-For more information about MySQL Cluster, please visit https://www.mysql.com/products/cluster/
+    MySQL Server 5.5 (tag: 5.5)
+    MySQL Server 5.6 (tag: 5.6)
+    MySQL Server 5.7, the latest GA version (tag: 5.7 or latest)
+    MySQL Server 8.0, preview release (tag: 8.0)
 
-# MySQL Cluster Docker Images
+Images are updated when new MySQL Server maintenance releases and development milestones are published. Please note that milestone releases are for preview purposes only and should not be used in production setups.
 
-These are optimized MySQL Cluster Docker images, created and maintained by the MySQL team at Oracle. The available versions are:
+We also from time to time publish special MySQL Server images that contain experimental features. Please take a look at the [MySQL Docker image list](https://hub.docker.com/r/mysql/) to see what is available.
 
-    MySQL Cluster 7.5, the latest GA version (tag: 7.5 or latest)
-    MySQL Cluster 7.6, preview release (tag: 7.6)
+# How to Use the MySQL Images
 
-Images are updated when new MySQL Cluster maintenance releases and development milestones are published. Please note that all MySQL Cluster Docker images are to be considered experiemental and should not be used in production.
+## Start a MySQL Server Instance
 
-# How to Use the MySQL Cluster Images
+Start a MySQL instance as follows (but make sure you also read the sections *Secure Container Startup* and *Where to Store Data* below):
 
-## Start a MySQL Cluster Using Default Configuration
+    docker run --name my-container-name -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql/mysql-server:tag
 
-Note that the ordering of container startup is very strict, and will likely need to be started from scratch if any step fails
-First we create an internal Docker network that the containers will use to communicate
+... where `my-container-name` is the name you want to assign to your container, `my-secret-pw` is the password to be set for the MySQL root user and `tag` is the tag specifying the MySQL version you want. See the list above for relevant tags, or look at the [full list of tags](https://registry.hub.docker.com/u/mysql/mysql-server/tags/manage/).
 
-    docker network create cluster --subnet=192.168.0.0/16
+## Connect to MySQL from an Application in Another Docker Container
 
-Then we start the management node
+This image exposes the standard MySQL port (3306), so container linking makes the MySQL instance available to other application containers. Start your application container like this in order to link it to the MySQL container:
 
-    docker run -d --net=cluster --name=management1 --ip=192.168.0.2 mysql/mysql-cluster ndb_mgmd
+    docker run --name app-container-name --link my-container-name:mysql -d app-that-uses-mysql
 
-The two data nodes
+## Connect to MySQL from the MySQL Command Line Client
 
-    docker run -d --net=cluster --name=ndb1 --ip=192.168.0.3 mysql/mysql-cluster ndbd
-    docker run -d --net=cluster --name=ndb2 --ip=192.168.0.4 mysql/mysql-cluster ndbd
+The following command starts a new process inside an existing MySQL container instance and runs the `mysql` command line client against your original MySQL server, allowing you to execute SQL statements against your database:
 
-And finally the MySQL server node
+    docker exec -it my-container-name mysql -uroot -p
 
-    docker run -d --net=cluster --name=mysql1 --ip=192.168.0.10 mysql/mysql-cluster mysqld
+... where `my-container-name` is the name of your original MySQL Server container. Note that if the main container process (the server) exits, the process started by exec will also exit.
 
-The server will be initialized with a randomized password that will need to be changed, so fetch it from the log, then log in and change the password.
-If you get an error saying «ERROR 2002 (HY000): Can't connect to local MySQL server through socket» then the server has not finished initializing yet.
+More information about the MySQL command line client can be found in the MySQL reference documentation at http://dev.mysql.com/doc/refman/en/
 
-    docker logs mysql1 2>&1 | grep password
-    docker exec -it mysql1 mysql -uroot -p
-    ALTER USER 'root'@'localhost' IDENTIFIED BY 'MyNewPass';
+## Container Shell Access and Viewing MySQL Log Files
 
-Finally start a container with an interactive management client to verify that the cluster is up
+The `docker exec` command allows you to run commands inside a Docker container. The following command line will give you a bash shell inside your MySQL container:
 
-    docker run -it --net=cluster mysql/mysql-cluster
+    docker exec -it my-container-name bash
 
-Run the SHOW command to print cluster status. You should see the following
+The MySQL Server log is located at `/var/log/mysqld.log` inside the container, and the following command line from a shell inside the container will let you inspect it:
 
-    Starting ndb_mgm
-    -- NDB Cluster -- Management Client --
-    ndb_mgm> show
-    Connected to Management Server at: 192.168.0.2:1186
-    Cluster Configuration
-    ---------------------
-    [ndbd(NDB)]	2 node(s)
-    id=2	@192.168.0.3  (mysql-5.7.18 ndb-7.6.2, Nodegroup: 0, *)
-    id=3	@192.168.0.4  (mysql-5.7.18 ndb-7.6.2, Nodegroup: 0)
+    more /var/log/mysqld.log
+
+## Running custom init scripts at database creation
+
+After the database is created, the entrypoint script will execute any .sh or .sql scripts found in /docker-entrypoint-initdb.d/
+If you wish to execute any custom initialization scripts (e.g. for extra database or user creation), map them to this location
+the first time you start up the image.
+
+# Environment Variables
+
+When you start the MySQL image, you can adjust the configuration of the MySQL instance by passing one or more environment variables on the `docker run` command line. Do note that none of the variables below will have any effect if you start the container with a data directory that already contains a database: any pre-existing database will always be left untouched on container startup.
+
+Most of the variables listed below are optional, but one of the variables `MYSQL_ROOT_PASSWORD`, `MYSQL_ALLOW_EMPTY_PASSWORD`, `MYSQL_RANDOM_ROOT_PASSWORD` must be given.
+
+## `MYSQL_ROOT_PASSWORD`
+
+This variable specifies a password that will be set for the MySQL root superuser account. In the above example, it was set `to my-secret-pw`. **NOTE:** Setting the MySQL root user password on the command line is insecure. See the section *Secure Container Startup* below for an alternative.
+
+As an alternative to specifying the password explicitly, if the variable is set to a file path, the contents of the file will be used as the root password.
+
+## `MYSQL_RANDOM_ROOT_PASSWORD`
+
+When this variable is set to `yes`, a random password for the server's root user will be generated. The password will be printed to stdout in the container, and it can be obtained by using the command `docker logs my-container-name`.
+
+## `MYSQL_ONETIME_PASSWORD`
+
+This variable is optional. When set to `yes`, the root user's password will be set as expired, and must be changed before MySQL can be used normally. This is only supported by MySQL 5.6 or newer.
+
+## `MYSQL_DATABASE`
+
+This variable is optional. It allows you to specify the name of a database to be created on image startup. If a user/password was supplied (see below) then that user will be granted superuser access (corresponding to GRANT ALL) to this database.
+
+## `MYSQL_USER`, `MYSQL_PASSWORD`
+
+These variables are optional, used in conjunction to create a new user and set that user's password. This user will be granted superuser permissions (see above) for the database specified by the `MYSQL_DATABASE` variable. Both variables are required for a user to be created.
+ 
+Do note that there is no need to use this mechanism to create the `root` superuser, that user gets created by default with the password set by either of the mechanisms (given or generated) discussed above.
+
+## `MYSQL_ALLOW_EMPTY_PASSWORD`
+
+Set to `yes` to allow the container to be started with a blank password for the root user. **NOTE:** Setting this variable to `yes` is not recommended unless you really know what you are doing, since this will leave your MySQL instance completely unprotected, allowing anyone to gain complete superuser access.
+
+## `MYSQL_ROOT_HOST`
+
+By default, MySQL creates the 'root'@'localhost' account. This account can only be connected to from inside the container, requiring the use of the docker exec command as noted under `Connect to MySQL from the MySQL Command Line Client`. To allow connections from other hosts, set this environment variable. As an example, the value "172.17.0.1", which is the default Docker gateway IP, will allow connections from the Docker host machine.
+
+# Notes, Tips, Gotchas
+
+## Secure Container Startup
+
+In many use cases, employing the `MYSQL_ROOT_PASSWORD` variable to specify the MySQL root user password on initial container startup is insecure. Instead, to keep your setup as secure as possible, we strongly recommend using the `MYSQL_RANDOM_ROOT_PASSWORD` option. To further secure your instance, we also recommend using the `MYSQL_ONETIME_PASSWORD` variable if you use MySQL version 5.6 or higher.
+
+This is the full procedure:
+
+    docker run --name my-container-name -e MYSQL_RANDOM_ROOT_PASSWORD=yes -e MYSQL_ONETIME_PASSWORD=yes -d mysql/mysql-server:tag
+    docker logs my-container-name
+
+Look for the "GENERATED ROOT PASSWORD" line in the output.
+
+If you also set the `MYSQL_ONETIME_PASSWORD` variable, you must now start a bash shell inside the container in order to set a new root password:
+
+    docker exec -it my-container-name bash
     
-    [ndb_mgmd(MGM)]	1 node(s)
-    id=1	@192.168.0.2  (mysql-5.7.18 ndb-7.6.2)
-    
-    [mysqld(API)]	1 node(s)
-    id=4	@192.168.0.10  (mysql-5.7.18 ndb-7.6.2)
+Start the MySQL command line client and log in using the randomly set root password:
 
-## Customizing MySQL Cluster
+    mysql -u root -p
 
-The default MySQL Cluster image includes two config files which are also available in the github repository at https://github.com/mysql/mysql-docker/tree/mysql-cluster
-* /etc/my.cnf
-* /etc/mysql-cluster.cnf
-To change the cluster, for instance by adding more nodes or change the network setup, these files must be updated. For more information on how to do so, please refer to the MySQL Cluster documentation at to https://dev.mysql.com/doc/index-cluster.html
-To map up custom config files when starting the container, add the -v flag to load an external file. Example:
-    docker run -d --net=cluster --name=management1 --ip=192.168.0.2 -v <path-to-your-file>/mysql-cluster.cnf:/etc/mysql-cluster.cnf mysql/mysql-cluster ndb_mgmd
+And finally, on the mysql client command line, set a new, secure root password for MySQL:
+
+    ALTER USER 'root'@'localhost' IDENTIFIED BY 'my-secret-pw';
+
+An alternative is to use MYSQL_ROOT_PASSWORD, but set it to point to a file that contains the password. This provides better security than having the password on the command line and is easier to use in automated processes than the random password:
+
+    docker run --name my-container-name -e MYSQL_ROOT_PASSWORD=/tmp/password.txt -v mypasswordfile:/tmp/password.txt -e MYSQL_ONETIME_PASSWORD=yes -d mysql/mysql-server:tag
+
+## Where to Store Data
+
+There are basically two ways to store data used by applications that run in Docker containers. We encourage users of MySQL with Docker to familiarize themselves with the options available, including:
+
+* Let Docker manage the storage of your database data by writing the database files to disk on the host system using its own internal volume management. This is the default and is easy and fairly transparent to the user. The downside is that the files may be hard to locate for tools and applications that run directly on the host system, i.e. outside containers.
+* Create a data directory on the host system (outside the container) and mount this to a directory visible from inside the container. This places the database files in a known location on the host system, and makes it easy for tools and applications on the host system to access the files. The downside is that the user needs to make sure that the directory exists, and that e.g. directory permissions and other security mechanisms on the host system are set up correctly.
+
+The Docker documentation is a good starting point for understanding the different storage options and variations, and there are multiple blog and forum postings that discuss and give advice in this area. We will simply show the basic procedure here for the latter option above:
+
+1. Create a data directory on a suitable volume on your host system, e.g. `/my/own/datadir`.
+2. Start your MySQL container like this:
+
+```
+    docker run --name my-container-name -v /my/own/datadir:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql/mysql-server:tag
+```
+
+The `-v /my/own/datadir:/var/lib/mysql` part of the command mounts the `/my/own/datadir` directory from the underlying host system as `/var/lib/mysql` inside the container, where MySQL by default will write its data files.
+
+Note that users on systems with SELinux enabled may experience problems with this. The current workaround is to assign the relevant SELinux policy type to the new data directory so that the container will be allowed to access it:
+
+    chcon -Rt svirt_sandbox_file_t /my/own/datadir
+
+## Usage Against an Existing Database
+
+If you start your MySQL container instance with a data directory that already contains a database (specifically, a `mysql` subdirectory), the `$MYSQL_ROOT_PASSWORD` variable should be omitted from the `docker run` command line; it will in any case be ignored, and the pre-existing database will not be changed in any way.
+
+## Port forwarding
+
+Docker allows mapping of ports on the container to ports on the host system by using the -p option. If you start the container as follows, you can connect to the database by connecting your client to a port on the host machine, in this example port 6603:
+
+    docker run --name my-container-name -p 6603:3306 -d mysql/mysql-server
+
+## Passing options to the server
+
+You can pass arbitrary command line options to the MySQL server by appending them to the `run command`:
+
+    docker run --name my-container-name -d mysql/mysql-server --option1=value --option2=value
+
+In this case, the values of option1 and option2 will be passed directly to the server when it is started. The following command will for instance start your container with UTF-8 as the default setting for character set and collation for all databases in MySQL:
+
+    docker run --name my-container-name -d mysql/mysql-server --character-set-server=utf8 --collation-server=utf8_general_ci
+
+## Using a Custom MySQL Config File
+
+The MySQL startup configuration in these Docker images is specified in the file `/etc/my.cnf`. If you want to customize this configuration for your own purposes, you can create your alternative configuration file in a directory on the host machine and then mount this file in the appropriate location inside the MySQL container, effectively replacing the standard configuration file.
+
+If you want to base your changes on the standard configuration file, start your MySQL container in the standard way described above, then do:
+
+    docker exec -it my-container-name cat /etc/my.cnf > /my/custom/config-file
+
+... where ´/my/custom/config-file´ is the path and name of the new configuration file. Then start a new MySQL container like this:
+
+    docker run --name my-new-container-name -v /my/custom/config-file:/etc/my.cnf -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql/mysql-server:tag
+
+This will start a new MySQL container ´my-new-container-name´ where the MySQL instance uses the startup options specified in ´/my/custom/config-file´.
+
+Note that users on systems where SELinux is enabled may experience problems with this. The current workaround is to assign the relevant SELinux policy type to your new config file so that the container will be allowed to mount it:
+
+    chcon -Rt svirt_sandbox_file_t /my/custom/config-file
+
+## Docker Optimized MySQL Install
+
+These Docker images are optimized for size, which means that we have reduced the contents to what is expected to be relevant for a large majority of users who run Docker based MySQL instances. The key differences compared to a default MySQL install are:
+
+* All binaries are stripped, non-debug only
+* Included binaries are limited to:
+
+```
+    /usr/bin/my_print_defaults
+    /usr/bin/mysql
+    /usr/bin/mysql_config
+    /usr/bin/mysql_install_db
+    /usr/bin/mysql_tzinfo_to_sql
+    /usr/bin/mysql_upgrade
+    /usr/bin/mysqldump
+    /usr/sbin/mysqld
+```
 
 # Supported Docker Versions
 
