@@ -2,6 +2,10 @@ Changes in 1.1.1 (not released)
  * Disable binlog for all entrypoint client commands (#87305)
    This was previously only done only for the script to set the root password,
    but should be done for all client commands, or group replication will fail
+ * Add flag for logging to stdout (#87458)
+   Setting -e MYSQL_LOG_STDOUT=true will make the server log to stdout, so the
+   server log is available through Docker's log interface.
+
 Changes in 1.1.0 (2017-07-24)
  * Fixed broken MYSQL_ONETIME_PASSWORD support (#86523)
    The functionality wasn't correctly updated when the entrypoint script was

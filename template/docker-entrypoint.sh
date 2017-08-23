@@ -46,6 +46,10 @@ if [ "$1" = 'mysqld' ]; then
 	DATADIR="$(_get_config 'datadir' "$@")"
 	SOCKET="$(_get_config 'socket' "$@")"
 
+	if [ -n "$MYSQL_LOG_STDOUT" ] || [ -n "%%DEFAULT_LOG%%" ]; then
+		sed -i 's/^log-error=/#&/' /etc/my.cnf
+	fi
+
 	if [ ! -d "$DATADIR/mysql" ]; then
 		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
 			echo >&2 '[Entrypoint] ERROR: No password option specified for new database.'

@@ -87,6 +87,13 @@ TZINFO_WORKAROUND["5.6"]="sed 's/Local time zone must be set--see zic manual pag
 TZINFO_WORKAROUND["5.7"]=""
 TZINFO_WORKAROUND["8.0"]=""
 
+# Logging to stdout makes server log available with the «docker logs command»
+declare -A DEFAULT_LOG
+DEFAULT_LOG["5.5"]=""
+DEFAULT_LOG["5.6"]=""
+DEFAULT_LOG["5.7"]=""
+DEFAULT_LOG["8.0"]="stdout"
+
 for VERSION in ${VERSIONS}
 do
   # Dockerfile
@@ -103,6 +110,7 @@ do
   sed -i 's#%%INIT_STARTUP%%#'"${INIT_STARTUP[${VERSION}]}"'#g' tmpfile
   sed -i 's#%%STARTUP_WAIT%%#'"${STARTUP_WAIT[${VERSION}]}"'#g' tmpfile
   sed -i 's#%%SERVER_VERSION_FULL%%#'"${SERVER_VERSION_FULL[${VERSION}]}"'#g' tmpfile
+  sed -i 's#%%DEFAULT_LOG%%#'"${DEFAULT_LOG[${VERSION}]}"'#g' tmpfile
   mv tmpfile ${VERSION}/docker-entrypoint.sh
   chmod +x ${VERSION}/docker-entrypoint.sh
 
