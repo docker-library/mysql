@@ -2,6 +2,7 @@ language: bash
 services: docker
 
 env:
+  - VERSION=8.0
   - VERSION=5.7
   - VERSION=5.6
   - VERSION=5.5
@@ -15,7 +16,7 @@ before_script:
   - image="mysql:$VERSION"
 
 script:
-  - docker build -t "$image" .
+  - travis_retry docker build -t "$image" .
   - ~/official-images/test/run.sh "$image"
 
 after_script:
