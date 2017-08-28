@@ -6,6 +6,10 @@ Changes in 1.1.1 (not released)
    Setting -e MYSQL_LOG_STDOUT=true will make the server log to stdout, so the
    server log is available through Docker's log interface.
  * Ensure both MYSQL_USER and MYSQL_PASSWORD are set (#86982)
+   Before, setting only one would cause the option to be silently ignored.
+ * Read password file first and throw error if it is empty (#87025)
+   Setting MYSQL_ROOT_PASSWORD to an empty string would be rejected, but
+   setting it to a file with no content would be accepted. Both are now rejected.
 
 Changes in 1.1.0 (2017-07-24)
  * Fixed broken MYSQL_ONETIME_PASSWORD support (#86523)

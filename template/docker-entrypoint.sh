@@ -51,6 +51,15 @@ if [ "$1" = 'mysqld' ]; then
 	fi
 
 	if [ ! -d "$DATADIR/mysql" ]; then
+		# If the password variable is a filename we use the contents of the file. We
+		# read this first to make sure that a proper error is generated for empty files.
+		if [ -f "$MYSQL_ROOT_PASSWORD" ]; then
+			MYSQL_ROOT_PASSWORD="$(cat $MYSQL_ROOT_PASSWORD)"
+			if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
+				echo >&2 '[Entrypoint] Empty MYSQL_ROOT_PASSWORD file specified.'
+				exit 1
+			fi
+		fi
 		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
 			echo >&2 '[Entrypoint] ERROR: No password option specified for new database.'
 			echo >&2 '[Entrypoint]   You need to specify one of the following:'
@@ -58,10 +67,6 @@ if [ "$1" = 'mysqld' ]; then
 			echo >&2 '[Entrypoint]   - MYSQL_ROOT_PASSWORD'
 			echo >&2 '[Entrypoint]   - MYSQL_ALLOW_EMPTY_PASSWORD'
 			exit 1
-		fi
-		# If the password variable is a filename we use the contents of the file
-		if [ -f "$MYSQL_ROOT_PASSWORD" ]; then
-			MYSQL_ROOT_PASSWORD="$(cat $MYSQL_ROOT_PASSWORD)"
 		fi
 		mkdir -p "$DATADIR"
 		chown -R mysql:mysql "$DATADIR"
