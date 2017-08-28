@@ -136,6 +136,8 @@ EOF
 			fi
 
 			echo 'FLUSH PRIVILEGES ;' | "${mysql[@]}"
+		elif [ "$MYSQL_USER" -a ! "$MYSQL_PASSWORD" -o ! "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
+			echo '[Entrypoint] Not creating mysql user. MYSQL_USER and MYSQL_PASSWORD must be specified to create a mysql user.'
 		fi
 		echo
 		for f in /docker-entrypoint-initdb.d/*; do

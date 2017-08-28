@@ -5,6 +5,7 @@ Changes in 1.1.1 (not released)
  * Add flag for logging to stdout (#87458)
    Setting -e MYSQL_LOG_STDOUT=true will make the server log to stdout, so the
    server log is available through Docker's log interface.
+ * Ensure both MYSQL_USER and MYSQL_PASSWORD are set (#86982)
 
 Changes in 1.1.0 (2017-07-24)
  * Fixed broken MYSQL_ONETIME_PASSWORD support (#86523)
