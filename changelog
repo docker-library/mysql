@@ -10,6 +10,8 @@ Changes in 1.1.1 (not released)
  * Read password file first and throw error if it is empty (#87025)
    Setting MYSQL_ROOT_PASSWORD to an empty string would be rejected, but
    setting it to a file with no content would be accepted. Both are now rejected.
+ * MYSQL_RANDOM_ROOT_PASSWORD and MYSQL_ONETIME_PASSWORD are now set by default.
+   A password option no longer needs to be set explicitly.
 
 Changes in 1.1.0 (2017-07-24)
  * Fixed broken MYSQL_ONETIME_PASSWORD support (#86523)
