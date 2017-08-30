@@ -87,12 +87,12 @@ TZINFO_WORKAROUND["5.6"]="sed 's/Local time zone must be set--see zic manual pag
 TZINFO_WORKAROUND["5.7"]=""
 TZINFO_WORKAROUND["8.0"]=""
 
-# Logging to stdout makes server log available with the «docker logs command»
+# Logging to console (stderr) makes server log available with the «docker logs command»
 declare -A DEFAULT_LOG
 DEFAULT_LOG["5.5"]=""
 DEFAULT_LOG["5.6"]=""
 DEFAULT_LOG["5.7"]=""
-DEFAULT_LOG["8.0"]="stdout"
+DEFAULT_LOG["8.0"]="console"
 
 for VERSION in ${VERSIONS}
 do

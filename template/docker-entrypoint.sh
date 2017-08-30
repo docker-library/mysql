@@ -46,7 +46,7 @@ if [ "$1" = 'mysqld' ]; then
 	DATADIR="$(_get_config 'datadir' "$@")"
 	SOCKET="$(_get_config 'socket' "$@")"
 
-	if [ -n "$MYSQL_LOG_STDOUT" ] || [ -n "%%DEFAULT_LOG%%" ]; then
+	if [ -n "$MYSQL_LOG_CONSOLE" ] || [ -n "%%DEFAULT_LOG%%" ]; then
 		sed -i 's/^log-error=/#&/' /etc/my.cnf
 	fi
 
