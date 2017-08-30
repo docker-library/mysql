@@ -15,7 +15,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 set -e
 
-echo "[Entrypoint] MySQL Docker Image 5.7.19-1.1.1"
+echo "[Entrypoint] MySQL Docker Image 5.7.20-1.1.1"
 # Fetch value from server config
 # We use mysqld --verbose --help instead of my_print_defaults because the
 # latter only show values present in config files, and not server defaults
@@ -46,18 +46,25 @@ if [ "$1" = 'mysqld' ]; then
 	DATADIR="$(_get_config 'datadir' "$@")"
 	SOCKET="$(_get_config 'socket' "$@")"
 
+	if [ -n "$MYSQL_LOG_STDOUT" ] || [ -n "" ]; then
+		sed -i 's/^log-error=/#&/' /etc/my.cnf
+	fi
+
 	if [ ! -d "$DATADIR/mysql" ]; then
-		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
-			echo >&2 '[Entrypoint] ERROR: No password option specified for new database.'
-			echo >&2 '[Entrypoint]   You need to specify one of the following:'
-			echo >&2 '[Entrypoint]   - MYSQL_RANDOM_ROOT_PASSWORD (recommended)'
-			echo >&2 '[Entrypoint]   - MYSQL_ROOT_PASSWORD'
-			echo >&2 '[Entrypoint]   - MYSQL_ALLOW_EMPTY_PASSWORD'
-			exit 1
-		fi
-		# If the password variable is a filename we use the contents of the file
+		# If the password variable is a filename we use the contents of the file. We
+		# read this first to make sure that a proper error is generated for empty files.
 		if [ -f "$MYSQL_ROOT_PASSWORD" ]; then
 			MYSQL_ROOT_PASSWORD="$(cat $MYSQL_ROOT_PASSWORD)"
+			if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
+				echo >&2 '[Entrypoint] Empty MYSQL_ROOT_PASSWORD file specified.'
+				exit 1
+			fi
+		fi
+		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
+			echo >&2 '[Entrypoint] No password option specified for new database.'
+			echo >&2 '[Entrypoint]   A random onetime password will be generated.'
+			MYSQL_RANDOM_ROOT_PASSWORD=true
+			MYSQL_ONETIME_PASSWORD=true
 		fi
 		mkdir -p "$DATADIR"
 		chown -R mysql:mysql "$DATADIR"
@@ -102,7 +109,8 @@ if [ "$1" = 'mysqld' ]; then
 		else
 			ROOTCREATE="ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}'; \
 			CREATE USER 'root'@'${MYSQL_ROOT_HOST}' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}'; \
-			GRANT ALL ON *.* TO 'root'@'${MYSQL_ROOT_HOST}' WITH GRANT OPTION ;"
+			GRANT ALL ON *.* TO 'root'@'${MYSQL_ROOT_HOST}' WITH GRANT OPTION ; \
+			GRANT PROXY ON ''@'' TO 'root'@'${MYSQL_ROOT_HOST}' WITH GRANT OPTION ;"
 		fi
 		"${mysql[@]}" <<-EOSQL
 			DELETE FROM mysql.user WHERE user NOT IN ('mysql.session', 'mysql.sys', 'root') OR host NOT IN ('localhost');
@@ -132,6 +140,8 @@ EOF
 			fi
 
 			echo 'FLUSH PRIVILEGES ;' | "${mysql[@]}"
+		elif [ "$MYSQL_USER" -a ! "$MYSQL_PASSWORD" -o ! "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
+			echo '[Entrypoint] Not creating mysql user. MYSQL_USER and MYSQL_PASSWORD must be specified to create a mysql user.'
 		fi
 		echo
 		for f in /docker-entrypoint-initdb.d/*; do
@@ -189,7 +199,7 @@ password=healthcheckpass
 EOF
 	touch /mysql-init-complete
 	chown -R mysql:mysql "$DATADIR"
-	echo "[Entrypoint] Starting MySQL 5.7.19-1.1.1"
+	echo "[Entrypoint] Starting MySQL 5.7.20-1.1.1"
 fi
 
 exec "$@"
