@@ -15,7 +15,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 set -e
 
-echo "[Entrypoint] MySQL Docker Image 5.6.37-1.1.0"
+echo "[Entrypoint] MySQL Docker Image 5.6.37-1.1.1"
 # Fetch value from server config
 # We use mysqld --verbose --help instead of my_print_defaults because the
 # latter only show values present in config files, and not server defaults
@@ -72,7 +72,9 @@ if [ "$1" = 'mysqld' ]; then
 		# The file is only populated when and if the root password is set.
 		PASSFILE=$(mktemp -u /var/lib/mysql-files/XXXXXXXXXX)
 		install /dev/null -m0600 -omysql -gmysql "$PASSFILE"
-		mysql=( mysql --defaults-extra-file="$PASSFILE" --protocol=socket -uroot -hlocalhost --socket="$SOCKET")
+		# Define the client command used throughout the script
+		# "SET @@SESSION.SQL_LOG_BIN=0;" is required for products like group replication to work properly
+		mysql=( mysql --defaults-extra-file="$PASSFILE" --protocol=socket -uroot -hlocalhost --socket="$SOCKET" --init-command="SET @@SESSION.SQL_LOG_BIN=0;")
 
 		if [ ! -z "yes" ];
 		then
@@ -103,9 +105,6 @@ if [ "$1" = 'mysqld' ]; then
 			GRANT ALL ON *.* TO 'root'@'${MYSQL_ROOT_HOST}' WITH GRANT OPTION ;"
 		fi
 		"${mysql[@]}" <<-EOSQL
-			-- What's done in this file shouldn't be replicated
-			--  or products like mysql-fabric won't work
-			SET @@SESSION.SQL_LOG_BIN=0;
 			DELETE FROM mysql.user WHERE user NOT IN ('mysql.session', 'mysql.sys', 'root') OR host NOT IN ('localhost');
 			CREATE USER 'healthchecker'@'localhost' IDENTIFIED BY 'healthcheckpass';
 			${ROOTCREATE}
@@ -190,7 +189,7 @@ password=healthcheckpass
 EOF
 	touch /mysql-init-complete
 	chown -R mysql:mysql "$DATADIR"
-	echo "[Entrypoint] Starting MySQL 5.6.37-1.1.0"
+	echo "[Entrypoint] Starting MySQL 5.6.37-1.1.1"
 fi
 
 exec "$@"
