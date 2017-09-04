@@ -4,7 +4,8 @@ Changes in 1.1.1 (not released)
    but should be done for all client commands, or group replication will fail
  * Add flag for logging to console (#87458)
    Setting -e MYSQL_LOG_CONSOLE=true will make the server log to console, so the
-   server log is available through Docker's log interface.
+   server log is available through Docker's log interface. If /etc/my.cnf is
+   mounted from the host system, this has no effect.
  * Ensure both MYSQL_USER and MYSQL_PASSWORD are set (#86982)
    Before, setting only one would cause the option to be silently ignored.
  * Read password file first and throw error if it is empty (#87025)

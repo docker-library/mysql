@@ -47,7 +47,10 @@ if [ "$1" = 'mysqld' ]; then
 	SOCKET="$(_get_config 'socket' "$@")"
 
 	if [ -n "$MYSQL_LOG_CONSOLE" ] || [ -n "%%DEFAULT_LOG%%" ]; then
-		sed -i 's/^log-error=/#&/' /etc/my.cnf
+		# Don't touch bind-mounted config files
+		if ! cat /proc/1/mounts | grep "etc/my.cnf"; then
+			sed -i 's/^log-error=/#&/' /etc/my.cnf
+		fi
 	fi
 
 	if [ ! -d "$DATADIR/mysql" ]; then
