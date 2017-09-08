@@ -208,7 +208,7 @@ These Docker images are optimized for size, which means that we have reduced the
 
 # Supported Docker Versions
 
-These images are officially supported by the MySQL team on Docker version 1.9. Support for older versions (down to 1.0) is provided on a best-effort basis, but we strongly recommend running on the most recent version, since that is assumed for parts of the documentation above.
+These images are created by the MySQL team for use on the latest version of Docker. Support for older versions (down to 1.0) is provided on a best-effort basis, but we strongly recommend running on the most recent version, since that is assumed for parts of the documentation above.
 
 # User Feedback
 

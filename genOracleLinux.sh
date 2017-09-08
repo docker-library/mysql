@@ -19,9 +19,11 @@
 # Example: mysql_install_db for 5.5 and 5.6, and mysqld --initialize for newer
 VERSIONS="7.5 7.6"
 
+VERSION_DOCKERFILES=1.1.1
+
 declare -A SERVER_VERSION_FULL
-SERVER_VERSION_FULL["7.5"]="7.5.7-1.1.0"
-SERVER_VERSION_FULL["7.6"]="7.6.3-dmr-1.1.0"
+SERVER_VERSION_FULL["7.5"]="7.5.8-1.1.1"
+SERVER_VERSION_FULL["7.6"]="7.6.3-dmr-1.1.1"
 
 declare -A PACKAGE_URL
 PACKAGE_URL["7.5"]="https://dev.mysql.com/get/Downloads/MySQL-Cluster-7.5/mysql-cluster-community-server-minimal-7.5.7-1.el7.x86_64.rpm"
@@ -63,6 +65,13 @@ declare -A TZINFO_WORKAROUND
 TZINFO_WORKAROUND["7.5"]=""
 TZINFO_WORKAROUND["7.6"]=""
 
+# Logging to console (stderr) makes server log available with the «docker logs command»
+declare -A DEFAULT_LOG
+DEFAULT_LOG["5.5"]=""
+DEFAULT_LOG["5.6"]=""
+DEFAULT_LOG["5.7"]=""
+DEFAULT_LOG["8.0"]="console"
+
 for VERSION in ${VERSIONS}
 do
   # Dockerfile
@@ -79,6 +88,7 @@ do
   sed -i 's#%%INIT_STARTUP%%#'"${INIT_STARTUP[${VERSION}]}"'#g' tmpfile
   sed -i 's#%%STARTUP_WAIT%%#'"${STARTUP_WAIT[${VERSION}]}"'#g' tmpfile
   sed -i 's#%%SERVER_VERSION_FULL%%#'"${SERVER_VERSION_FULL[${VERSION}]}"'#g' tmpfile
+  sed -i 's#%%DEFAULT_LOG%%#'"${DEFAULT_LOG[${VERSION}]}"'#g' tmpfile
   mv tmpfile ${VERSION}/docker-entrypoint.sh
   chmod +x ${VERSION}/docker-entrypoint.sh
 

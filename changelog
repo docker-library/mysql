@@ -1,4 +1,25 @@
-Changes in 1.1.0 (unreleased)
+Changes in 1.1.1 (not released)
+ * Disable binlog for all entrypoint client commands (#87305)
+   This was previously only done only for the script to set the root password,
+   but should be done for all client commands, or group replication will fail
+ * Add flag for logging to console (#87458)
+   Setting -e MYSQL_LOG_CONSOLE=true will make the server log to console, so the
+   server log is available through Docker's log interface. If /etc/my.cnf is
+   mounted from the host system, this has no effect.
+ * Ensure both MYSQL_USER and MYSQL_PASSWORD are set (#86982)
+   Before, setting only one would cause the option to be silently ignored.
+ * Read password file first and throw error if it is empty (#87025)
+   Setting MYSQL_ROOT_PASSWORD to an empty string would be rejected, but
+   setting it to a file with no content would be accepted. Both are now rejected.
+ * MYSQL_RANDOM_ROOT_PASSWORD and MYSQL_ONETIME_PASSWORD are now set by default. (#87515)
+   A password option no longer needs to be set explicitly. If none are set, a
+   random, expired password is set.
+ * Make root@$MYSQL_ROOT_HOST identical to root@localhost (#86945)
+   If the MYSQL_ROOT_HOST variable is set we add an additional root user for
+   the given host. This user was missing the PROXY privilege. We add the
+   missing privilege so the users are identical.
+
+Changes in 1.1.0 (2017-07-24)
  * Fixed broken MYSQL_ONETIME_PASSWORD support (#86523)
    The functionality wasn't correctly updated when the entrypoint script was
    changed to only create the root@localhost user by default
