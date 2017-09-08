@@ -33,5 +33,6 @@ COPY cnf/mysql-cluster.cnf /etc/
 
 ENTRYPOINT ["/entrypoint.sh"]
 EXPOSE %%PORTS%%
+HEALTHCHECK CMD /healthcheck.sh
 CMD ["mysqld"]
 
