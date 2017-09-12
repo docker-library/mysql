@@ -36,8 +36,8 @@ PACKAGE_URL["8.0"]="https://repo.mysql.com/yum/mysql-8.0-community/docker/x86_64
 declare -A PACKAGE_URL_SHELL
 PACKAGE_URL_SHELL["5.5"]="\"\""
 PACKAGE_URL_SHELL["5.6"]="\"\""
-PACKAGE_URL_SHELL["5.7"]="https://repo.mysql.com/yum/mysql-tools-community/el/7/x86_64/mysql-shell-1.0.9-1.el7.x86_64.rpm"
-PACKAGE_URL_SHELL["8.0"]="https://repo.mysql.com/yum/mysql-tools-community/el/7/x86_64/mysql-shell-1.0.9-1.el7.x86_64.rpm"
+PACKAGE_URL_SHELL["5.7"]="https://repo.mysql.com/yum/mysql-tools-community/el/7/x86_64/mysql-shell-1.0.10-1.el7.x86_64.rpm"
+PACKAGE_URL_SHELL["8.0"]="https://repo.mysql.com/yum/mysql-tools-preview/el/7/x86_64/mysql-shell-8.0.0-0.1.dmr.el7.x86_64.rpm"
 
 # 33060 is the default port for the mysqlx plugin, new to 5.7
 declare -A PORTS
