@@ -1,11 +1,12 @@
-Changes in 1.1.1 (not released)
+Changes in 1.1.1 (2017-09-22)
  * Disable binlog for all entrypoint client commands (#87305)
    This was previously only done only for the script to set the root password,
    but should be done for all client commands, or group replication will fail
  * Add flag for logging to console (#87458)
    Setting -e MYSQL_LOG_CONSOLE=true will make the server log to console, so the
    server log is available through Docker's log interface. If /etc/my.cnf is
-   mounted from the host system, this has no effect.
+   mounted from the host system, this has no effect. On 8.0, this is the default
+   behavior.
  * Ensure both MYSQL_USER and MYSQL_PASSWORD are set (#86982)
    Before, setting only one would cause the option to be silently ignored.
  * Read password file first and throw error if it is empty (#87025)
@@ -18,6 +19,8 @@ Changes in 1.1.1 (not released)
    If the MYSQL_ROOT_HOST variable is set we add an additional root user for
    the given host. This user was missing the PROXY privilege. We add the
    missing privilege so the users are identical.
+ * MySQL Server 8.0 updated to 8.0.3-rc
+ * MySQL Shell for 5.7 updated to 1.0.10
 
 Changes in 1.1.0 (2017-07-24)
  * Fixed broken MYSQL_ONETIME_PASSWORD support (#86523)
@@ -45,5 +48,3 @@ Known issues:
    healthcheck script will generate an "Access denied for healthchecker@localhost"
    message in the server log every time it runs. If connection throttling is
    enabled this could eventually cause the healthcheck to fail
- * 5.7: Shell 1.0.9 is unable to set up innodb-cluster with the default
-   root@localhost user (#86267)

@@ -15,7 +15,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 set -e
 
-echo "[Entrypoint] MySQL Docker Image 5.5.58-1.1.1"
+echo "[Entrypoint] MySQL Docker Image 5.5.57-1.1.1"
 # Fetch value from server config
 # We use mysqld --verbose --help instead of my_print_defaults because the
 # latter only show values present in config files, and not server defaults
@@ -47,7 +47,10 @@ if [ "$1" = 'mysqld' ]; then
 	SOCKET="$(_get_config 'socket' "$@")"
 
 	if [ -n "$MYSQL_LOG_CONSOLE" ] || [ -n "" ]; then
-		sed -i 's/^log-error=/#&/' /etc/my.cnf
+		# Don't touch bind-mounted config files
+		if ! cat /proc/1/mounts | grep "etc/my.cnf"; then
+			sed -i 's/^log-error=/#&/' /etc/my.cnf
+		fi
 	fi
 
 	if [ ! -d "$DATADIR/mysql" ]; then
@@ -199,7 +202,7 @@ password=healthcheckpass
 EOF
 	touch /mysql-init-complete
 	chown -R mysql:mysql "$DATADIR"
-	echo "[Entrypoint] Starting MySQL 5.5.58-1.1.1"
+	echo "[Entrypoint] Starting MySQL 5.5.57-1.1.1"
 fi
 
 exec "$@"
