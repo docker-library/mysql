@@ -61,13 +61,14 @@ sed -i "s#^PACKAGE_URL_SHELL\[\"8.0\"\].*#PACKAGE_URL_SHELL\[\"8.0\"\]=\"${REPOU
 echo "...Generating image source"
 ./genOracleLinux.sh
 
+echo "...Building Docker images"
 for MAJOR_VERSION in 5.5 5.6 5.7 8.0
 do
+    echo "...$MAJOR_VERSION"
     if [ -n "$http_proxy" ] && [ -n "$https_proxy" ];
     then
-        echo "Building with proxy values found in env"
-        docker build -t mysql/mysql-server:$MAJOR_VERSION --build-arg http_proxy=$http_proxy --build-arg https_proxy=$https_proxy $MAJOR_VERSION
+        docker build -t mysql/mysql-server:$MAJOR_VERSION --build-arg http_proxy=$http_proxy --build-arg https_proxy=$https_proxy $MAJOR_VERSION 2>&1>buildlog.txt
     else
-        docker build -t mysql/mysql-server:$MAJOR_VERSION $MAJOR_VERSION
+        docker build -t mysql/mysql-server:$MAJOR_VERSION $MAJOR_VERSION 2>&1>buildlog.txt
     fi
 done
