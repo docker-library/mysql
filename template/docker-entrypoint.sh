@@ -136,6 +136,13 @@ EOF
 			mysql+=( "$MYSQL_DATABASE" )
 		fi
 
+		if [ -f "$MYSQL_PASSWORD" ]; then
+			MYSQL_PASSWORD="$(cat $MYSQL_PASSWORD)"
+			if [ -z "$MYSQL_PASSWORD" ]; then
+				echo >&2 '[Entrypoint] Empty MYSQL_PASSWORD file specified.'
+				exit 1
+			fi
+		fi
 		if [ "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
 			echo "CREATE USER '"$MYSQL_USER"'@'%' IDENTIFIED BY '"$MYSQL_PASSWORD"' ;" | "${mysql[@]}"
 
