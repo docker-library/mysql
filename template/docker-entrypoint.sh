@@ -116,7 +116,7 @@ if [ "$1" = 'mysqld' ]; then
 			GRANT PROXY ON ''@'' TO 'root'@'${MYSQL_ROOT_HOST}' WITH GRANT OPTION ;"
 		fi
 		"${mysql[@]}" <<-EOSQL
-			DELETE FROM mysql.user WHERE user NOT IN ('mysql.session', 'mysql.sys', 'root') OR host NOT IN ('localhost');
+			DELETE FROM mysql.user WHERE user NOT IN ('mysql.infoschema', 'mysql.session', 'mysql.sys', 'root') OR host NOT IN ('localhost');
 			CREATE USER 'healthchecker'@'localhost' IDENTIFIED BY 'healthcheckpass';
 			${ROOTCREATE}
 			FLUSH PRIVILEGES ;
