@@ -166,7 +166,9 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		if [ "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
 			echo "CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD' ;" | "${mysql[@]}"
 
-			if [ "$MYSQL_DATABASE" ]; then
+			if [ "$MYSQL_WILDCARD" ]; then
+				echo "GRANT ALL ON \`$MYSQL_WILDCARD\\_%\`.* TO '$MYSQL_USER'@'%' ;" | "${mysql[@]}"
+			elif [ "$MYSQL_DATABASE" ]; then
 				echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* TO '$MYSQL_USER'@'%' ;" | "${mysql[@]}"
 			fi
 
