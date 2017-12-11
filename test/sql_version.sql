@@ -1,1 +1,0 @@
-show variables like 'version';
