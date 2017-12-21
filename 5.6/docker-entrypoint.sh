@@ -65,9 +65,15 @@ _get_config() {
 # allow the container to be started with `--user`
 if [ "$1" = 'mysqld' -a -z "$wantHelp" -a "$(id -u)" = '0' ]; then
 	_check_config "$@"
+
 	DATADIR="$(_get_config 'datadir' "$@")"
 	mkdir -p "$DATADIR"
 	chown -R mysql:mysql "$DATADIR"
+
+	file_env 'MYSQL_LOG_DIR' '/var/log/mysql'
+	mkdir -p "$MYSQL_LOG_DIR"
+	chown -R mysql:mysql "$MYSQL_LOG_DIR"
+
 	exec gosu mysql "$BASH_SOURCE" "$@"
 fi
 
