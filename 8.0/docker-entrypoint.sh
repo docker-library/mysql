@@ -15,7 +15,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 set -e
 
-echo "[Entrypoint] MySQL Docker Image 8.0.3-1.1.2"
+echo "[Entrypoint] MySQL Docker Image 8.0.3-1.1.3"
 # Fetch value from server config
 # We use mysqld --verbose --help instead of my_print_defaults because the
 # latter only show values present in config files, and not server defaults
@@ -116,7 +116,7 @@ if [ "$1" = 'mysqld' ]; then
 			GRANT PROXY ON ''@'' TO 'root'@'${MYSQL_ROOT_HOST}' WITH GRANT OPTION ;"
 		fi
 		"${mysql[@]}" <<-EOSQL
-			DELETE FROM mysql.user WHERE user NOT IN ('mysql.session', 'mysql.sys', 'root') OR host NOT IN ('localhost');
+			DELETE FROM mysql.user WHERE user NOT IN ('mysql.infoschema', 'mysql.session', 'mysql.sys', 'root') OR host NOT IN ('localhost');
 			CREATE USER 'healthchecker'@'localhost' IDENTIFIED BY 'healthcheckpass';
 			${ROOTCREATE}
 			FLUSH PRIVILEGES ;
@@ -202,7 +202,7 @@ password=healthcheckpass
 EOF
 	touch /mysql-init-complete
 	chown -R mysql:mysql "$DATADIR"
-	echo "[Entrypoint] Starting MySQL 8.0.3-1.1.2"
+	echo "[Entrypoint] Starting MySQL 8.0.3-1.1.3"
 fi
 
 exec "$@"
