@@ -15,7 +15,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 set -e
 
-echo "[Entrypoint] MySQL Docker Image 8.0.3-1.1.3"
+echo "[Entrypoint] MySQL Docker Image 8.0.4-1.1.4"
 # Fetch value from server config
 # We use mysqld --verbose --help instead of my_print_defaults because the
 # latter only show values present in config files, and not server defaults
@@ -202,7 +202,7 @@ password=healthcheckpass
 EOF
 	touch /mysql-init-complete
 	chown -R mysql:mysql "$DATADIR"
-	echo "[Entrypoint] Starting MySQL 8.0.3-1.1.3"
+	echo "[Entrypoint] Starting MySQL 8.0.4-1.1.4"
 fi
 
 exec "$@"
