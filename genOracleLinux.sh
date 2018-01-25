@@ -16,24 +16,23 @@
 
 # This script will simply use sed to replace placeholder variables in the
 # files in template/ with version-specific variants.
-# Example: mysql_install_db for 5.5 and 5.6, and mysqld --initialize for newer
+
 VERSIONS="7.5 7.6"
 
-VERSION_DOCKERFILES=1.1.1
+. VERSION
 
 declare -A SERVER_VERSION_FULL
-SERVER_VERSION_FULL["7.5"]="7.5.8-1.1.1"
-SERVER_VERSION_FULL["7.6"]="7.6.3-dmr-1.1.1"
+SERVER_VERSION_FULL["7.5"]="${VERSION_CLUSTER_75}-${VERSION_DOCKER}"
+SERVER_VERSION_FULL["7.6"]="${VERSION_CLUSTER_76}-dmr-${VERSION_DOCKER}"
 
 declare -A PACKAGE_URL
-PACKAGE_URL["7.5"]="https://dev.mysql.com/get/Downloads/MySQL-Cluster-7.5/mysql-cluster-community-server-minimal-7.5.7-1.el7.x86_64.rpm"
-PACKAGE_URL["7.6"]="https://dev.mysql.com/get/Downloads/MySQL-Cluster-7.6/mysql-cluster-community-server-minimal-7.6.3-1.el7.x86_64.rpm"
+PACKAGE_URL["7.5"]="https://dev.mysql.com/get/Downloads/MySQL-Cluster-7.5/mysql-cluster-community-server-minimal-7.5.9-1.el7.x86_64.rpm"
+PACKAGE_URL["7.6"]="https://dev.mysql.com/get/Downloads/MySQL-Cluster-7.6/mysql-cluster-community-server-minimal-7.6.4-1.el7.x86_64.rpm"
 
 declare -A PACKAGE_URL_SHELL
-PACKAGE_URL_SHELL["7.5"]="https://repo.mysql.com/yum/mysql-tools-community/el/7/x86_64/mysql-shell-1.0.9-1.el7.x86_64.rpm"
-PACKAGE_URL_SHELL["7.6"]="https://repo.mysql.com/yum/mysql-tools-community/el/7/x86_64/mysql-shell-1.0.9-1.el7.x86_64.rpm"
+PACKAGE_URL_SHELL["7.5"]="https://repo.mysql.com/yum/mysql-tools-community/el/7/x86_64/mysql-shell-1.0.11-1.el7.x86_64.rpm"
+PACKAGE_URL_SHELL["7.6"]="https://repo.mysql.com/yum/mysql-tools-preview/el/7/x86_64/mysql-shell-8.0.3-0.1.dmr.el7.x86_64.rpm"
 
-# 33060 is the default port for the mysqlx plugin, new to 5.7
 declare -A PORTS
 PORTS["7.5"]="3306 33060 2202 1186"
 PORTS["7.6"]="3306 33060 2202 1186"
@@ -54,8 +53,6 @@ declare -A STARTUP_WAIT
 STARTUP_WAIT["7.5"]="\"\""
 STARTUP_WAIT["7.6"]="\"\""
 
-# The option to set a user as expired, (forcing a password change before
-# any other action can be taken) was added in 5.6
 declare -A EXPIRE_SUPPORT
 EXPIRE_SUPPORT["7.5"]="\"yes\""
 EXPIRE_SUPPORT["7.6"]="\"yes\""
@@ -67,9 +64,7 @@ TZINFO_WORKAROUND["7.6"]=""
 
 # Logging to console (stderr) makes server log available with the «docker logs command»
 declare -A DEFAULT_LOG
-DEFAULT_LOG["5.5"]=""
-DEFAULT_LOG["5.6"]=""
-DEFAULT_LOG["5.7"]=""
+DEFAULT_LOG["7.5"]="console"
 DEFAULT_LOG["8.0"]="console"
 
 for VERSION in ${VERSIONS}
