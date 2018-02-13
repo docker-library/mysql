@@ -65,7 +65,11 @@ TZINFO_WORKAROUND["7.6"]=""
 # Logging to console (stderr) makes server log available with the «docker logs command»
 declare -A DEFAULT_LOG
 DEFAULT_LOG["7.5"]="console"
-DEFAULT_LOG["8.0"]="console"
+DEFAULT_LOG["7.6"]="console"
+
+declare -A NDBWAITER
+NDBWAITER["7.5"]="no"
+NDBWAITER["7.6"]="yes"
 
 for VERSION in ${VERSIONS}
 do

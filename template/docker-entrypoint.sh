@@ -226,6 +226,15 @@ elif [ "$1" == "ndbmtd" ]; then
 
 elif [ "$1" == "ndb_mgm" ]; then
 	echo "[Entrypoint] Starting ndb_mgm"
+
+elif [ "$1" == "ndb_waiter" ]; then
+	if [ "%%NDBWAITER%%" == "yes" ]; then
+		echo "[Entrypoint] Starting ndb_waiter"
+		set -- "$@" --nodaemon
+	else
+		echo "[Entrypoint] ndb_waiter not supported"
+		exit 1
+	fi
 fi
 
 exec "$@"
