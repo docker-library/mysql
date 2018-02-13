@@ -220,6 +220,10 @@ elif [ "$1" == "ndbd" ]; then
 	echo "[Entrypoint] Starting ndbd"
 	set -- "$@" --nodaemon
 
+elif [ "$1" == "ndbmtd" ]; then
+	echo "[Entrypoint] Starting ndbmtd"
+	set -- "$@" --nodaemon
+
 elif [ "$1" == "ndb_mgm" ]; then
 	echo "[Entrypoint] Starting ndb_mgm"
 fi
