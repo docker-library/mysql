@@ -1,7 +1,9 @@
-FROM debian:jessie
+FROM debian:stretch-slim
 
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
 RUN groupadd -r mysql && useradd -r -g mysql mysql
+
+RUN apt-get update && apt-get install -y --no-install-recommends gnupg dirmngr && rm -rf /var/lib/apt/lists/*
 
 # add gosu for easy step-down from root
 ENV GOSU_VERSION 1.7
@@ -12,22 +14,27 @@ RUN set -x \
 	&& export GNUPGHOME="$(mktemp -d)" \
 	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
 	&& gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
-	&& rm -r "$GNUPGHOME" /usr/local/bin/gosu.asc \
+	&& rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc \
 	&& chmod +x /usr/local/bin/gosu \
 	&& gosu nobody true \
 	&& apt-get purge -y --auto-remove ca-certificates wget
 
 RUN mkdir /docker-entrypoint-initdb.d
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+# for MYSQL_RANDOM_ROOT_PASSWORD
+		pwgen \
 # FATAL ERROR: please install the following Perl modules before executing /usr/local/mysql/scripts/mysql_install_db:
 # File::Basename
 # File::Copy
 # Sys::Hostname
 # Data::Dumper
-RUN apt-get update && apt-get install -y perl --no-install-recommends && rm -rf /var/lib/apt/lists/*
-
+		perl \
 # mysqld: error while loading shared libraries: libaio.so.1: cannot open shared object file: No such file or directory
-RUN apt-get update && apt-get install -y libaio1 pwgen && rm -rf /var/lib/apt/lists/*
+		libaio1 \
+# mysql: error while loading shared libraries: libncurses.so.5: cannot open shared object file: No such file or directory
+		libncurses5 \
+	&& rm -rf /var/lib/apt/lists/*
 
 ENV MYSQL_MAJOR 5.5
 ENV MYSQL_VERSION 5.5.59
@@ -40,7 +47,7 @@ RUN apt-get update && apt-get install -y ca-certificates wget --no-install-recom
 # gpg: key 5072E1F5: public key "MySQL Release Engineering <mysql-build@oss.oracle.com>" imported
 	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys A4A9406876FCBD3C456770C88C718D3B5072E1F5 \
 	&& gpg --batch --verify mysql.tar.gz.asc mysql.tar.gz \
-	&& rm -r "$GNUPGHOME" mysql.tar.gz.asc \
+	&& rm -rf "$GNUPGHOME" mysql.tar.gz.asc \
 	&& mkdir /usr/local/mysql \
 	&& tar -xzf mysql.tar.gz -C /usr/local/mysql --strip-components=1 \
 	&& rm mysql.tar.gz \
