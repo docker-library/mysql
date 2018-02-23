@@ -88,7 +88,8 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		mkdir -p "$DATADIR"
 
 		echo 'Initializing database'
-		mysql_install_db --datadir="$DATADIR" --rpm --basedir=/usr/local/mysql
+		# "Other options are passed to mysqld." (so we pass all "mysqld" arguments directly here)
+		mysql_install_db --datadir="$DATADIR" --rpm --basedir=/usr/local/mysql "${@:2}"
 		echo 'Database initialized'
 
 		SOCKET="$(_get_config 'socket' "$@")"
