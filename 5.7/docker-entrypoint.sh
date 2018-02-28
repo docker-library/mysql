@@ -105,10 +105,11 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		mysql=( mysql --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" )
 
 		for i in {30..0}; do
-			if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
+			echo 'Trying to connect to mysql...'
+			if echo 'SELECT 1' | "${mysql[@]}" > /dev/null; then
 				break
 			fi
-			echo 'MySQL init process in progress...'
+			echo 'MySQL init process must be in progress...'
 			sleep 1
 		done
 		if [ "$i" = 0 ]; then
