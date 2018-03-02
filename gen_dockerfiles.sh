@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2018 Oracle and/or its affiliates. All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,30 +14,34 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
+set -e
+
+function get_full_filename() {
+        FILEPATH=$1
+        PACKAGE_STRING=$2
+        FILENAME=$(curl -s $FILEPATH/ | grep $PACKAGE_STRING | sed -e 's/.*href=\"//i' -e 's/\".*//')
+        if [ -z "$FILENAME" ]; then
+            echo &< "Unable to locate package for $PACKAGE_STRING. Aborting"
+            exit 1
+        fi
+	COUNT=$(echo $FILENAME | tr " " "\n" | wc -l)
+        if [ $COUNT -gt 1 ]; then
+            echo &<2 "Found multiple file names for package $PACKAGE_STRING. Aborting"
+            exit 1
+        fi
+	echo $FILENAME
+}
+
 # This script will simply use sed to replace placeholder variables in the
 # files in template/ with version-specific variants.
-# Example: mysql_install_db for 5.5 and 5.6, and mysqld --initialize for newer
-VERSIONS="5.5 5.6 5.7 8.0"
 
 . VERSION
 
-declare -A SERVER_VERSION_FULL
-SERVER_VERSION_FULL["5.5"]="${VERSION_SERVER_55}-${VERSION_DOCKER}"
-SERVER_VERSION_FULL["5.6"]="${VERSION_SERVER_56}-${VERSION_DOCKER}"
-SERVER_VERSION_FULL["5.7"]="${VERSION_SERVER_57}-${VERSION_DOCKER}"
-SERVER_VERSION_FULL["8.0"]="${VERSION_SERVER_80}-${VERSION_DOCKER}"
-
-declare -A PACKAGE_URL
-PACKAGE_URL["5.5"]="https://repo.mysql.com/yum/mysql-5.5-community/docker/x86_64/mysql-community-server-minimal-5.5.60-2.el7.x86_64.rpm"
-PACKAGE_URL["5.6"]="https://repo.mysql.com/yum/mysql-5.6-community/docker/x86_64/mysql-community-server-minimal-5.6.40-2.el7.x86_64.rpm"
-PACKAGE_URL["5.7"]="https://repo.mysql.com/yum/mysql-5.7-community/docker/x86_64/mysql-community-server-minimal-5.7.22-1.el7.x86_64.rpm"
-PACKAGE_URL["8.0"]="https://repo.mysql.com/yum/mysql-8.0-community/docker/x86_64/mysql-community-server-minimal-8.0.11-1.el7.x86_64.rpm"
-
-declare -A PACKAGE_URL_SHELL
-PACKAGE_URL_SHELL["5.5"]="\"\""
-PACKAGE_URL_SHELL["5.6"]="\"\""
-PACKAGE_URL_SHELL["5.7"]="https://repo.mysql.com/yum/mysql-tools-community/el/7/x86_64/mysql-shell-1.0.11-1.el7.x86_64.rpm"
-PACKAGE_URL_SHELL["8.0"]="https://repo.mysql.com/yum/mysql-tools-community/el/7/x86_64/mysql-shell-8.0.11-1.el7.x86_64.rpm"
+if [ -z "$1" ]; then
+  REPO=https://repo.mysql.com
+else
+  REPO=$1
+fi
 
 # 33060 is the default port for the mysqlx plugin, new to 5.7
 declare -A PORTS
@@ -94,11 +98,22 @@ DEFAULT_LOG["5.6"]=""
 DEFAULT_LOG["5.7"]=""
 DEFAULT_LOG["8.0"]="console"
 
-for VERSION in ${VERSIONS}
+
+for VERSION in "${!MYSQL_SHELL_VERSIONS[@]}"
 do
-  # Dockerfile
-  sed 's#%%PACKAGE_URL%%#'"${PACKAGE_URL[${VERSION}]}"'#g' template/Dockerfile > tmpfile
-  sed -i 's#%%PACKAGE_URL_SHELL%%#'"${PACKAGE_URL_SHELL[${VERSION}]}"'#g' tmpfile
+  # Dockerfiles
+  MYSQL_SERVER_REPOPATH=yum/mysql-$VERSION-community/docker/x86_64
+  MYSQL_CLUSTER_PACKAGE_URL=$REPO/$MYSQL_SERVER_REPOPATH/$(get_full_filename $REPO/$MYSQL_SERVER_REPOPATH mysql-community-server-minimal-${MYSQL_SERVER_VERSIONS[${VERSION}]})
+  sed 's#%%MYSQL_SERVER_PACKAGE_URL%%#'"$MYSQL_CLUSTER_PACKAGE_URL"'#g' template/Dockerfile > tmpfile
+
+  if [[ ! -z ${MYSQL_SHELL_VERSIONS[${VERSION}]} ]]; then
+    MYSQL_SHELL_REPOPATH=yum/mysql-tools-community/el/7/x86_64
+    MYSQL_SHELL_PACKAGE_URL=$REPO/$MYSQL_SHELL_REPOPATH/$(get_full_filename $REPO/$MYSQL_SHELL_REPOPATH mysql-shell-${MYSQL_SHELL_VERSIONS[${VERSION}]})
+    sed -i 's#%%MYSQL_SHELL_PACKAGE_URL%%#'"$MYSQL_SHELL_PACKAGE_URL"'#g' tmpfile
+  else
+    sed -i 's#%%MYSQL_SHELL_PACKAGE_URL%%#'""'#g' tmpfile
+  fi
+
   sed -i 's/%%PORTS%%/'"${PORTS[${VERSION}]}"'/g' tmpfile
   mv tmpfile ${VERSION}/Dockerfile
 
@@ -109,7 +124,7 @@ do
   sed -i 's#%%SED_TZINFO%%#'"${TZINFO_WORKAROUND[${VERSION}]}"'#g' tmpfile
   sed -i 's#%%INIT_STARTUP%%#'"${INIT_STARTUP[${VERSION}]}"'#g' tmpfile
   sed -i 's#%%STARTUP_WAIT%%#'"${STARTUP_WAIT[${VERSION}]}"'#g' tmpfile
-  sed -i 's#%%SERVER_VERSION_FULL%%#'"${SERVER_VERSION_FULL[${VERSION}]}"'#g' tmpfile
+  sed -i 's#%%FULL_SERVER_VERSION%%#'"${FULL_SERVER_VERSIONS[${VERSION}]}"'#g' tmpfile
   sed -i 's#%%DEFAULT_LOG%%#'"${DEFAULT_LOG[${VERSION}]}"'#g' tmpfile
   mv tmpfile ${VERSION}/docker-entrypoint.sh
   chmod +x ${VERSION}/docker-entrypoint.sh

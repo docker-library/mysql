@@ -1,4 +1,5 @@
-# Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
+#!/bin/bash
+# Copyright (c) 2018, Oracle and/or its affiliates. All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -12,23 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
-FROM oraclelinux:7-slim
-
-ARG MYSQL_SERVER_PACKAGE_URL=%%MYSQL_SERVER_PACKAGE_URL%%
-ARG MYSQL_SHELL_PACKAGE_URL=%%MYSQL_SHELL_PACKAGE_URL%%
-
-# Install server
-RUN rpmkeys --import https://repo.mysql.com/RPM-GPG-KEY-mysql \
-  && yum install -y $MYSQL_SERVER_PACKAGE_URL $MYSQL_SHELL_PACKAGE_URL libpwquality \
-  && yum clean all \
-  && mkdir /docker-entrypoint-initdb.d
-
-VOLUME /var/lib/mysql
-
-COPY docker-entrypoint.sh /entrypoint.sh
-COPY healthcheck.sh /healthcheck.sh
-ENTRYPOINT ["/entrypoint.sh"]
-HEALTHCHECK CMD /healthcheck.sh
-EXPOSE %%PORTS%%
-CMD ["mysqld"]
-
+set -e
+source VERSION
+for MAJOR_VERSION in "${!MYSQL_SERVER_VERSIONS[@]}"; do
+  docker build --build-arg http_proxy=$http_proxy --build-arg https_proxy=$http_proxy --build-arg no_proxy=$no_proxy -t mysql-server:$MAJOR_VERSION $MAJOR_VERSION
+done
