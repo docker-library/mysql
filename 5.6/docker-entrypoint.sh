@@ -40,6 +40,24 @@ file_env() {
 	unset "$fileVar"
 }
 
+# usage: process_init_file FILENAME MYSQLCOMMAND...
+#    ie: process_init_file foo.sh mysql -uroot
+# (process a single initializer file, based on its extension. we define this
+# function here, so that initializer scripts (*.sh) can use the same logic,
+# potentially recursively, or override the logic used in subsequent calls)
+process_init_file() {
+	local f="$1"; shift
+	local mysql=( "$@" )
+
+	case "$f" in
+		*.sh)     echo "$0: running $f"; . "$f" ;;
+		*.sql)    echo "$0: running $f"; "${mysql[@]}" < "$f"; echo ;;
+		*.sql.gz) echo "$0: running $f"; gunzip -c "$f" | "${mysql[@]}"; echo ;;
+		*)        echo "$0: ignoring $f" ;;
+	esac
+	echo
+}
+
 _check_config() {
 	toRun=( "$@" --verbose --help --log-bin-index="$(mktemp -u)" )
 	if ! errors="$("${toRun[@]}" 2>&1 >/dev/null)"; then
@@ -169,13 +187,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 
 		echo
 		for f in /docker-entrypoint-initdb.d/*; do
-			case "$f" in
-				*.sh)     echo "$0: running $f"; . "$f" ;;
-				*.sql)    echo "$0: running $f"; "${mysql[@]}" < "$f"; echo ;;
-				*.sql.gz) echo "$0: running $f"; gunzip -c "$f" | "${mysql[@]}"; echo ;;
-				*)        echo "$0: ignoring $f" ;;
-			esac
-			echo
+			process_init_file "$f" "${mysql[@]}"
 		done
 
 		if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
