@@ -2,8 +2,8 @@
 set -eu
 
 declare -A aliases=(
-	[5.7]='5 latest'
-	[8.0]='8'
+	[5.7]='5'
+	[8.0]='8 latest'
 )
 
 self="$(basename "$BASH_SOURCE")"
