@@ -28,16 +28,16 @@ SERVER_VERSION_FULL["5.7"]="${VERSION_SERVER_57}-${VERSION_DOCKER}"
 SERVER_VERSION_FULL["8.0"]="${VERSION_SERVER_80}-${VERSION_DOCKER}"
 
 declare -A PACKAGE_URL
-PACKAGE_URL["5.5"]="https://repo.mysql.com/yum/mysql-5.5-community/docker/x86_64/mysql-community-server-minimal-5.5.59-2.el7.x86_64.rpm"
-PACKAGE_URL["5.6"]="https://repo.mysql.com/yum/mysql-5.6-community/docker/x86_64/mysql-community-server-minimal-5.6.39-2.el7.x86_64.rpm"
-PACKAGE_URL["5.7"]="https://repo.mysql.com/yum/mysql-5.7-community/docker/x86_64/mysql-community-server-minimal-5.7.21-1.el7.x86_64.rpm"
-PACKAGE_URL["8.0"]="https://repo.mysql.com/yum/mysql-8.0-community/docker/x86_64/mysql-community-server-minimal-8.0.4-0.1.rc.el7.x86_64.rpm"
+PACKAGE_URL["5.5"]="https://repo.mysql.com/yum/mysql-5.5-community/docker/x86_64/mysql-community-server-minimal-5.5.60-2.el7.x86_64.rpm"
+PACKAGE_URL["5.6"]="https://repo.mysql.com/yum/mysql-5.6-community/docker/x86_64/mysql-community-server-minimal-5.6.40-2.el7.x86_64.rpm"
+PACKAGE_URL["5.7"]="https://repo.mysql.com/yum/mysql-5.7-community/docker/x86_64/mysql-community-server-minimal-5.7.22-1.el7.x86_64.rpm"
+PACKAGE_URL["8.0"]="https://repo.mysql.com/yum/mysql-8.0-community/docker/x86_64/mysql-community-server-minimal-8.0.11-1.el7.x86_64.rpm"
 
 declare -A PACKAGE_URL_SHELL
 PACKAGE_URL_SHELL["5.5"]="\"\""
 PACKAGE_URL_SHELL["5.6"]="\"\""
 PACKAGE_URL_SHELL["5.7"]="https://repo.mysql.com/yum/mysql-tools-community/el/7/x86_64/mysql-shell-1.0.11-1.el7.x86_64.rpm"
-PACKAGE_URL_SHELL["8.0"]="https://repo.mysql.com/yum/mysql-tools-preview/el/7/x86_64/mysql-shell-8.0.3-0.1.dmr.el7.x86_64.rpm"
+PACKAGE_URL_SHELL["8.0"]="https://repo.mysql.com/yum/mysql-tools-community/el/7/x86_64/mysql-shell-8.0.11-1.el7.x86_64.rpm"
 
 # 33060 is the default port for the mysqlx plugin, new to 5.7
 declare -A PORTS

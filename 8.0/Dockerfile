@@ -14,8 +14,8 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 FROM oraclelinux:7-slim
 
-ARG PACKAGE_URL=https://repo.mysql.com/yum/mysql-8.0-community/docker/x86_64/mysql-community-server-minimal-8.0.4-0.1.rc.el7.x86_64.rpm
-ARG PACKAGE_URL_SHELL=https://repo.mysql.com/yum/mysql-tools-preview/el/7/x86_64/mysql-shell-8.0.3-0.1.dmr.el7.x86_64.rpm
+ARG PACKAGE_URL=https://repo.mysql.com/yum/mysql-8.0-community/docker/x86_64/mysql-community-server-minimal-8.0.11-1.el7.x86_64.rpm
+ARG PACKAGE_URL_SHELL=https://repo.mysql.com/yum/mysql-tools-community/el/7/x86_64/mysql-shell-8.0.11-1.el7.x86_64.rpm
 
 # Install server
 RUN rpmkeys --import https://repo.mysql.com/RPM-GPG-KEY-mysql \

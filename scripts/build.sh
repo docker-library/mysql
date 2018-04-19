@@ -43,7 +43,8 @@ done
 echo "...Locating shell packages"
 
 REPOURL_SHELL_10="https://repo.mysql.com/yum/mysql-tools-community/el/7/x86_64/"
-REPOURL_SHELL_80="https://repo.mysql.com/yum/mysql-tools-preview/el/7/x86_64/"
+REPOURL_SHELL_80="https://repo.mysql.com/yum/mysql-tools-community/el/7/x86_64/"
+#REPOURL_SHELL_80="https://repo.mysql.com/yum/mysql-tools-preview/el/7/x86_64/"
 FILENAME_SHELL_10=$(wget -q -O - $REPOURL_SHELL_10 | grep mysql-shell-$VERSION_SHELL_10 | cut -d \" -f 6 | sort -r | head -1)
 FILENAME_SHELL_80=$(wget -q -O - $REPOURL_SHELL_80 | grep mysql-shell-$VERSION_SHELL_80 | cut -d \" -f 6 | sort -r | head -1)
 if [ -z "$FILENAME_SHELL_10" ];
