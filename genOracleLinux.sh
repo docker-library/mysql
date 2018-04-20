@@ -26,7 +26,7 @@ SERVER_VERSION_FULL["7.5"]="${VERSION_CLUSTER_75}-${VERSION_DOCKER}"
 SERVER_VERSION_FULL["7.6"]="${VERSION_CLUSTER_76}-dmr-${VERSION_DOCKER}"
 
 declare -A PACKAGE_URL
-PACKAGE_URL["7.5"]="https://dev.mysql.com/get/Downloads/MySQL-Cluster-7.5/mysql-cluster-community-server-minimal-7.5.9-1.el7.x86_64.rpm"
+PACKAGE_URL["7.5"]="http://repo.mysql.com/yum/mysql-cluster-7.5-community/docker/x86_64/mysql-cluster-community-server-minimal-7.5.10-1.el7.x86_64.rpm"
 PACKAGE_URL["7.6"]="https://dev.mysql.com/get/Downloads/MySQL-Cluster-7.6/mysql-cluster-community-server-minimal-7.6.4-1.el7.x86_64.rpm"
 
 declare -A PACKAGE_URL_SHELL

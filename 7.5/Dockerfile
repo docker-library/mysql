@@ -15,8 +15,8 @@
 
 FROM oraclelinux:7-slim
 
-ARG PACKAGE_URL=https://dev.mysql.com/get/Downloads/MySQL-Cluster-7.5/mysql-cluster-community-server-minimal-7.5.7-1.el7.x86_64.rpm
-ARG PACKAGE_URL_SHELL=https://repo.mysql.com/yum/mysql-tools-community/el/7/x86_64/mysql-shell-1.0.9-1.el7.x86_64.rpm
+ARG PACKAGE_URL=http://repo.mysql.com/yum/mysql-cluster-7.5-community/docker/x86_64/mysql-cluster-community-server-minimal-7.5.10-1.el7.x86_64.rpm
+ARG PACKAGE_URL_SHELL=https://repo.mysql.com/yum/mysql-tools-community/el/7/x86_64/mysql-shell-1.0.11-1.el7.x86_64.rpm
 
 # Install server
 RUN rpmkeys --import https://repo.mysql.com/RPM-GPG-KEY-mysql \
@@ -33,5 +33,6 @@ COPY cnf/mysql-cluster.cnf /etc/
 
 ENTRYPOINT ["/entrypoint.sh"]
 EXPOSE 3306 33060 2202 1186
+HEALTHCHECK CMD /healthcheck.sh
 CMD ["mysqld"]
 

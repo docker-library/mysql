@@ -16,7 +16,7 @@
 
 set -e
 
-echo "[Entrypoint] MySQL Docker Image 7.6.3-dmr-1.1.0"
+echo "[Entrypoint] MySQL Docker Image 7.6.4-dmr-1.1.5"
 # Fetch value from server config
 # We use mysqld --verbose --help instead of my_print_defaults because the
 # latter only show values present in config files, and not server defaults
@@ -47,18 +47,28 @@ if [ "$1" = 'mysqld' ]; then
 	DATADIR="$(_get_config 'datadir' "$@")"
 	SOCKET="$(_get_config 'socket' "$@")"
 
-	if [ ! -d "$DATADIR/mysql" ]; then
-		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
-			echo >&2 '[Entrypoint] ERROR: No password option specified for new database.'
-			echo >&2 '[Entrypoint]   You need to specify one of the following:'
-			echo >&2 '[Entrypoint]   - MYSQL_RANDOM_ROOT_PASSWORD (recommended)'
-			echo >&2 '[Entrypoint]   - MYSQL_ROOT_PASSWORD'
-			echo >&2 '[Entrypoint]   - MYSQL_ALLOW_EMPTY_PASSWORD'
-			exit 1
+	if [ -n "$MYSQL_LOG_CONSOLE" ] || [ -n "console" ]; then
+		# Don't touch bind-mounted config files
+		if ! cat /proc/1/mounts | grep "etc/my.cnf"; then
+			sed -i 's/^log-error=/#&/' /etc/my.cnf
 		fi
-		# If the password variable is a filename we use the contents of the file
+	fi
+
+	if [ ! -d "$DATADIR/mysql" ]; then
+		# If the password variable is a filename we use the contents of the file. We
+		# read this first to make sure that a proper error is generated for empty files.
 		if [ -f "$MYSQL_ROOT_PASSWORD" ]; then
 			MYSQL_ROOT_PASSWORD="$(cat $MYSQL_ROOT_PASSWORD)"
+			if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
+				echo >&2 '[Entrypoint] Empty MYSQL_ROOT_PASSWORD file specified.'
+				exit 1
+			fi
+		fi
+		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
+			echo >&2 '[Entrypoint] No password option specified for new database.'
+			echo >&2 '[Entrypoint]   A random onetime password will be generated.'
+			MYSQL_RANDOM_ROOT_PASSWORD=true
+			MYSQL_ONETIME_PASSWORD=true
 		fi
 		mkdir -p "$DATADIR"
 		chown -R mysql:mysql "$DATADIR"
@@ -73,7 +83,9 @@ if [ "$1" = 'mysqld' ]; then
 		# The file is only populated when and if the root password is set.
 		PASSFILE=$(mktemp -u /var/lib/mysql-files/XXXXXXXXXX)
 		install /dev/null -m0600 -omysql -gmysql "$PASSFILE"
-		mysql=( mysql --defaults-extra-file="$PASSFILE" --protocol=socket -uroot -hlocalhost --socket="$SOCKET")
+		# Define the client command used throughout the script
+		# "SET @@SESSION.SQL_LOG_BIN=0;" is required for products like group replication to work properly
+		mysql=( mysql --defaults-extra-file="$PASSFILE" --protocol=socket -uroot -hlocalhost --socket="$SOCKET" --init-command="SET @@SESSION.SQL_LOG_BIN=0;")
 
 		if [ ! -z "" ];
 		then
@@ -101,13 +113,11 @@ if [ "$1" = 'mysqld' ]; then
 		else
 			ROOTCREATE="ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}'; \
 			CREATE USER 'root'@'${MYSQL_ROOT_HOST}' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}'; \
-			GRANT ALL ON *.* TO 'root'@'${MYSQL_ROOT_HOST}' WITH GRANT OPTION ;"
+			GRANT ALL ON *.* TO 'root'@'${MYSQL_ROOT_HOST}' WITH GRANT OPTION ; \
+			GRANT PROXY ON ''@'' TO 'root'@'${MYSQL_ROOT_HOST}' WITH GRANT OPTION ;"
 		fi
 		"${mysql[@]}" <<-EOSQL
-			-- What's done in this file shouldn't be replicated
-			--  or products like mysql-fabric won't work
-			SET @@SESSION.SQL_LOG_BIN=0;
-			DELETE FROM mysql.user WHERE user NOT IN ('mysql.session', 'mysql.sys', 'root') OR host NOT IN ('localhost');
+			DELETE FROM mysql.user WHERE user NOT IN ('mysql.infoschema', 'mysql.session', 'mysql.sys', 'root') OR host NOT IN ('localhost');
 			CREATE USER 'healthchecker'@'localhost' IDENTIFIED BY 'healthcheckpass';
 			${ROOTCREATE}
 			FLUSH PRIVILEGES ;
@@ -126,6 +136,13 @@ EOF
 			mysql+=( "$MYSQL_DATABASE" )
 		fi
 
+		if [ -f "$MYSQL_PASSWORD" ]; then
+			MYSQL_PASSWORD="$(cat $MYSQL_PASSWORD)"
+			if [ -z "$MYSQL_PASSWORD" ]; then
+				echo >&2 '[Entrypoint] Empty MYSQL_PASSWORD file specified.'
+				exit 1
+			fi
+		fi
 		if [ "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
 			echo "CREATE USER '"$MYSQL_USER"'@'%' IDENTIFIED BY '"$MYSQL_PASSWORD"' ;" | "${mysql[@]}"
 
@@ -134,6 +151,8 @@ EOF
 			fi
 
 			echo 'FLUSH PRIVILEGES ;' | "${mysql[@]}"
+		elif [ "$MYSQL_USER" -a ! "$MYSQL_PASSWORD" -o ! "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
+			echo '[Entrypoint] Not creating mysql user. MYSQL_USER and MYSQL_PASSWORD must be specified to create a mysql user.'
 		fi
 		echo
 		for f in /docker-entrypoint-initdb.d/*; do
@@ -191,7 +210,7 @@ password=healthcheckpass
 EOF
 	touch /mysql-init-complete
 	chown -R mysql:mysql "$DATADIR"
-	echo "[Entrypoint] Starting MySQL 7.6.3-dmr-1.1.0"
+	echo "[Entrypoint] Starting MySQL 7.6.4-dmr-1.1.5"
 
 elif [ "$1" == "ndb_mgmd" ]; then
 	echo "[Entrypoint] Starting ndb_mgmd"
@@ -201,8 +220,21 @@ elif [ "$1" == "ndbd" ]; then
 	echo "[Entrypoint] Starting ndbd"
 	set -- "$@" --nodaemon
 
+elif [ "$1" == "ndbmtd" ]; then
+	echo "[Entrypoint] Starting ndbmtd"
+	set -- "$@" --nodaemon
+
 elif [ "$1" == "ndb_mgm" ]; then
 	echo "[Entrypoint] Starting ndb_mgm"
+
+elif [ "$1" == "ndb_waiter" ]; then
+	if [ "%%NDBWAITER%%" == "yes" ]; then
+		echo "[Entrypoint] Starting ndb_waiter"
+		set -- "$@" --nodaemon
+	else
+		echo "[Entrypoint] ndb_waiter not supported"
+		exit 1
+	fi
 fi
 
 exec "$@"
