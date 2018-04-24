@@ -64,6 +64,36 @@ _get_config() {
 	# match "datadir      /some/path with/spaces in/it here" but not "--xyz=abc\n     datadir (xyz)"
 }
 
+_stop_server(){
+	# This isn't ideal, but we can generally assume only a single mysqld process is running
+	echo "Shutting down temporary server process"
+	server_pid="$1"
+	kill "$server_pid"
+	for i in $(seq 1 60); do
+		sleep 1
+		if ! $(pidof /usr/sbin/mysqld >/dev/null 2>&1); then
+			echo "Server stopped"
+			return 0
+		fi
+	done
+	# The server hasn't shut down in a timely manner
+	echo "Error: Unable to shut down server with process id $server_pid" >&2
+	return 1
+}
+_upgrade_data() {
+	local tmpdir=$1
+	chown mysql:mysql "$tmpdir"
+	# We use skip-grant-tables since we can't know the root credentials of existing databases
+	mysqld --skip-networking --pid-file="$tmpdir/mysqld.pid" --socket="$tmpdir/mysqld.sock" --daemonize --skip-grant-tables --log-error="$tmpdir/error.log"
+	if [ ! "$?" = "0" ]; then
+		return 1
+	fi
+	mysql_upgrade --force --socket="$tmpdir/mysqld.sock" 2>&1 >/dev/null || result=$?
+	# Since mysql_upgrade disables skip-grant-tables, we need to signal the process to make it stop
+	pid=$(cat "$tmpdir/mysqld.pid")
+	_stop_server "$pid"
+	return $result
+}
 # allow the container to be started with `--user`
 if [ "$1" = 'mysqld' -a -z "$wantHelp" -a "$(id -u)" = '0' ]; then
 	_check_config "$@"
@@ -199,6 +229,27 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		echo 'MySQL init process done. Ready for start up.'
 		echo
 	fi
+
+	# Check if we need to run mysql_upgrade to update system tables
+	if [ -e "$DATADIR/mysql_upgrade_info" ];
+	then
+		OLDVERSION=$(cat "$DATADIR/mysql_upgrade_info")
+	fi
+
+	CURVERSION=$(mysqld --version | awk '{print $3}')
+	if dpkg --compare-versions "$OLDVERSION" lt "$CURVERSION"; then
+		echo "Running mysql_upgrade to update system tables"
+		TMPDIR=$(mktemp -d)
+		if _upgrade_data "$TMPDIR"; then
+			echo "System tables updated"
+		else
+			echo "WARNING: Error received while upgrading system tables. Server may not function properly"
+			cat "$TMPDIR/error.log"
+		fi
+	fi
+
+	echo "Starting server"
+
 fi
 
 exec "$@"
