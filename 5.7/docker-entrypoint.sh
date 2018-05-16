@@ -192,13 +192,6 @@ docker_init_database_dir() {
 	mysql_note "Initializing database files"
 	"$@" --initialize-insecure --default-time-zone=SYSTEM
 	mysql_note "Database files initialized"
-
-	if command -v mysql_ssl_rsa_setup > /dev/null && [ ! -e "$DATADIR/server-key.pem" ]; then
-		# https://github.com/mysql/mysql-server/blob/23032807537d8dd8ee4ec1c4d40f0633cd4e12f9/packaging/deb-in/extra/mysql-systemd-start#L81-L84
-		mysql_note "Initializing certificates"
-		mysql_ssl_rsa_setup --datadir="$DATADIR"
-		mysql_note "Certificates initialized"
-	fi
 }
 
 # Loads various settings that are used elsewhere in the script
