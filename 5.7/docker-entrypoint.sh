@@ -86,9 +86,9 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" -a "$(id -u)" = '0' ]; then
 	DATADIR="$(_get_config 'datadir' "$@")"
 	# seed scripts from a copy of the initdb.d dir because EID mysql may not have permission to read
 	# a docker volume mounted on the usual initdb.d path
-	mkdir -p "$DATADIR" /etc/mysql/initdb.d
+	mkdir -p "$DATADIR" /etc/mysql/initdb.d/
 	cp -RT /docker-entrypoint-initdb.d /etc/mysql/initdb.d
-	chown -R mysql:mysql "$DATADIR" /etc/mysql/initdb.d
+	chown -R mysql:mysql "$DATADIR" /etc/mysql/initdb.d/
 	exec gosu mysql "$BASH_SOURCE" "$@"
 fi
 

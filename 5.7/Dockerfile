@@ -71,7 +71,8 @@ RUN { \
 VOLUME /var/lib/mysql
 
 WORKDIR /usr/local/bin
-COPY docker-entrypoint.sh /usr/local/bin/
+COPY ./docker-entrypoint.sh .
+RUN chmod 0755 ./docker-entrypoint.sh
 RUN ln -s /usr/local/bin/docker-entrypoint.sh /entrypoint.sh # backwards compat
 ENTRYPOINT ["./docker-entrypoint.sh"]
 
