@@ -14,7 +14,14 @@ declare -A debianVariants=(
 	#[5.5]='jessie'
 )
 
+# Copy entrypoint template
+templateVersions=( "5.7 8.0" )
+for version in ${templateVersions}; do
+	cp "template.Debian/docker-entrypoint.sh" "${version}/"
+done
+
 for version in "${versions[@]}"; do
+	if [ "${version}" = "template.Debian" ]; then continue; fi # If update.sh is run without arguments, the template directory is included in the list
 	debianVariant="${debianVariants[$version]:-$defaultDebianVariant}"
 	debianSuite="${debianVariant%%-*}" # "stretch", etc
 
