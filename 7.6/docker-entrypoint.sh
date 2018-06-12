@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2018, Oracle and/or its affiliates. All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 
 set -e
 
-echo "[Entrypoint] MySQL Docker Image 7.6.4-dmr-1.1.5"
+echo "[Entrypoint] MySQL Docker Image 7.6.6-1.1.6-cluster"
 # Fetch value from server config
 # We use mysqld --verbose --help instead of my_print_defaults because the
 # latter only show values present in config files, and not server defaults
@@ -86,21 +86,6 @@ if [ "$1" = 'mysqld' ]; then
 		# Define the client command used throughout the script
 		# "SET @@SESSION.SQL_LOG_BIN=0;" is required for products like group replication to work properly
 		mysql=( mysql --defaults-extra-file="$PASSFILE" --protocol=socket -uroot -hlocalhost --socket="$SOCKET" --init-command="SET @@SESSION.SQL_LOG_BIN=0;")
-
-		if [ ! -z "" ];
-		then
-			for i in {30..0}; do
-				if mysqladmin --socket="$SOCKET" ping &>/dev/null; then
-					break
-				fi
-				echo '[Entrypoint] Waiting for server...'
-				sleep 1
-			done
-			if [ "$i" = 0 ]; then
-				echo >&2 '[Entrypoint] Timeout during MySQL init.'
-				exit 1
-			fi
-		fi
 
 		mysql_tzinfo_to_sql /usr/share/zoneinfo | "${mysql[@]}" mysql
 		
@@ -172,25 +157,21 @@ EOF
 
 		# This needs to be done outside the normal init, since mysqladmin shutdown will not work after
 		if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
-			if [ -z "yes" ]; then
-				echo "[Entrypoint] User expiration is only supported in MySQL 5.6+"
+			echo "[Entrypoint] Setting root user as expired. Password will need to be changed before database can be used."
+			SQL=$(mktemp -u /var/lib/mysql-files/XXXXXXXXXX)
+			install /dev/null -m0600 -omysql -gmysql "$SQL"
+			if [ ! -z "$MYSQL_ROOT_HOST" ]; then
+				cat << EOF > "$SQL"
+ALTER USER 'rootQL_ROOT_HOST}' PASSWORD EXPIRE;
+ALTER USER 'roothost' PASSWORD EXPIRE;
+EOF
 			else
-				echo "[Entrypoint] Setting root user as expired. Password will need to be changed before database can be used."
-				SQL=$(mktemp -u /var/lib/mysql-files/XXXXXXXXXX)
-				install /dev/null -m0600 -omysql -gmysql "$SQL"
-				if [ ! -z "$MYSQL_ROOT_HOST" ]; then
-					cat << EOF > "$SQL"
-ALTER USER 'root'@'${MYSQL_ROOT_HOST}' PASSWORD EXPIRE;
-ALTER USER 'root'@'localhost' PASSWORD EXPIRE;
+				cat << EOF > "$SQL"
+ALTER USER 'roothost' PASSWORD EXPIRE;
 EOF
-				else
-					cat << EOF > "$SQL"
-ALTER USER 'root'@'localhost' PASSWORD EXPIRE;
-EOF
-				fi
-				set -- "$@" --init-file="$SQL"
-				unset SQL
 			fi
+			set -- "$@" --init-file="$SQL"
+			unset SQL
 		fi
 
 		echo
@@ -210,7 +191,7 @@ password=healthcheckpass
 EOF
 	touch /mysql-init-complete
 	chown -R mysql:mysql "$DATADIR"
-	echo "[Entrypoint] Starting MySQL 7.6.4-dmr-1.1.5"
+	echo "[Entrypoint] Starting MySQL 7.6.6-1.1.6-cluster"
 
 elif [ "$1" == "ndb_mgmd" ]; then
 	echo "[Entrypoint] Starting ndb_mgmd"
