@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2018, Oracle and/or its affiliates. All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,12 +15,12 @@
 
 FROM oraclelinux:7-slim
 
-ARG PACKAGE_URL=%%PACKAGE_URL%%
-ARG PACKAGE_URL_SHELL=%%PACKAGE_URL_SHELL%%
+ARG MYSQL_CLUSTER_PACKAGE_URL=%%MYSQL_CLUSTER_PACKAGE_URL%%
+ARG MYSQL_SHELL_PACKAGE_URL=%%MYSQL_SHELL_PACKAGE_URL%%
 
 # Install server
 RUN rpmkeys --import https://repo.mysql.com/RPM-GPG-KEY-mysql \
-  && yum install -y $PACKAGE_URL $PACKAGE_URL_SHELL libpwquality \
+  && yum install -y $MYSQL_CLUSTER_PACKAGE_URL $MYSQL_SHELL_PACKAGE_URL libpwquality \
   && yum clean all \
   && mkdir /docker-entrypoint-initdb.d
 
@@ -32,7 +32,7 @@ COPY cnf/my.cnf /etc/
 COPY cnf/mysql-cluster.cnf /etc/
 
 ENTRYPOINT ["/entrypoint.sh"]
-EXPOSE %%PORTS%%
+EXPOSE 3306 33060 2202 1186
 HEALTHCHECK CMD /healthcheck.sh
 CMD ["mysqld"]
 

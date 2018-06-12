@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2017, 2018, Oracle and/or its affiliates. All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ if [ "$1" = 'mysqld' ]; then
 	DATADIR="$(_get_config 'datadir' "$@")"
 	SOCKET="$(_get_config 'socket' "$@")"
 
-	if [ -n "$MYSQL_LOG_CONSOLE" ] || [ -n "%%DEFAULT_LOG%%" ]; then
+	if [ -n "$MYSQL_LOG_CONSOLE" ] || [ -n "console" ]; then
 		# Don't touch bind-mounted config files
 		if ! cat /proc/1/mounts | grep "etc/my.cnf"; then
 			sed -i 's/^log-error=/#&/' /etc/my.cnf
@@ -74,10 +74,10 @@ if [ "$1" = 'mysqld' ]; then
 		chown -R mysql:mysql "$DATADIR"
 
 		echo '[Entrypoint] Initializing database'
-		%%DATABASE_INIT%%
+		"$@" --initialize-insecure
 		echo '[Entrypoint] Database initialized'
 
-		%%INIT_STARTUP%%
+		"$@" --daemonize --skip-networking --socket="$SOCKET"
 
 		# To avoid using password on commandline, put it in a temporary file.
 		# The file is only populated when and if the root password is set.
@@ -87,22 +87,7 @@ if [ "$1" = 'mysqld' ]; then
 		# "SET @@SESSION.SQL_LOG_BIN=0;" is required for products like group replication to work properly
 		mysql=( mysql --defaults-extra-file="$PASSFILE" --protocol=socket -uroot -hlocalhost --socket="$SOCKET" --init-command="SET @@SESSION.SQL_LOG_BIN=0;")
 
-		if [ ! -z %%STARTUP_WAIT%% ];
-		then
-			for i in {30..0}; do
-				if mysqladmin --socket="$SOCKET" ping &>/dev/null; then
-					break
-				fi
-				echo '[Entrypoint] Waiting for server...'
-				sleep 1
-			done
-			if [ "$i" = 0 ]; then
-				echo >&2 '[Entrypoint] Timeout during MySQL init.'
-				exit 1
-			fi
-		fi
-
-		mysql_tzinfo_to_sql /usr/share/zoneinfo | %%SED_TZINFO%%"${mysql[@]}" mysql
+		mysql_tzinfo_to_sql /usr/share/zoneinfo | "${mysql[@]}" mysql
 		
 		if [ ! -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
 			MYSQL_ROOT_PASSWORD="$(pwmake 128)"
@@ -172,25 +157,21 @@ EOF
 
 		# This needs to be done outside the normal init, since mysqladmin shutdown will not work after
 		if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
-			if [ -z %%EXPIRE_SUPPORT%% ]; then
-				echo "[Entrypoint] User expiration is only supported in MySQL 5.6+"
+			echo "[Entrypoint] Setting root user as expired. Password will need to be changed before database can be used."
+			SQL=$(mktemp -u /var/lib/mysql-files/XXXXXXXXXX)
+			install /dev/null -m0600 -omysql -gmysql "$SQL"
+			if [ ! -z "$MYSQL_ROOT_HOST" ]; then
+				cat << EOF > "$SQL"
+ALTER USER 'rootQL_ROOT_HOST}' PASSWORD EXPIRE;
+ALTER USER 'roothost' PASSWORD EXPIRE;
+EOF
 			else
-				echo "[Entrypoint] Setting root user as expired. Password will need to be changed before database can be used."
-				SQL=$(mktemp -u /var/lib/mysql-files/XXXXXXXXXX)
-				install /dev/null -m0600 -omysql -gmysql "$SQL"
-				if [ ! -z "$MYSQL_ROOT_HOST" ]; then
-					cat << EOF > "$SQL"
-ALTER USER 'root'@'${MYSQL_ROOT_HOST}' PASSWORD EXPIRE;
-ALTER USER 'root'@'localhost' PASSWORD EXPIRE;
+				cat << EOF > "$SQL"
+ALTER USER 'roothost' PASSWORD EXPIRE;
 EOF
-				else
-					cat << EOF > "$SQL"
-ALTER USER 'root'@'localhost' PASSWORD EXPIRE;
-EOF
-				fi
-				set -- "$@" --init-file="$SQL"
-				unset SQL
 			fi
+			set -- "$@" --init-file="$SQL"
+			unset SQL
 		fi
 
 		echo
