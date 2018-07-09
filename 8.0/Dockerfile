@@ -1,9 +1,8 @@
 FROM debian:stretch-slim
 
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
-RUN groupadd -r mysql && useradd -r -g mysql mysql
-
-RUN apt-get update && apt-get install -y --no-install-recommends gnupg dirmngr && rm -rf /var/lib/apt/lists/*
+RUN groupadd -r mysql && useradd -r -g mysql mysql && \
+	apt-get update && apt-get install -y --no-install-recommends gnupg dirmngr && rm -rf /var/lib/apt/lists/*
 
 # add gosu for easy step-down from root
 ENV GOSU_VERSION 1.7
@@ -17,11 +16,9 @@ RUN set -x \
 	&& rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc \
 	&& chmod +x /usr/local/bin/gosu \
 	&& gosu nobody true \
-	&& apt-get purge -y --auto-remove ca-certificates wget
-
-RUN mkdir /docker-entrypoint-initdb.d
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
+	&& apt-get purge -y --auto-remove ca-certificates wget && \
+	mkdir /docker-entrypoint-initdb.d && \
+	apt-get update && apt-get install -y --no-install-recommends \
 # for MYSQL_RANDOM_ROOT_PASSWORD
 		pwgen \
 # for mysql_ssl_rsa_setup
