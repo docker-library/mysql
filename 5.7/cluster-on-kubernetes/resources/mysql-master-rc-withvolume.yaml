@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+ name: mysql-master
+ labels:
+  name: mysql-master
+spec:
+  replicas: 1
+  selector:
+   name: mysql-master
+  template:
+   metadata:
+    labels:
+     name: mysql-master
+   spec:
+    containers:
+    - name: mysql-master
+      image: huanwei/mysql-master:0.1
+      volumeMounts:
+        - mountPath: /var/lib/mysql
+          name: mysql-master-data
+      ports:
+      - containerPort: 3306
+      env:
+      - name: MYSQL_ROOT_PASSWORD
+        value: "123456"
+      - name: MYSQL_REPLICATION_USER
+        value: "repl"
+      - name: MYSQL_REPLICAITON_PASSWORD
+        value: "123456"
+    volumes:
+     - name: mysql-master-data
+       persistentVolumeClaim:
+        claimName: pv-nfs-mysql-master
