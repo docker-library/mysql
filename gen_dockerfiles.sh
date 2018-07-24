@@ -117,6 +117,19 @@ do
   sed -i 's/%%PORTS%%/'"${PORTS[${VERSION}]}"'/g' tmpfile
   mv tmpfile ${VERSION}/Dockerfile
 
+  # Dockerfile_spec.rb
+  if [ ! -d "${VERSION}/inspec" ]; then
+    mkdir "${VERSION}/inspec"
+  fi
+  if [ "${VERSION}" == "5.7" ] || [ "${VERSION}" == "8.0" ]; then
+    sed 's#%%MYSQL_SERVER_PACKAGE_VERSION%%#'"${MYSQL_SERVER_VERSIONS[${VERSION}]}"'#g' template/control.rb > tmpFile
+    sed -i 's#%%MYSQL_SHELL_PACKAGE_VERSION%%#'"${MYSQL_SHELL_VERSIONS[${VERSION}]}"'#g' tmpFile
+    mv tmpFile "${VERSION}/inspec/control.rb"
+  else
+    sed 's#%%MYSQL_SERVER_PACKAGE_VERSION%%#'"${MYSQL_SERVER_VERSIONS[${VERSION}]}"'#g' template/control_pre57.rb > tmpFile
+    mv tmpFile "${VERSION}/inspec/control.rb"
+  fi
+
   # Entrypoint
   sed 's#%%PASSWORDSET%%#'"${PASSWORDSET[${VERSION}]}"'#g' template/docker-entrypoint.sh > tmpfile
   sed -i 's#%%DATABASE_INIT%%#'"${DATABASE_INIT[${VERSION}]}"'#g' tmpfile
