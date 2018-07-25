@@ -14,6 +14,7 @@ RUN set -x \
 	&& export GNUPGHOME="$(mktemp -d)" \
 	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
 	&& gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
+	&& gpgconf --kill all \
 	&& rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc \
 	&& chmod +x /usr/local/bin/gosu \
 	&& gosu nobody true \
@@ -47,6 +48,7 @@ RUN apt-get update && apt-get install -y ca-certificates wget --no-install-recom
 # gpg: key 5072E1F5: public key "MySQL Release Engineering <mysql-build@oss.oracle.com>" imported
 	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys A4A9406876FCBD3C456770C88C718D3B5072E1F5 \
 	&& gpg --batch --verify mysql.tar.gz.asc mysql.tar.gz \
+	&& gpgconf --kill all \
 	&& rm -rf "$GNUPGHOME" mysql.tar.gz.asc \
 	&& mkdir /usr/local/mysql \
 	&& tar -xzf mysql.tar.gz -C /usr/local/mysql --strip-components=1 \
