@@ -12,6 +12,7 @@ RUN set -x \
 	&& wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture)" \
 	&& wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture).asc" \
 	&& export GNUPGHOME="$(mktemp -d)" \
+	&& echo 'honor-http-proxy' >$GNUPGHOME/dirmngr.conf \
 	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
 	&& gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
 	&& gpgconf --kill all \
@@ -45,6 +46,7 @@ RUN apt-get update && apt-get install -y ca-certificates wget --no-install-recom
 	&& wget "https://cdn.mysql.com/Downloads/MySQL-$MYSQL_MAJOR/mysql-$MYSQL_VERSION-linux-glibc2.12-x86_64.tar.gz.asc" -O mysql.tar.gz.asc \
 	&& apt-get purge -y --auto-remove ca-certificates wget \
 	&& export GNUPGHOME="$(mktemp -d)" \
+	&& echo 'honor-http-proxy' >$GNUPGHOME/dirmngr.conf \
 # gpg: key 5072E1F5: public key "MySQL Release Engineering <mysql-build@oss.oracle.com>" imported
 	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys A4A9406876FCBD3C456770C88C718D3B5072E1F5 \
 	&& gpg --batch --verify mysql.tar.gz.asc mysql.tar.gz \
