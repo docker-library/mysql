@@ -14,12 +14,12 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 FROM oraclelinux:7-slim
 
-ARG PACKAGE_URL=https://repo.mysql.com/yum/mysql-5.5-community/docker/x86_64/mysql-community-server-minimal-5.5.60-2.el7.x86_64.rpm
-ARG PACKAGE_URL_SHELL=""
+ARG MYSQL_SERVER_PACKAGE_URL=https://repo.mysql.com/yum/mysql-5.5-community/docker/x86_64/mysql-community-server-minimal-5.5.61-2.el7.x86_64.rpm
+ARG MYSQL_SHELL_PACKAGE_URL=
 
 # Install server
 RUN rpmkeys --import https://repo.mysql.com/RPM-GPG-KEY-mysql \
-  && yum install -y $PACKAGE_URL $PACKAGE_URL_SHELL libpwquality \
+  && yum install -y $MYSQL_SERVER_PACKAGE_URL $MYSQL_SHELL_PACKAGE_URL libpwquality \
   && yum clean all \
   && mkdir /docker-entrypoint-initdb.d
 
