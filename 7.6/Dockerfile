@@ -15,8 +15,8 @@
 
 FROM oraclelinux:7-slim
 
-ARG MYSQL_CLUSTER_PACKAGE_URL=https://repo.mysql.com/yum/mysql-cluster-7.6-community/docker/x86_64/mysql-cluster-community-server-minimal-7.6.6-1.el7.x86_64.rpm
-ARG MYSQL_SHELL_PACKAGE_URL=https://repo.mysql.com/yum/mysql-tools-community/el/7/x86_64/mysql-shell-8.0.11-1.el7.x86_64.rpm
+ARG MYSQL_CLUSTER_PACKAGE_URL=https://repo.mysql.com/yum/mysql-cluster-7.6-community/docker/x86_64/mysql-cluster-community-server-minimal-7.6.7-1.el7.x86_64.rpm
+ARG MYSQL_SHELL_PACKAGE_URL=https://repo.mysql.com/yum/mysql-tools-community/el/7/x86_64/mysql-shell-8.0.12-1.el7.x86_64.rpm
 
 # Install server
 RUN rpmkeys --import https://repo.mysql.com/RPM-GPG-KEY-mysql \
