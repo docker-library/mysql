@@ -194,6 +194,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		fi
 
 		echo
+		ls /etc/mysql/initdb.d/ > /dev/null
 		for f in /etc/mysql/initdb.d/*; do
 			process_init_file "$f" "${mysql[@]}"
 		done

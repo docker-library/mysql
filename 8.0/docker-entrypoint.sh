@@ -193,6 +193,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		fi
 
 		echo
+		ls /docker-entrypoint-initdb.d/ > /dev/null
 		for f in /docker-entrypoint-initdb.d/*; do
 			process_init_file "$f" "${mysql[@]}"
 		done
