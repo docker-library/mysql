@@ -1,7 +1,12 @@
 FROM debian:stretch-slim
 
+ARG MYSQL_UID
+ENV MYSQL_UID ${MYSQL_UID:-}
+ARG MYSQL_GID
+ENV MYSQL_GID ${MYSQL_GID:-$MYSQL_UID}
+
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
-RUN groupadd -r mysql && useradd -r -g mysql mysql
+RUN groupadd -r ${MYSQL_GID:+-g $MYSQL_GID} mysql && useradd -r ${MYSQL_UID:+-u $MYSQL_UID} -g mysql mysql
 
 RUN apt-get update && apt-get install -y --no-install-recommends gnupg dirmngr && rm -rf /var/lib/apt/lists/*
 
