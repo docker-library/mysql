@@ -191,6 +191,8 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 			process_init_file "$f" "${mysql[@]}"
 		done
 
+		find "$DATADIR" -type f -exec touch {} \;
+
 		if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
 			echo >&2
 			echo >&2 'Sorry, this version of MySQL does not support "PASSWORD EXPIRE" (required for MYSQL_ONETIME_PASSWORD).'
