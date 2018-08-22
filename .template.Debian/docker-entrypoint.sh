@@ -2,6 +2,22 @@
 set -eo pipefail
 shopt -s nullglob
 
+# logging functions
+_log() {
+	local type=$1;shift
+	printf "$(date --rfc-3339=seconds) [${type}] [Entrypoint]: $@\n"
+}
+_note() {
+	_log Note "$@"
+}
+_warn() {
+	_log Warn "$@" >&2
+}
+_error() {
+	_log ERROR "$@" >&2
+	exit 1
+}
+
 # if command starts with an option, prepend mysqld
 if [ "${1:0:1}" = '-' ]; then
 	set -- mysqld "$@"
@@ -27,8 +43,7 @@ file_env() {
 	local fileVar="${var}_FILE"
 	local def="${2:-}"
 	if [ "${!var:-}" ] && [ "${!fileVar:-}" ]; then
-		echo >&2 "$(date --rfc-3339=seconds) [ERROR] [Entrypoint]: Both $var and $fileVar are set (but are exclusive)"
-		exit 1
+		_error "Both $var and $fileVar are set (but are exclusive)"
 	fi
 	local val="$def"
 	if [ "${!var:-}" ]; then
@@ -50,10 +65,10 @@ process_init_file() {
 	local mysql=( "$@" )
 
 	case "$f" in
-		*.sh)     echo "$(date --rfc-3339=seconds) [Note] [Entrypoint]: $0: running $f"; . "$f" ;;
-		*.sql)    echo "$(date --rfc-3339=seconds) [Note] [Entrypoint]: $0: running $f"; "${mysql[@]}" < "$f"; echo ;;
-		*.sql.gz) echo "$(date --rfc-3339=seconds) [Note] [Entrypoint]: $0: running $f"; gunzip -c "$f" | "${mysql[@]}"; echo ;;
-		*)        echo "$(date --rfc-3339=seconds) [Note] [Entrypoint]: $0: ignoring $f" ;;
+		*.sh)     _note "$0: running $f"; . "$f" ;;
+		*.sql)    _note "$0: running $f"; "${mysql[@]}" < "$f"; echo ;;
+		*.sql.gz) _note "$0: running $f"; gunzip -c "$f" | "${mysql[@]}"; echo ;;
+		*)        _warn "$0: ignoring $f" ;;
 	esac
 	echo
 }
@@ -61,15 +76,7 @@ process_init_file() {
 _check_config() {
 	toRun=( "$@" --verbose --help )
 	if ! errors="$("${toRun[@]}" 2>&1 >/dev/null)"; then
-		datestring=$(date --rfc-3339=seconds)
-		cat >&2 <<-EOM
-
-			$datestring [ERROR] [Entrypoint]: mysqld failed while attempting to check config
-			command was: "${toRun[*]}"
-
-			$errors
-		EOM
-		exit 1
+		_error "mysqld failed while attempting to check config\n\tcommand was: ${toRun[*]}\n\t$errors"
 	fi
 }
 
@@ -97,8 +104,7 @@ _start_server() {
 		sleep 1
 	done
 	if [ "$i" = 0 ]; then
-		echo >&2 "$(date --rfc-3339=seconds) [ERROR] [Entrypoint]: Unable to start server."
-		exit 1
+		_error "Unable to start server."
 	fi
 	return $pid
 }
@@ -113,8 +119,7 @@ _stop_server() {
 		fi
 	done
 	# The server hasn't shut down in a timely manner
-	echo "$(date --rfc-3339=seconds) [ERROR] [Entrypoint]: Unable to shut down server with process id $server_pid" >&2
-	return 1
+	_error "Unable to shut down server with process id $server_pid"
 
 }
 # allow the container to be started with `--user`
@@ -135,28 +140,26 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 	if [ ! -d "$DATADIR/mysql" ]; then
 		file_env 'MYSQL_ROOT_PASSWORD'
 		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
-			echo >&2 "$(date --rfc-3339=seconds) [ERROR] [Entrypoint]: Database is uninitialized and password option is not specified "
-			echo >&2 "$(date --rfc-3339=seconds) [ERROR] [Entrypoint]: You need to specify one of MYSQL_ROOT_PASSWORD, MYSQL_ALLOW_EMPTY_PASSWORD and MYSQL_RANDOM_ROOT_PASSWORD"
-			exit 1
+			_error "Database is uninitialized and password option is not specified \n\tYou need to specify one of MYSQL_ROOT_PASSWORD, MYSQL_ALLOW_EMPTY_PASSWORD and MYSQL_RANDOM_ROOT_PASSWORD"
 		fi
 
 		mkdir -p "$DATADIR"
 
-		echo "$(date --rfc-3339=seconds) [Note] [Entrypoint]: Initializing database"
+		_note "Initializing database"
 		"$@" --initialize-insecure
-		echo "$(date --rfc-3339=seconds) [Note] [Entrypoint]: Database initialized"
+		_note "Database initialized"
 
 		if command -v mysql_ssl_rsa_setup > /dev/null && [ ! -e "$DATADIR/server-key.pem" ]; then
 			# https://github.com/mysql/mysql-server/blob/23032807537d8dd8ee4ec1c4d40f0633cd4e12f9/packaging/deb-in/extra/mysql-systemd-start#L81-L84
-			echo "$(date --rfc-3339=seconds) [Note] [Entrypoint]: Initializing certificates"
+			_note "Initializing certificates"
 			mysql_ssl_rsa_setup --datadir="$DATADIR"
-			echo "$(date --rfc-3339=seconds) [Note] [Entrypoint]: Certificates initialized"
+			_note "Certificates initialized"
 		fi
 
 		SOCKET="$(_get_config 'socket' "$@")"
-		echo "$(date --rfc-3339=seconds) [Note] [Entrypoint]: Starting server"
+		_note "Starting server"
 		_start_server "${SOCKET}" "$@" || pid=$?
-		echo "$(date --rfc-3339=seconds) [Note] [Entrypoint]: Server started with pid $pid"
+		_note "Server started with pid $pid"
 
 		mysql=( mysql --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" )
 
@@ -167,7 +170,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 
 		if [ ! -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
 			export MYSQL_ROOT_PASSWORD="$(pwgen -1 32)"
-			echo "$(date --rfc-3339=seconds) [Note] [Entrypoint]: GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
+			_note "GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
 		fi
 
 		rootCreate=
@@ -226,11 +229,11 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 				ALTER USER 'root'@'%' PASSWORD EXPIRE;
 			EOSQL
 		fi
-		echo "$(date --rfc-3339=seconds) [Note] [Entrypoint]: Stopping server"
+		_note "Stopping server"
 		_stop_server $pid
-		echo "$(date --rfc-3339=seconds) [Note] [Entrypoint]: Server stopped"
+		_note "Server stopped"
 		echo
-		echo "$(date --rfc-3339=seconds) [Note] [Entrypoint]: MySQL init process done. Ready for start up."
+		_note "MySQL init process done. Ready for start up."
 		echo
 	fi
 fi
