@@ -92,21 +92,11 @@ _get_config() {
 
 _start_server() {
 	local socket=$1; shift
-	"$@" --skip-networking --socket="${socket}" &
-	local pid="$!"
-
-	mysql=( mysql --protocol=socket -uroot -hlocalhost --socket="${socket}" )
-
-	for i in {30..0}; do
-		if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
-			break
-		fi
-		sleep 1
-	done
-	if [ "$i" = 0 ]; then
-		_error "Unable to start server."
+	result=0
+	"$@" --daemonize --skip-networking --socket="${socket}" || result=$?
+	if [ ! "$result" = "0" ];then
+		_error "Unable to start server. Status code $result."
 	fi
-	return $pid
 }
 
 _stop_server() {
@@ -154,8 +144,8 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 
 		SOCKET="$(_get_config 'socket' "$@")"
 		_note "Starting server"
-		_start_server "${SOCKET}" "$@" || pid=$?
-		_note "Server started with pid $pid"
+		_start_server "${SOCKET}" "$@"
+		_note "Server started with."
 
 		mysql=( mysql --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" )
 
