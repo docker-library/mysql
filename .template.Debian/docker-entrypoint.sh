@@ -197,8 +197,16 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 			FLUSH PRIVILEGES ;
 		EOSQL
 
+		# Store the password in a file so we don't use it on the command line
+		install -d -m0700 /tmp/mysql-files
+		PASSFILE=$(mktemp /tmp/mysql-files/XXXXXXXXXX)
+		install /dev/null -m0600 "${PASSFILE}"
 		if [ ! -z "$MYSQL_ROOT_PASSWORD" ]; then
-			mysql+=( -p"${MYSQL_ROOT_PASSWORD}" )
+			cat >"${PASSFILE}" <<EOF
+[client]
+password="${MYSQL_ROOT_PASSWORD}"
+EOF
+			mysql+=( --defaults-extra-file="${PASSFILE}" )
 		fi
 
 		file_env 'MYSQL_DATABASE'
@@ -232,6 +240,8 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		_note "Stopping server"
 		_stop_server $pid
 		_note "Server stopped"
+		rm -f "${PASSFILE}"
+		unset PASSFILE
 		echo
 		_note "MySQL init process done. Ready for start up."
 		echo
