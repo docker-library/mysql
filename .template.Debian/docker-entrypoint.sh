@@ -110,17 +110,13 @@ _start_server() {
 }
 
 _stop_server() {
-	local server_pid="$1"
-	kill "$server_pid"
-	for i in $(seq 1 60); do
-		sleep 1
-		if ! $(pidof /usr/sbin/mysqld >/dev/null 2>&1); then
-			return 0
-		fi
-	done
-	# The server hasn't shut down in a timely manner
-	_error "Unable to shut down server with process id $server_pid"
-
+	local passfile=$1
+	local socket=$2
+	result=0
+	mysqladmin --defaults-extra-file="${passfile}" shutdown -uroot --socket="${socket}" || result=$?
+	if [ ! "$result" = "0" ]; then
+		_error "Unable to shut down server. Status code $result."
+	fi
 }
 # allow the container to be started with `--user`
 if [ "$1" = 'mysqld' -a -z "$wantHelp" -a "$(id -u)" = '0' ]; then
@@ -238,7 +234,7 @@ EOF
 			EOSQL
 		fi
 		_note "Stopping server"
-		_stop_server $pid
+		_stop_server "${PASSFILE}" "${SOCKET}"
 		_note "Server stopped"
 		rm -f "${PASSFILE}"
 		unset PASSFILE
