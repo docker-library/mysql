@@ -99,12 +99,12 @@ DEFAULT_LOG["5.7"]=""
 DEFAULT_LOG["8.0"]="console"
 
 
-for VERSION in "${!MYSQL_SHELL_VERSIONS[@]}"
+for VERSION in "${!MYSQL_SERVER_VERSIONS[@]}"
 do
   # Dockerfiles
   MYSQL_SERVER_REPOPATH=yum/mysql-$VERSION-community/docker/x86_64
-  MYSQL_CLUSTER_PACKAGE_URL=$REPO/$MYSQL_SERVER_REPOPATH/$(get_full_filename $REPO/$MYSQL_SERVER_REPOPATH mysql-community-server-minimal-${MYSQL_SERVER_VERSIONS[${VERSION}]})
-  sed 's#%%MYSQL_SERVER_PACKAGE_URL%%#'"$MYSQL_CLUSTER_PACKAGE_URL"'#g' template/Dockerfile > tmpfile
+  MYSQL_SERVER_PACKAGE_URL=$REPO/$MYSQL_SERVER_REPOPATH/$(get_full_filename $REPO/$MYSQL_SERVER_REPOPATH mysql-community-server-minimal-${MYSQL_SERVER_VERSIONS[${VERSION}]})
+  sed 's#%%MYSQL_SERVER_PACKAGE_URL%%#'"$MYSQL_SERVER_PACKAGE_URL"'#g' template/Dockerfile > tmpfile
 
   if [[ ! -z ${MYSQL_SHELL_VERSIONS[${VERSION}]} ]]; then
     MYSQL_SHELL_REPOPATH=yum/mysql-tools-community/el/7/x86_64
