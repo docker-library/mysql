@@ -156,7 +156,12 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		fi
 
 		SOCKET="$(_get_config 'socket' "$@")"
-		mysql=( mysql --no-defaults --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" )
+		# We create a file to store the root password in so we don''t use it on the command line
+		install -d -m0700 /tmp/mysql-files
+		PASSFILE=$(mktemp /tmp/mysql-files/XXXXXXXXXX)
+		install /dev/null -m0600 "${PASSFILE}"
+
+		mysql=( mysql --defaults-file="${PASSFILE}" --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" )
 		_note "Starting server"
 		_start_server "${SOCKET}" "$@"
 		if [ "${MYSQL_MAJOR}" = "5.5" ] || [ "${MYSQL_MAJOR}" = "5.6" ]; then
@@ -200,16 +205,12 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 			FLUSH PRIVILEGES ;
 		EOSQL
 
-		# Store the password in a file so we don't use it on the command line
-		install -d -m0700 /tmp/mysql-files
-		PASSFILE=$(mktemp /tmp/mysql-files/XXXXXXXXXX)
-		install /dev/null -m0600 "${PASSFILE}"
+		# Write the password to the file the client uses
 		if [ ! -z "$MYSQL_ROOT_PASSWORD" ]; then
 			cat >"${PASSFILE}" <<EOF
 [client]
 password="${MYSQL_ROOT_PASSWORD}"
 EOF
-			mysql+=( --defaults-extra-file="${PASSFILE}" )
 		fi
 
 		file_env 'MYSQL_DATABASE'
