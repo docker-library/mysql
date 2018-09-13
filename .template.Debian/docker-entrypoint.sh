@@ -93,9 +93,22 @@ _get_config() {
 _start_server() {
 	local socket=$1; shift
 	result=0
-	"$@" --daemonize --skip-networking --socket="${socket}" || result=$?
+	%%SERVERSTARTUP%%
 	if [ ! "$result" = "0" ];then
 		_error "Unable to start server. Status code $result."
+	fi
+}
+
+_wait_for_server() {
+	local mysql=( "$@" )
+	for i in {30..0}; do
+		if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
+			break
+		fi
+		sleep 1
+	done
+	if [ "$i" = 0 ]; then
+		_error "Unable to start server."
 	fi
 }
 
@@ -132,7 +145,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		mkdir -p "$DATADIR"
 
 		_note "Initializing database"
-		"$@" --initialize-insecure
+		%%DATABASEINIT%%
 		_note "Database initialized"
 
 		if command -v mysql_ssl_rsa_setup > /dev/null && [ ! -e "$DATADIR/server-key.pem" ]; then
@@ -143,11 +156,15 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		fi
 
 		SOCKET="$(_get_config 'socket' "$@")"
+		mysql=( mysql --no-defaults --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" )
 		_note "Starting server"
 		_start_server "${SOCKET}" "$@"
-		_note "Server started with."
+		if [ "${MYSQL_MAJOR}" = "5.5" ] || [ "${MYSQL_MAJOR}" = "5.6" ]; then
+			_note "Waiting for server startup"
+			_wait_for_server "${mysql[@]}"
+		fi
+		_note "Server started."
 
-		mysql=( mysql --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" )
 
 		if [ -z "$MYSQL_INITDB_SKIP_TZINFO" ]; then
 			# sed is for https://bugs.mysql.com/bug.php?id=20545
@@ -176,7 +193,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 			--  or products like mysql-fabric won't work
 			SET @@SESSION.SQL_LOG_BIN=0;
 
-			ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' ;
+			%%PASSWORDSET%%
 			GRANT ALL ON *.* TO 'root'@'localhost' WITH GRANT OPTION ;
 			${rootCreate}
 			DROP DATABASE IF EXISTS test ;
@@ -219,9 +236,13 @@ EOF
 		done
 
 		if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
-			"${mysql[@]}" <<-EOSQL
-				ALTER USER 'root'@'%' PASSWORD EXPIRE;
-			EOSQL
+			if [ "${MYSQL_MAJOR}" = "5.5" ]; then
+				_warn "MySQL 5.5 does not support PASSWORD EXPIRE (required for MYSQL_ONETIME_PASSWORD)"
+			else
+				"${mysql[@]}" <<-EOSQL
+					ALTER USER 'root'@'%' PASSWORD EXPIRE;
+				EOSQL
+			fi
 		fi
 		_note "Stopping server"
 		_stop_server "${PASSFILE}" "${SOCKET}"
