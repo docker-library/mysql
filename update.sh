@@ -14,7 +14,7 @@ declare -A debianVariants=(
 	#[5.5]='jessie'
 )
 
-# Templaing
+# Templating
 templateVersions=( "5.5 5.6 5.7 8.0" )
 declare -A passwordset
 passwordset["5.5"]="SET PASSWORD FOR 'root'@'localhost'=PASSWORD('\${MYSQL_ROOT_PASSWORD}');"
