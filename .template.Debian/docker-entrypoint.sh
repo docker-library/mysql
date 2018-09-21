@@ -3,18 +3,18 @@ set -eo pipefail
 shopt -s nullglob
 
 # logging functions
-_log() {
+docker_log() {
 	local type=$1;shift
 	printf "$(date --rfc-3339=seconds) [${type}] [Entrypoint]: $@\n"
 }
-_note() {
-	_log Note "$@"
+docker_note() {
+	docker_log Note "$@"
 }
-_warn() {
-	_log Warn "$@" >&2
+docker_warn() {
+	docker_log Warn "$@" >&2
 }
-_error() {
-	_log ERROR "$@" >&2
+docker_error() {
+	docker_log ERROR "$@" >&2
 	exit 1
 }
 
@@ -34,16 +34,16 @@ for arg; do
 	esac
 done
 
-# usage: file_env VAR [DEFAULT]
-#    ie: file_env 'XYZ_DB_PASSWORD' 'example'
+# usage: docker_file_env VAR [DEFAULT]
+#    ie: docker_file_env 'XYZ_DB_PASSWORD' 'example'
 # (will allow for "$XYZ_DB_PASSWORD_FILE" to fill in the value of
 #  "$XYZ_DB_PASSWORD" from a file, especially for Docker's secrets feature)
-file_env() {
+docker_file_env() {
 	local var="$1"
 	local fileVar="${var}_FILE"
 	local def="${2:-}"
 	if [ "${!var:-}" ] && [ "${!fileVar:-}" ]; then
-		_error "Both $var and $fileVar are set (but are exclusive)"
+		docker_error "Both $var and $fileVar are set (but are exclusive)"
 	fi
 	local val="$def"
 	if [ "${!var:-}" ]; then
@@ -55,51 +55,51 @@ file_env() {
 	unset "$fileVar"
 }
 
-# usage: process_init_file FILENAME MYSQLCOMMAND...
-#    ie: process_init_file foo.sh mysql -uroot
+# usage: docker_process_init_file FILENAME MYSQLCOMMAND...
+#    ie: docker_process_init_file foo.sh mysql -uroot
 # (process a single initializer file, based on its extension. we define this
 # function here, so that initializer scripts (*.sh) can use the same logic,
 # potentially recursively, or override the logic used in subsequent calls)
-process_init_file() {
+docker_process_init_file() {
 	local f="$1"; shift
 	local mysql=( "$@" )
 
 	case "$f" in
-		*.sh)     _note "$0: running $f"; . "$f" ;;
-		*.sql)    _note "$0: running $f"; "${mysql[@]}" < "$f"; echo ;;
-		*.sql.gz) _note "$0: running $f"; gunzip -c "$f" | "${mysql[@]}"; echo ;;
-		*)        _warn "$0: ignoring $f" ;;
+		*.sh)     docker_note "$0: running $f"; . "$f" ;;
+		*.sql)    docker_note "$0: running $f"; "${mysql[@]}" < "$f"; echo ;;
+		*.sql.gz) docker_note "$0: running $f"; gunzip -c "$f" | "${mysql[@]}"; echo ;;
+		*)        docker_warn "$0: ignoring $f" ;;
 	esac
 	echo
 }
 
-_check_config() {
+docker_check_config() {
 	toRun=( "$@" --verbose --help )
 	if ! errors="$("${toRun[@]}" 2>&1 >/dev/null)"; then
-		_error "mysqld failed while attempting to check config\n\tcommand was: ${toRun[*]}\n\t$errors"
+		docker_error "mysqld failed while attempting to check config\n\tcommand was: ${toRun[*]}\n\t$errors"
 	fi
 }
 
 # Fetch value from server config
 # We use mysqld --verbose --help instead of my_print_defaults because the
 # latter only show values present in config files, and not server defaults
-_get_config() {
+docker_get_config() {
 	local conf="$1"; shift
 	"$@" --verbose --help --log-bin-index="$(mktemp -u)" 2>/dev/null \
 		| awk '$1 == "'"$conf"'" && /^[^ \t]/ { sub(/^[^ \t]+[ \t]+/, ""); print; exit }'
 	# match "datadir      /some/path with/spaces in/it here" but not "--xyz=abc\n     datadir (xyz)"
 }
 
-_start_server() {
+docker_start_server() {
 	local socket=$1; shift
 	result=0
 	%%SERVERSTARTUP%%
 	if [ ! "$result" = "0" ];then
-		_error "Unable to start server. Status code $result."
+		docker_error "Unable to start server. Status code $result."
 	fi
 }
 
-_wait_for_server() {
+docker_wait_for_server() {
 	local mysql=( "$@" )
 	for i in {30..0}; do
 		if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
@@ -108,23 +108,23 @@ _wait_for_server() {
 		sleep 1
 	done
 	if [ "$i" = 0 ]; then
-		_error "Unable to start server."
+		docker_error "Unable to start server."
 	fi
 }
 
-_stop_server() {
+docker_stop_server() {
 	local passfile=$1
 	local socket=$2
 	result=0
 	mysqladmin --defaults-extra-file="${passfile}" shutdown -uroot --socket="${socket}" || result=$?
 	if [ ! "$result" = "0" ]; then
-		_error "Unable to shut down server. Status code $result."
+		docker_error "Unable to shut down server. Status code $result."
 	fi
 }
 # allow the container to be started with `--user`
 if [ "$1" = 'mysqld' -a -z "$wantHelp" -a "$(id -u)" = '0' ]; then
-	_check_config "$@"
-	DATADIR="$(_get_config 'datadir' "$@")"
+	docker_check_config "$@"
+	DATADIR="$(docker_get_config 'datadir' "$@")"
 	mkdir -p "$DATADIR"
 	chown -R mysql:mysql "$DATADIR"
 	exec gosu mysql "$BASH_SOURCE" "$@"
@@ -132,43 +132,43 @@ fi
 
 if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 	# still need to check config, container may have started with --user
-	_check_config "$@"
+	docker_check_config "$@"
 	# Get config
-	DATADIR="$(_get_config 'datadir' "$@")"
+	DATADIR="$(docker_get_config 'datadir' "$@")"
 
 	if [ ! -d "$DATADIR/mysql" ]; then
-		file_env 'MYSQL_ROOT_PASSWORD'
+		docker_file_env 'MYSQL_ROOT_PASSWORD'
 		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
-			_error "Database is uninitialized and password option is not specified \n\tYou need to specify one of MYSQL_ROOT_PASSWORD, MYSQL_ALLOW_EMPTY_PASSWORD and MYSQL_RANDOM_ROOT_PASSWORD"
+			docker_error "Database is uninitialized and password option is not specified \n\tYou need to specify one of MYSQL_ROOT_PASSWORD, MYSQL_ALLOW_EMPTY_PASSWORD and MYSQL_RANDOM_ROOT_PASSWORD"
 		fi
 
 		mkdir -p "$DATADIR"
 
-		_note "Initializing database"
+		docker_note "Initializing database"
 		%%DATABASEINIT%%
-		_note "Database initialized"
+		docker_note "Database initialized"
 
 		if command -v mysql_ssl_rsa_setup > /dev/null && [ ! -e "$DATADIR/server-key.pem" ]; then
 			# https://github.com/mysql/mysql-server/blob/23032807537d8dd8ee4ec1c4d40f0633cd4e12f9/packaging/deb-in/extra/mysql-systemd-start#L81-L84
-			_note "Initializing certificates"
+			docker_note "Initializing certificates"
 			mysql_ssl_rsa_setup --datadir="$DATADIR"
-			_note "Certificates initialized"
+			docker_note "Certificates initialized"
 		fi
 
-		SOCKET="$(_get_config 'socket' "$@")"
+		SOCKET="$(docker_get_config 'socket' "$@")"
 		# We create a file to store the root password in so we don''t use it on the command line
 		install -d -m0700 /tmp/mysql-files
 		PASSFILE=$(mktemp /tmp/mysql-files/XXXXXXXXXX)
 		install /dev/null -m0600 "${PASSFILE}"
 
 		mysql=( mysql --defaults-file="${PASSFILE}" --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" )
-		_note "Starting server"
-		_start_server "${SOCKET}" "$@"
+		docker_note "Starting server"
+		docker_start_server "${SOCKET}" "$@"
 		if [ "${MYSQL_MAJOR}" = "5.5" ] || [ "${MYSQL_MAJOR}" = "5.6" ]; then
-			_note "Waiting for server startup"
-			_wait_for_server "${mysql[@]}"
+			docker_note "Waiting for server startup"
+			docker_wait_for_server "${mysql[@]}"
 		fi
-		_note "Server started."
+		docker_note "Server started."
 
 
 		if [ -z "$MYSQL_INITDB_SKIP_TZINFO" ]; then
@@ -178,12 +178,12 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 
 		if [ ! -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
 			export MYSQL_ROOT_PASSWORD="$(pwgen -1 32)"
-			_note "GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
+			docker_note "GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
 		fi
 
 		rootCreate=
 		# default root to listen for connections from anywhere
-		file_env 'MYSQL_ROOT_HOST' '%'
+		docker_file_env 'MYSQL_ROOT_HOST' '%'
 		if [ ! -z "$MYSQL_ROOT_HOST" -a "$MYSQL_ROOT_HOST" != 'localhost' ]; then
 			# no, we don't care if read finds a terminating character in this heredoc
 			# https://unix.stackexchange.com/questions/265149/why-is-set-o-errexit-breaking-this-read-heredoc-expression/265151#265151
@@ -213,14 +213,14 @@ password="${MYSQL_ROOT_PASSWORD}"
 EOF
 		fi
 
-		file_env 'MYSQL_DATABASE'
+		docker_file_env 'MYSQL_DATABASE'
 		if [ "$MYSQL_DATABASE" ]; then
 			echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;" | "${mysql[@]}"
 			mysql+=( "$MYSQL_DATABASE" )
 		fi
 
-		file_env 'MYSQL_USER'
-		file_env 'MYSQL_PASSWORD'
+		docker_file_env 'MYSQL_USER'
+		docker_file_env 'MYSQL_PASSWORD'
 		if [ "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
 			echo "CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD' ;" | "${mysql[@]}"
 
@@ -233,7 +233,7 @@ EOF
 
 		echo
 		for f in /docker-entrypoint-initdb.d/*; do
-			process_init_file "$f" "${mysql[@]}"
+			docker_process_init_file "$f" "${mysql[@]}"
 		done
 
 		if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
@@ -245,13 +245,13 @@ EOF
 				EOSQL
 			fi
 		fi
-		_note "Stopping server"
-		_stop_server "${PASSFILE}" "${SOCKET}"
-		_note "Server stopped"
+		docker_note "Stopping server"
+		docker_stop_server "${PASSFILE}" "${SOCKET}"
+		docker_note "Server stopped"
 		rm -f "${PASSFILE}"
 		unset PASSFILE
 		echo
-		_note "MySQL init process done. Ready for start up."
+		docker_note "MySQL init process done. Ready for start up."
 		echo
 	fi
 fi
