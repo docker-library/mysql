@@ -16,22 +16,6 @@
 
 set -e
 
-function get_full_filename() {
-        FILEPATH=$1
-        PACKAGE_STRING=$2
-        FILENAME=$(curl -s $FILEPATH/ | grep $PACKAGE_STRING | sed -e 's/.*href=\"//i' -e 's/\".*//')
-        if [ -z "$FILENAME" ]; then
-            echo &< "Unable to locate package for $PACKAGE_STRING. Aborting"
-            exit 1
-        fi
-	COUNT=$(echo $FILENAME | tr " " "\n" | wc -l)
-        if [ $COUNT -gt 1 ]; then
-            echo &<2 "Found multiple file names for package $PACKAGE_STRING. Aborting"
-            exit 1
-        fi
-	echo $FILENAME
-}
-
 # This script will simply use sed to replace placeholder variables in the
 # files in template/ with version-specific variants.
 
@@ -103,15 +87,15 @@ for VERSION in "${!MYSQL_SERVER_VERSIONS[@]}"
 do
   # Dockerfiles
   MYSQL_SERVER_REPOPATH=yum/mysql-$VERSION-community/docker/x86_64
-  MYSQL_SERVER_PACKAGE_URL=$REPO/$MYSQL_SERVER_REPOPATH/$(get_full_filename $REPO/$MYSQL_SERVER_REPOPATH mysql-community-server-minimal-${MYSQL_SERVER_VERSIONS[${VERSION}]})
-  sed 's#%%MYSQL_SERVER_PACKAGE_URL%%#'"$MYSQL_SERVER_PACKAGE_URL"'#g' template/Dockerfile > tmpfile
+  sed 's#%%MYSQL_SERVER_PACKAGE%%#'"mysql-community-server-minimal-${MYSQL_SERVER_VERSIONS[${VERSION}]}"'#g' template/Dockerfile > tmpfile
+  sed -i 's#%%REPO%%#'"${REPO}"'#g' tmpfile
+  REPO_VERSION=${VERSION//\./}
+  sed -i 's#%%REPO_VERSION%%#'"${REPO_VERSION}"'#g' tmpfile
 
   if [[ ! -z ${MYSQL_SHELL_VERSIONS[${VERSION}]} ]]; then
-    MYSQL_SHELL_REPOPATH=yum/mysql-tools-community/el/7/x86_64
-    MYSQL_SHELL_PACKAGE_URL=$REPO/$MYSQL_SHELL_REPOPATH/$(get_full_filename $REPO/$MYSQL_SHELL_REPOPATH mysql-shell-${MYSQL_SHELL_VERSIONS[${VERSION}]})
-    sed -i 's#%%MYSQL_SHELL_PACKAGE_URL%%#'"$MYSQL_SHELL_PACKAGE_URL"'#g' tmpfile
+    sed -i 's#%%MYSQL_SHELL_PACKAGE%%#'"mysql-shell-${MYSQL_SHELL_VERSIONS[${VERSION}]}"'#g' tmpfile
   else
-    sed -i 's#%%MYSQL_SHELL_PACKAGE_URL%%#'""'#g' tmpfile
+    sed -i 's#%%MYSQL_SHELL_PACKAGE%%#'""'#g' tmpfile
   fi
 
   sed -i 's/%%PORTS%%/'"${PORTS[${VERSION}]}"'/g' tmpfile
@@ -122,11 +106,11 @@ do
     mkdir "${VERSION}/inspec"
   fi
   if [ "${VERSION}" == "5.7" ] || [ "${VERSION}" == "8.0" ]; then
-    sed 's#%%MYSQL_SERVER_PACKAGE_VERSION%%#'"${MYSQL_SERVER_VERSIONS[${VERSION}]}"'#g' template/control.rb > tmpFile
-    sed -i 's#%%MYSQL_SHELL_PACKAGE_VERSION%%#'"${MYSQL_SHELL_VERSIONS[${VERSION}]}"'#g' tmpFile
+    sed 's#%%MYSQL_SERVER_VERSION%%#'"${MYSQL_SERVER_VERSIONS[${VERSION}]}"'#g' template/control.rb > tmpFile
+    sed -i 's#%%MYSQL_SHELL_VERSION%%#'"${MYSQL_SHELL_VERSIONS[${VERSION}]}"'#g' tmpFile
     mv tmpFile "${VERSION}/inspec/control.rb"
   else
-    sed 's#%%MYSQL_SERVER_PACKAGE_VERSION%%#'"${MYSQL_SERVER_VERSIONS[${VERSION}]}"'#g' template/control_pre57.rb > tmpFile
+    sed 's#%%MYSQL_SERVER_VERSION%%#'"${MYSQL_SERVER_VERSIONS[${VERSION}]}"'#g' template/control_pre57.rb > tmpFile
     mv tmpFile "${VERSION}/inspec/control.rb"
   fi
 

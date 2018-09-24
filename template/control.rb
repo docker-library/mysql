@@ -12,13 +12,13 @@ control 'server-package' do
   impact 0.5
   describe package('mysql-community-server-minimal') do
     it { should be_installed }
-    its ('version') { should match '%%MYSQL_SERVER_PACKAGE_VERSION%%.*' }
+    its ('version') { should match '%%MYSQL_SERVER_VERSION%%.*' }
   end
 end
 control 'shell-package' do
   impact 0.5
   describe package('mysql-shell') do
     it { should be_installed }
-    its ('version') { should match '%%MYSQL_SHELL_PACKAGE_VERSION%%.*' }
+    its ('version') { should match '%%MYSQL_SHELL_VERSION%%.*' }
   end
 end
