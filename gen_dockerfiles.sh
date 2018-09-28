@@ -19,13 +19,9 @@ set -e
 # This script will simply use sed to replace placeholder variables in the
 # files in template/ with version-specific variants.
 
-. VERSION
+source ./VERSION
 
-if [ -z "$1" ]; then
-  REPO=https://repo.mysql.com
-else
-  REPO=$1
-fi
+REPO=mysql/mysql-server [ -n "$1" ] && REPO=$1
 
 # 33060 is the default port for the mysqlx plugin, new to 5.7
 declare -A PORTS
