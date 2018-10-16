@@ -21,7 +21,7 @@ set -e
 
 source ./VERSION
 
-REPO=mysql/mysql-server [ -n "$1" ] && REPO=$1
+REPO=https://repo.mysql.com; [ -n "$1" ] && REPO=$1
 
 # 33060 is the default port for the mysqlx plugin, new to 5.7
 declare -A PORTS

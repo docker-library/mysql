@@ -16,7 +16,7 @@
 set -e
 source ./VERSION
 
-REPO=mysql/mysql-server [ -n "$1" ] && REPO=$1
+REPO=mysql/mysql-server; [ -n "$1" ] && REPO=$1
 
 for MAJOR_VERSION in ${MULTIARCH_VERSIONS}; do
   MANIFEST_VERSIONS=$(./tag.sh "$ARCH" "$MAJOR_VERSION")
