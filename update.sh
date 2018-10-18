@@ -27,10 +27,10 @@ database_init["5.6"]="mysql_install_db --user=mysql --datadir=\"\$DATADIR\" --rp
 database_init["5.7"]="\"\$@\" --initialize-insecure"
 database_init["8.0"]="\"\$@\" --initialize-insecure"
 declare -A server_startup
-server_startup["5.5"]="\"\$@\" --skip-networking --basedir=\/usr\/local\/mysql --socket=\"\${socket}\" \&"
-server_startup["5.6"]="\"\$@\" --skip-networking --socket=\"\${socket}\" \&"
-server_startup["5.7"]="\"\$@\" --daemonize --skip-networking --socket=\"\${socket}\" || result=$?"
-server_startup["8.0"]="\"\$@\" --daemonize --skip-networking --socket=\"\${socket}\" || result=$?"
+server_startup["5.5"]="\"\$@\" --skip-networking --basedir=\/usr\/local\/mysql --socket=\"\${SOCKET}\" \&"
+server_startup["5.6"]="\"\$@\" --skip-networking --socket=\"\${SOCKET}\" \&"
+server_startup["5.7"]="\"\$@\" --daemonize --skip-networking --socket=\"\${SOCKET}\" || result=$?"
+server_startup["8.0"]="\"\$@\" --daemonize --skip-networking --socket=\"\${SOCKET}\" || result=$?"
 for version in ${templateVersions}; do
 	cp ".template.Debian/docker-entrypoint.sh" "${version}/"
 	sed -e 's/%%PASSWORDSET%%/'"${passwordset["$version"]}"'/g' \
