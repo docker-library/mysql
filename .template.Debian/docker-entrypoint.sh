@@ -157,9 +157,8 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 
 		SOCKET="$(docker_get_config 'socket' "$@")"
 		# We create a file to store the root password in so we don''t use it on the command line
-		install -d -m0700 /tmp/mysql-files
-		PASSFILE=$(mktemp /tmp/mysql-files/XXXXXXXXXX)
-		install /dev/null -m0600 "${PASSFILE}"
+		TMPDIR="$(mktemp -d)"
+		PASSFILE="$(mktemp ${TMPDIR}/XXXXXXXXXX)"
 
 		mysql=( mysql --defaults-file="${PASSFILE}" --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" )
 		docker_note "Starting server"
