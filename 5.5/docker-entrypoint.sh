@@ -40,6 +40,26 @@ file_env() {
 	unset "$fileVar"
 }
 
+#usage: CMD & report_progress FILENAME
+#   ie: CMD & report_progress foo.sh
+# Report the progress of the import or script in seconds as the file
+# progresses
+report_progress() {
+    local info="$1"
+    local pid=$!
+    local delay=30
+    local start=$SECONDS
+    local elapsed_time=0
+    echo "Running or importing $info ..."
+    while kill -0 $pid 2> /dev/null; do
+        sleep $delay
+        echo "Running for $(( SECONDS - start )) seconds..."
+	elapsed_time=$(( SECONDS - start))
+    done
+
+    echo "Completed in $elapsed_time seconds"
+}
+
 # usage: process_init_file FILENAME MYSQLCOMMAND...
 #    ie: process_init_file foo.sh mysql -uroot
 # (process a single initializer file, based on its extension. we define this
@@ -50,12 +70,11 @@ process_init_file() {
 	local mysql=( "$@" )
 
 	case "$f" in
-		*.sh)     echo "$0: running $f"; . "$f" ;;
-		*.sql)    echo "$0: running $f"; "${mysql[@]}" < "$f"; echo ;;
-		*.sql.gz) echo "$0: running $f"; gunzip -c "$f" | "${mysql[@]}"; echo ;;
+		*.sh)     (. "$f") & report_progress $f;;
+		*.sql)    ("${mysql[@]}" < "$f") & report_progress $f;;
+		*.sql.gz) (gunzip -c "$f" | "${mysql[@]}") & report_progress $f;;
 		*)        echo "$0: ignoring $f" ;;
 	esac
-	echo
 }
 
 _check_config() {
