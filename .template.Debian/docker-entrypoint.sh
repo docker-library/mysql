@@ -251,71 +251,76 @@ docker_load_tzinfo() {
 	mysql_tzinfo_to_sql /usr/share/zoneinfo | sed 's/Local time zone must be set--see zic manual page/FCTY/' | "${mysql[@]}" mysql
 }
 
-docker_init_env "$@"
+docker_main() {
+	docker_note "Entrypoint script for MySQL Server ${MYSQL_VERSION} started."
 
-# allow the container to be started with `--user`
-if [ "$1" = 'mysqld' -a -z "$wantHelp" -a "$(id -u)" = '0' ]; then
-	docker_check_config "$@"
-	mkdir -p "$DATADIR"
-	chown -R mysql:mysql "$DATADIR"
-	exec gosu mysql "$BASH_SOURCE" "$@"
-fi
+	if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
+		# Load various environment variables
+		docker_init_env "$@"
 
-docker_note "Entrypoint script for MySQL Server ${MYSQL_VERSION} started."
-
-if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
-	# still need to check config, container may have started with --user
-	docker_check_config "$@"
-
-	# If this is true then there's no database, and it needs to be initialized
-	if [ ! -d "$DATADIR/mysql" ]; then
-		docker_verify_env
-		docker_init_database_dir "$@"
-		docker_init_client_command
-
-		docker_note "Starting temporary server"
-		docker_start_server "$@"
-		# For 5.7+ the server is ready for use as soon as startup command unblocks
-		if [ "${MYSQL_MAJOR}" = "5.5" ] || [ "${MYSQL_MAJOR}" = "5.6" ]; then
-			docker_note "Waiting for server startup"
-			docker_wait_for_server "${mysql[@]}"
-		fi
-		docker_note "Temporary server started."
-
-
-		if [ -z "$MYSQL_INITDB_SKIP_TZINFO" ]; then
-			docker_load_tzinfo
+		# If container is started as root user, restart as dedicated mysql user
+		if [ "$(id -u)" = '0' ]; then
+			docker_check_config "$@"
+			mkdir -p "$DATADIR"
+			chown -R mysql:mysql "$DATADIR"
+			docker_note "Switching to dedicated user 'mysql'"
+			exec gosu mysql "$BASH_SOURCE" "$@"
 		fi
 
-		if [ ! -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
-			docker_generate_root_password
+		# still need to check config, container may have started with --user
+		docker_check_config "$@"
+
+		# If this is true then there's no database, and it needs to be initialized
+		if [ ! -d "$DATADIR/mysql" ]; then
+			docker_verify_env
+			docker_init_database_dir "$@"
+			docker_init_client_command
+
+			docker_note "Starting temporary server"
+			docker_start_server "$@"
+			# For 5.7+ the server is ready for use as soon as startup command unblocks
+			if [ "${MYSQL_MAJOR}" = "5.5" ] || [ "${MYSQL_MAJOR}" = "5.6" ]; then
+				docker_note "Waiting for server startup"
+				docker_wait_for_server "${mysql[@]}"
+			fi
+			docker_note "Temporary server started."
+
+
+			if [ -z "$MYSQL_INITDB_SKIP_TZINFO" ]; then
+				docker_load_tzinfo
+			fi
+
+			if [ ! -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
+				docker_generate_root_password
+			fi
+
+			docker_init_root_user
+
+			docker_write_password_file
+
+			docker_init_database_user
+
+			echo
+			for f in /docker-entrypoint-initdb.d/*; do
+				docker_process_init_file "$f" "${mysql[@]}"
+			done
+
+			if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
+				docker_expire_root_user
+			fi
+			docker_note "Stopping temporary server"
+			docker_stop_server
+			docker_note "Temporary server stopped"
+
+			# Remove the password file now that initialization is complete
+			rm -f "${PASSFILE}"
+			unset PASSFILE
+			echo
+			docker_note "MySQL init process done. Ready for start up."
+			echo
 		fi
-		
-		docker_init_root_user
-
-		docker_write_password_file
-
-		docker_init_database_user
-
-		echo
-		for f in /docker-entrypoint-initdb.d/*; do
-			docker_process_init_file "$f" "${mysql[@]}"
-		done
-
-		if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
-			docker_expire_root_user
-		fi
-		docker_note "Stopping temporary server"
-		docker_stop_server
-		docker_note "Temporary server stopped"
-
-		# Remove the password file now that initialization is complete
-		rm -f "${PASSFILE}"
-		unset PASSFILE
-		echo
-		docker_note "MySQL init process done. Ready for start up."
-		echo
 	fi
-fi
+	exec "$@"
+}
 
-exec "$@"
+docker_main "$@"
