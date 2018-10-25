@@ -19,7 +19,7 @@ source ./VERSION
 REPO=mysql/mysql-server; [ -n "$1" ] && REPO=$1
 
 for MAJOR_VERSION in ${MULTIARCH_VERSIONS}; do
-  MANIFEST_VERSIONS=$(./tag.sh "$ARCH" "$MAJOR_VERSION")
+  MANIFEST_VERSIONS=$(./tag.sh "" "$MAJOR_VERSION")
   for MANIFEST_VERSION in $MANIFEST_VERSIONS; do
     docker manifest create "$REPO:$MANIFEST_VERSION" "$REPO:$MANIFEST_VERSION-aarch64" "$REPO:$MANIFEST_VERSION-amd64"
     docker manifest annotate "$REPO:$MANIFEST_VERSION" "$REPO:$MANIFEST_VERSION-aarch64" --os linux --arch arm64
