@@ -322,5 +322,8 @@ docker_main() {
 	fi
 	exec "$@"
 }
-
-docker_main "$@"
+# This checks if the script has been sourced from elsewhere.
+# If so we don't perform any further actions
+if [ ! "${FUNCNAME[${#FUNCNAME[@]} - 1]}" = 'source' ]; then
+	docker_main "$@"
+fi
