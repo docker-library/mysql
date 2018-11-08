@@ -94,7 +94,7 @@ docker_get_config() {
 docker_start_server() {
 	result=0
 	%%SERVERSTARTUP%%
-	if [ ! "$result" = "0" ];then
+	if [ "$result" != "0" ];then
 		docker_error "Unable to start server. Status code $result."
 	fi
 }
@@ -119,7 +119,7 @@ docker_wait_for_server() {
 docker_stop_server() {
 	result=0
 	mysqladmin --defaults-extra-file="${PASSFILE}" shutdown -uroot --socket="${SOCKET}" || result=$?
-	if [ ! "$result" = "0" ]; then
+	if [ "$result" != "0" ]; then
 		docker_error "Unable to shut down server. Status code $result."
 	fi
 }
@@ -324,6 +324,6 @@ docker_main() {
 }
 # This checks if the script has been sourced from elsewhere.
 # If so we don't perform any further actions
-if [ ! "${FUNCNAME[${#FUNCNAME[@]} - 1]}" = 'source' ]; then
+if [ "${FUNCNAME[${#FUNCNAME[@]} - 1]}" != 'source' ]; then
 	docker_main "$@"
 fi
