@@ -12,8 +12,9 @@ RUN set -x \
 	&& wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture)" \
 	&& wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture).asc" \
 	&& export GNUPGHOME="$(mktemp -d)" \
-	&& gpg --no-tty --keyserver keyserver.ubuntu.com --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
+	&& gpg --batch --no-tty --keyserver keyserver.ubuntu.com --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
 	&& gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
+    && gpgconf --kill all \
 	&& rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc \
 	&& chmod +x /usr/local/bin/gosu \
 	&& gosu nobody true \
@@ -42,7 +43,7 @@ RUN set -ex; \
 	apt-key list > /dev/null
 
 ENV MYSQL_MAJOR 5.6
-ENV MYSQL_VERSION 5.6.39-1debian9
+ENV MYSQL_VERSION 5.6.42-1debian9
 
 RUN echo "deb http://repo.mysql.com/apt/debian/ stretch mysql-${MYSQL_MAJOR}" > /etc/apt/sources.list.d/mysql.list
 
