@@ -78,6 +78,12 @@ DEFAULT_LOG["5.6"]=""
 DEFAULT_LOG["5.7"]=""
 DEFAULT_LOG["8.0"]="console"
 
+# MySQL 8.0 supports a call to validate the config, while older versions have it as a side
+# effect of running --verbose --help
+declare -A VALIDATE_CONFIG
+VALIDATE_CONFIG["5.6"]="output=$(\"$@\" --verbose --help 2>&1 > /dev/null) || result=$?"
+VALIDATE_CONFIG["5.7"]="output=$(\"$@\" --verbose --help 2>&1 > /dev/null) || result=$?"
+VALIDATE_CONFIG["8.0"]="output=$(\"$@\" --validate-config) || result=$?"
 
 for VERSION in "${!MYSQL_SERVER_VERSIONS[@]}"
 do
@@ -119,6 +125,7 @@ do
   sed -i 's#%%STARTUP_WAIT%%#'"${STARTUP_WAIT[${VERSION}]}"'#g' tmpfile
   sed -i 's#%%FULL_SERVER_VERSION%%#'"${FULL_SERVER_VERSIONS[${VERSION}]}"'#g' tmpfile
   sed -i 's#%%DEFAULT_LOG%%#'"${DEFAULT_LOG[${VERSION}]}"'#g' tmpfile
+  sed -i 's#%%VALIDATE_CONFIG%%#'"${VALIDATE_CONFIG[${VERSION}]}"'#g' tmpfile
   mv tmpfile ${VERSION}/docker-entrypoint.sh
   chmod +x ${VERSION}/docker-entrypoint.sh
 

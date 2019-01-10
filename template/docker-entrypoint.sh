@@ -35,7 +35,7 @@ if [ "$1" = 'mysqld' ]; then
 	# Test that the server can start. We redirect stdout to /dev/null so
 	# only the error messages are left.
 	result=0
-	output=$("$@" --verbose --help 2>&1 > /dev/null) || result=$?
+	%%VALIDATE_CONFIG%%
 	if [ ! "$result" = "0" ]; then
 		echo >&2 '[Entrypoint] ERROR: Unable to start MySQL. Please check your configuration.'
 		echo >&2 "[Entrypoint] $output"
