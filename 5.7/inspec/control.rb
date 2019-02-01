@@ -19,6 +19,6 @@ control 'shell-package' do
   impact 0.5
   describe package('mysql-shell') do
     it { should be_installed }
-    its ('version') { should match '8.0.14.*' }
+    its ('version') { should match '8.0.15.*' }
   end
 end
