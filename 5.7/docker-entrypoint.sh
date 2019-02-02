@@ -210,6 +210,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		echo 'MySQL init process done. Ready for start up.'
 		echo
 	fi
+	touch "$DATADIR/docker-entrypoint-complete"
 fi
 
 exec "$@"
