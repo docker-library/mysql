@@ -7,16 +7,32 @@ if [ "${1:0:1}" = '-' ]; then
 	set -- mysqld "$@"
 fi
 
-# skip setup if they want an option that stops mysqld
+# Iterate over command-line options:
+# - skip setup if they want an option that stops mysqld
+# - filter options that would make setup fail
 wantHelp=
+args=""
 for arg; do
+    echo "arg: $arg"
 	case "$arg" in
 		-'?'|--help|--print-defaults|-V|--version)
 			wantHelp=1
 			break
 			;;
+        # remove default timezone option from argument list, as it makes DB init script 
+        # crash when invoked before TZ tables have been populated
+        # Fixes https://github.com/docker-library/mysql/issues/543
+        --default-time-zone=*)
+            export TZ=${arg##*=}
+            shift
+            ;;
+        *)
+            args="$args $arg"
+            shift
+            ;;
 	esac
 done
+set -- $args
 
 # usage: file_env VAR [DEFAULT]
 #    ie: file_env 'XYZ_DB_PASSWORD' 'example'
