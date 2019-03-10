@@ -158,6 +158,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 			DELETE FROM mysql.user WHERE user NOT IN ('mysql.sys', 'mysqlxsys', 'root') OR host NOT IN ('localhost') ;
 			SET PASSWORD FOR 'root'@'localhost'=PASSWORD('${MYSQL_ROOT_PASSWORD}') ;
 			GRANT ALL ON *.* TO 'root'@'localhost' WITH GRANT OPTION ;
+			FLUSH PRIVILEGES ;
 			${rootCreate}
 			DROP DATABASE IF EXISTS test ;
 			FLUSH PRIVILEGES ;
