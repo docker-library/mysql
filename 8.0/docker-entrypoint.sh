@@ -165,6 +165,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 
 			ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}' ;
 			GRANT ALL ON *.* TO 'root'@'localhost' WITH GRANT OPTION ;
+			FLUSH PRIVILEGES ;
 			${rootCreate}
 			DROP DATABASE IF EXISTS test ;
 			FLUSH PRIVILEGES ;
