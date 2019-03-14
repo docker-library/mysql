@@ -161,7 +161,6 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 			FLUSH PRIVILEGES ;
 			${rootCreate}
 			DROP DATABASE IF EXISTS test ;
-			FLUSH PRIVILEGES ;
 		EOSQL
 
 		if [ ! -z "$MYSQL_ROOT_PASSWORD" ]; then
