@@ -171,7 +171,7 @@ docker_init_client_command() {
 }
 
 # Store root password in a file for use with the client command
-docker_write_password_file() {
+mysql_write_password_file() {
 	# Write the password to the file the client uses
 	if [ ! -z "$MYSQL_ROOT_PASSWORD" ]; then
 		cat >"${PASSFILE}" <<EOF
@@ -296,7 +296,7 @@ docker_main() {
 
 			docker_init_root_user
 
-			docker_write_password_file
+			mysql_write_password_file
 
 			docker_init_database_user
 
