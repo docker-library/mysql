@@ -73,7 +73,7 @@ docker_process_init_file() {
 	echo
 }
 
-docker_check_config() {
+mysql_check_config() {
 	toRun=( "$@" --verbose --help )
 	if ! errors="$("${toRun[@]}" 2>&1 >/dev/null)"; then
 		docker_error "mysqld failed while attempting to check config\n\tcommand was: ${toRun[*]}\n\t$errors"
@@ -260,7 +260,7 @@ docker_main() {
 
 		# If container is started as root user, restart as dedicated mysql user
 		if [ "$(id -u)" = '0' ]; then
-			docker_check_config "$@"
+			mysql_check_config "$@"
 			mkdir -p "$DATADIR"
 			chown -R mysql:mysql "$DATADIR"
 			docker_note "Switching to dedicated user 'mysql'"
@@ -268,7 +268,7 @@ docker_main() {
 		fi
 
 		# still need to check config, container may have started with --user
-		docker_check_config "$@"
+		mysql_check_config "$@"
 
 		# If this is true then there's no database, and it needs to be initialized
 		if [ ! -d "$DATADIR/mysql" ]; then
