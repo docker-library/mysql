@@ -34,11 +34,11 @@ for arg; do
 	esac
 done
 
-# usage: docker_file_env VAR [DEFAULT]
-#    ie: docker_file_env 'XYZ_DB_PASSWORD' 'example'
+# usage: file_env VAR [DEFAULT]
+#    ie: file_env 'XYZ_DB_PASSWORD' 'example'
 # (will allow for "$XYZ_DB_PASSWORD_FILE" to fill in the value of
 #  "$XYZ_DB_PASSWORD" from a file, especially for Docker's secrets feature)
-docker_file_env() {
+file_env() {
 	local var="$1"
 	local fileVar="${var}_FILE"
 	local def="${2:-}"
@@ -158,11 +158,11 @@ docker_init_env() {
 	PASSFILE="$(mktemp ${TMPDIR}/XXXXXXXXXX)"
 	
 	# Initialize values that might be stored in a file
-	docker_file_env 'MYSQL_ROOT_HOST' '%'
-	docker_file_env 'MYSQL_DATABASE'
-	docker_file_env 'MYSQL_USER'
-	docker_file_env 'MYSQL_PASSWORD'
-	docker_file_env 'MYSQL_ROOT_PASSWORD'
+	file_env 'MYSQL_ROOT_HOST' '%'
+	file_env 'MYSQL_DATABASE'
+	file_env 'MYSQL_USER'
+	file_env 'MYSQL_PASSWORD'
+	file_env 'MYSQL_ROOT_PASSWORD'
 }
 
 # Define the client command that's used in various places
