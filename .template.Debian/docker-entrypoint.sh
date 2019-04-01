@@ -125,7 +125,7 @@ docker_stop_server() {
 }
 
 # Verify that the minimally required password settings are set for new databases.
-docker_verify_env() {
+docker_verify_minimum_env() {
 	if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
 		docker_error "Database is uninitialized and password option is not specified \n\tYou need to specify one of MYSQL_ROOT_PASSWORD, MYSQL_ALLOW_EMPTY_PASSWORD and MYSQL_RANDOM_ROOT_PASSWORD"
 	fi
@@ -272,7 +272,7 @@ docker_main() {
 
 		# If this is true then there's no database, and it needs to be initialized
 		if [ ! -d "$DATADIR/mysql" ]; then
-			docker_verify_env
+			docker_verify_minimum_env
 			docker_init_database_dir "$@"
 			docker_init_client_command
 
