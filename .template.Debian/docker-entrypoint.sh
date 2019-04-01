@@ -55,12 +55,12 @@ file_env() {
 	unset "$fileVar"
 }
 
-# usage: docker_process_init_file FILENAME MYSQLCOMMAND...
-#    ie: docker_process_init_file foo.sh mysql -uroot
+# usage: docker_process_init_files FILENAME MYSQLCOMMAND...
+#    ie: docker_process_init_files foo.sh mysql -uroot
 # (process a single initializer file, based on its extension. we define this
 # function here, so that initializer scripts (*.sh) can use the same logic,
 # potentially recursively, or override the logic used in subsequent calls)
-docker_process_init_file() {
+docker_process_init_files() {
 	local f="$1"; shift
 	local mysql=( "$@" )
 
@@ -302,7 +302,7 @@ docker_main() {
 
 			echo
 			for f in /docker-entrypoint-initdb.d/*; do
-				docker_process_init_file "$f" "${mysql[@]}"
+				docker_process_init_files "$f" "${mysql[@]}"
 			done
 
 			if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
