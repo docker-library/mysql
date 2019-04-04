@@ -148,7 +148,7 @@ docker_init_database_dir() {
 }
 
 # Loads various settings that are used elsewhere in the script
-docker_init_env() {
+docker_setup_env() {
 	# Get config
 	DATADIR="$(mysql_get_config 'datadir' "$@")"
 	SOCKET="$(mysql_get_config 'socket' "$@")"
@@ -256,7 +256,7 @@ docker_main() {
 
 	if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		# Load various environment variables
-		docker_init_env "$@"
+		docker_setup_env "$@"
 
 		# If container is started as root user, restart as dedicated mysql user
 		if [ "$(id -u)" = '0' ]; then
