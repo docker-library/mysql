@@ -97,21 +97,25 @@ docker_temp_server_start() {
 	if [ "$result" != "0" ];then
 		mysql_error "Unable to start server. Status code $result."
 	fi
+
+	# For 5.7+ the server is ready for use as soon as startup command unblocks
+	if [ "${MYSQL_MAJOR}" = "5.5" ] || [ "${MYSQL_MAJOR}" = "5.6" ]; then
+		mysql_note "Waiting for server startup"
+		for i in {30..0}; do
+			if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
+				break
+			fi
+			sleep 1
+		done
+		if [ "$i" = 0 ]; then
+			mysql_error "Unable to start server."
+		fi
+	fi
 }
 
 # Wait for the temporary server to be ready for connections.
 # It is only used for versions older than 5.7
 docker_wait_for_server() {
-	local mysql=( "$@" )
-	for i in {30..0}; do
-		if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
-			break
-		fi
-		sleep 1
-	done
-	if [ "$i" = 0 ]; then
-		mysql_error "Unable to start server."
-	fi
 }
 
 # Stop the server. When using a local socket file mysqladmin will block until
@@ -278,11 +282,6 @@ _main() {
 
 			mysql_note "Starting temporary server"
 			docker_temp_server_start "$@"
-			# For 5.7+ the server is ready for use as soon as startup command unblocks
-			if [ "${MYSQL_MAJOR}" = "5.5" ] || [ "${MYSQL_MAJOR}" = "5.6" ]; then
-				mysql_note "Waiting for server startup"
-				docker_wait_for_server "${mysql[@]}"
-			fi
 			mysql_note "Temporary server started."
 
 
