@@ -91,7 +91,7 @@ mysql_get_config() {
 }
 
 # Do a temporary startup of the MySQL server, for init purposes
-docker_start_server() {
+docker_temp_server_start() {
 	result=0
 	%%SERVERSTARTUP%%
 	if [ "$result" != "0" ];then
@@ -116,7 +116,7 @@ docker_wait_for_server() {
 
 # Stop the server. When using a local socket file mysqladmin will block until
 # the shutdown is complete.
-docker_stop_server() {
+docker_temp_server_stop() {
 	result=0
 	mysqladmin --defaults-extra-file="${PASSFILE}" shutdown -uroot --socket="${SOCKET}" || result=$?
 	if [ "$result" != "0" ]; then
@@ -277,7 +277,7 @@ _main() {
 			docker_init_client_command
 
 			mysql_note "Starting temporary server"
-			docker_start_server "$@"
+			docker_temp_server_start "$@"
 			# For 5.7+ the server is ready for use as soon as startup command unblocks
 			if [ "${MYSQL_MAJOR}" = "5.5" ] || [ "${MYSQL_MAJOR}" = "5.6" ]; then
 				mysql_note "Waiting for server startup"
@@ -309,7 +309,7 @@ _main() {
 				docker_expire_root_user
 			fi
 			mysql_note "Stopping temporary server"
-			docker_stop_server
+			docker_temp_server_stop
 			mysql_note "Temporary server stopped"
 
 			# Remove the password file now that initialization is complete
