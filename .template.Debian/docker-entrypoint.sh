@@ -251,7 +251,7 @@ docker_load_tzinfo() {
 	mysql_tzinfo_to_sql /usr/share/zoneinfo | sed 's/Local time zone must be set--see zic manual page/FCTY/' | "${mysql[@]}" mysql
 }
 
-docker_main() {
+_main() {
 	mysql_note "Entrypoint script for MySQL Server ${MYSQL_VERSION} started."
 
 	if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
@@ -325,5 +325,5 @@ docker_main() {
 # This checks if the script has been sourced from elsewhere.
 # If so we don't perform any further actions
 if [ "${FUNCNAME[${#FUNCNAME[@]} - 1]}" != 'source' ]; then
-	docker_main "$@"
+	_main "$@"
 fi
