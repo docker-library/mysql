@@ -233,7 +233,7 @@ docker_init_database_user() {
 
 # Mark root user as expired so the password must be changed before anything
 # else can be done (only supported for 5.6+)
-docker_expire_root_user() {
+mysql_expire_root_user() {
 	if [ "${MYSQL_MAJOR}" = "5.5" ]; then
 		mysql_warn "MySQL 5.5 does not support PASSWORD EXPIRE (required for MYSQL_ONETIME_PASSWORD)"
 	else
@@ -305,7 +305,7 @@ _main() {
 			done
 
 			if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
-				docker_expire_root_user
+				mysql_expire_root_user
 			fi
 			mysql_note "Stopping temporary server"
 			docker_temp_server_stop
