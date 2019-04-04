@@ -83,7 +83,7 @@ mysql_check_config() {
 # Fetch value from server config
 # We use mysqld --verbose --help instead of my_print_defaults because the
 # latter only show values present in config files, and not server defaults
-docker_get_config() {
+mysql_get_config() {
 	local conf="$1"; shift
 	"$@" --verbose --help --log-bin-index="$(mktemp -u)" 2>/dev/null \
 		| awk '$1 == "'"$conf"'" && /^[^ \t]/ { sub(/^[^ \t]+[ \t]+/, ""); print; exit }'
@@ -150,8 +150,8 @@ docker_init_database_dir() {
 # Loads various settings that are used elsewhere in the script
 docker_init_env() {
 	# Get config
-	DATADIR="$(docker_get_config 'datadir' "$@")"
-	SOCKET="$(docker_get_config 'socket' "$@")"
+	DATADIR="$(mysql_get_config 'datadir' "$@")"
+	SOCKET="$(mysql_get_config 'socket' "$@")"
 	
 	# We create a file to store the root password in so we don''t use it on the command line
 	TMPDIR="$(mktemp -d)"
