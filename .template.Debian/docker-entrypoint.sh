@@ -3,18 +3,18 @@ set -eo pipefail
 shopt -s nullglob
 
 # logging functions
-docker_log() {
+mysql_log() {
 	local type=$1;shift
 	printf "$(date --rfc-3339=seconds) [${type}] [Entrypoint]: $@\n"
 }
-docker_note() {
-	docker_log Note "$@"
+mysql_note() {
+	mysql_log Note "$@"
 }
-docker_warn() {
-	docker_log Warn "$@" >&2
+mysql_warn() {
+	mysql_log Warn "$@" >&2
 }
-docker_error() {
-	docker_log ERROR "$@" >&2
+mysql_error() {
+	mysql_log ERROR "$@" >&2
 	exit 1
 }
 
@@ -43,7 +43,7 @@ file_env() {
 	local fileVar="${var}_FILE"
 	local def="${2:-}"
 	if [ "${!var:-}" ] && [ "${!fileVar:-}" ]; then
-		docker_error "Both $var and $fileVar are set (but are exclusive)"
+		mysql_error "Both $var and $fileVar are set (but are exclusive)"
 	fi
 	local val="$def"
 	if [ "${!var:-}" ]; then
@@ -65,10 +65,10 @@ docker_process_init_files() {
 	local mysql=( "$@" )
 
 	case "$f" in
-		*.sh)     docker_note "$0: running $f"; . "$f" ;;
-		*.sql)    docker_note "$0: running $f"; "${mysql[@]}" < "$f"; echo ;;
-		*.sql.gz) docker_note "$0: running $f"; gunzip -c "$f" | "${mysql[@]}"; echo ;;
-		*)        docker_warn "$0: ignoring $f" ;;
+		*.sh)     mysql_note "$0: running $f"; . "$f" ;;
+		*.sql)    mysql_note "$0: running $f"; "${mysql[@]}" < "$f"; echo ;;
+		*.sql.gz) mysql_note "$0: running $f"; gunzip -c "$f" | "${mysql[@]}"; echo ;;
+		*)        mysql_warn "$0: ignoring $f" ;;
 	esac
 	echo
 }
@@ -76,7 +76,7 @@ docker_process_init_files() {
 mysql_check_config() {
 	toRun=( "$@" --verbose --help )
 	if ! errors="$("${toRun[@]}" 2>&1 >/dev/null)"; then
-		docker_error "mysqld failed while attempting to check config\n\tcommand was: ${toRun[*]}\n\t$errors"
+		mysql_error "mysqld failed while attempting to check config\n\tcommand was: ${toRun[*]}\n\t$errors"
 	fi
 }
 
@@ -95,7 +95,7 @@ docker_start_server() {
 	result=0
 	%%SERVERSTARTUP%%
 	if [ "$result" != "0" ];then
-		docker_error "Unable to start server. Status code $result."
+		mysql_error "Unable to start server. Status code $result."
 	fi
 }
 
@@ -110,7 +110,7 @@ docker_wait_for_server() {
 		sleep 1
 	done
 	if [ "$i" = 0 ]; then
-		docker_error "Unable to start server."
+		mysql_error "Unable to start server."
 	fi
 }
 
@@ -120,14 +120,14 @@ docker_stop_server() {
 	result=0
 	mysqladmin --defaults-extra-file="${PASSFILE}" shutdown -uroot --socket="${SOCKET}" || result=$?
 	if [ "$result" != "0" ]; then
-		docker_error "Unable to shut down server. Status code $result."
+		mysql_error "Unable to shut down server. Status code $result."
 	fi
 }
 
 # Verify that the minimally required password settings are set for new databases.
 docker_verify_minimum_env() {
 	if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
-		docker_error "Database is uninitialized and password option is not specified \n\tYou need to specify one of MYSQL_ROOT_PASSWORD, MYSQL_ALLOW_EMPTY_PASSWORD and MYSQL_RANDOM_ROOT_PASSWORD"
+		mysql_error "Database is uninitialized and password option is not specified \n\tYou need to specify one of MYSQL_ROOT_PASSWORD, MYSQL_ALLOW_EMPTY_PASSWORD and MYSQL_RANDOM_ROOT_PASSWORD"
 	fi
 }
 
@@ -135,15 +135,15 @@ docker_verify_minimum_env() {
 docker_init_database_dir() {
 	mkdir -p "$DATADIR"
 
-	docker_note "Initializing database files"
+	mysql_note "Initializing database files"
 	%%DATABASEINIT%%
-	docker_note "Database files initialized"
+	mysql_note "Database files initialized"
 
 	if command -v mysql_ssl_rsa_setup > /dev/null && [ ! -e "$DATADIR/server-key.pem" ]; then
 		# https://github.com/mysql/mysql-server/blob/23032807537d8dd8ee4ec1c4d40f0633cd4e12f9/packaging/deb-in/extra/mysql-systemd-start#L81-L84
-		docker_note "Initializing certificates"
+		mysql_note "Initializing certificates"
 		mysql_ssl_rsa_setup --datadir="$DATADIR"
-		docker_note "Certificates initialized"
+		mysql_note "Certificates initialized"
 	fi
 }
 
@@ -210,13 +210,13 @@ docker_init_root_user() {
 # Creates a custom database and user if specified
 docker_init_database_user() {
 	if [ "$MYSQL_DATABASE" ]; then
-		docker_note "Creating database ${MYSQL_DATABASE}"
+		mysql_note "Creating database ${MYSQL_DATABASE}"
 		echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;" | "${mysql[@]}"
 		mysql+=( "$MYSQL_DATABASE" )
 	fi
 
 	if [ "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
-		docker_note "Creating user ${MYSQL_USER}"
+		mysql_note "Creating user ${MYSQL_USER}"
 		echo "CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD' ;" | "${mysql[@]}"
 
 		if [ "$MYSQL_DATABASE" ]; then
@@ -231,7 +231,7 @@ docker_init_database_user() {
 # else can be done (only supported for 5.6+)
 docker_expire_root_user() {
 	if [ "${MYSQL_MAJOR}" = "5.5" ]; then
-		_warn "MySQL 5.5 does not support PASSWORD EXPIRE (required for MYSQL_ONETIME_PASSWORD)"
+		mysql_warn "MySQL 5.5 does not support PASSWORD EXPIRE (required for MYSQL_ONETIME_PASSWORD)"
 	else
 		"${mysql[@]}" <<-EOSQL
 			ALTER USER 'root'@'%' PASSWORD EXPIRE;
@@ -242,7 +242,7 @@ docker_expire_root_user() {
 # Generate a random root password
 docker_generate_root_password() {
 	export MYSQL_ROOT_PASSWORD="$(pwgen -1 32)"
-	docker_note "GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
+	mysql_note "GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
 }
 
 # Load timezone info into database
@@ -252,7 +252,7 @@ docker_load_tzinfo() {
 }
 
 docker_main() {
-	docker_note "Entrypoint script for MySQL Server ${MYSQL_VERSION} started."
+	mysql_note "Entrypoint script for MySQL Server ${MYSQL_VERSION} started."
 
 	if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		# Load various environment variables
@@ -263,7 +263,7 @@ docker_main() {
 			mysql_check_config "$@"
 			mkdir -p "$DATADIR"
 			chown -R mysql:mysql "$DATADIR"
-			docker_note "Switching to dedicated user 'mysql'"
+			mysql_note "Switching to dedicated user 'mysql'"
 			exec gosu mysql "$BASH_SOURCE" "$@"
 		fi
 
@@ -276,14 +276,14 @@ docker_main() {
 			docker_init_database_dir "$@"
 			docker_init_client_command
 
-			docker_note "Starting temporary server"
+			mysql_note "Starting temporary server"
 			docker_start_server "$@"
 			# For 5.7+ the server is ready for use as soon as startup command unblocks
 			if [ "${MYSQL_MAJOR}" = "5.5" ] || [ "${MYSQL_MAJOR}" = "5.6" ]; then
-				docker_note "Waiting for server startup"
+				mysql_note "Waiting for server startup"
 				docker_wait_for_server "${mysql[@]}"
 			fi
-			docker_note "Temporary server started."
+			mysql_note "Temporary server started."
 
 
 			if [ -z "$MYSQL_INITDB_SKIP_TZINFO" ]; then
@@ -308,15 +308,15 @@ docker_main() {
 			if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
 				docker_expire_root_user
 			fi
-			docker_note "Stopping temporary server"
+			mysql_note "Stopping temporary server"
 			docker_stop_server
-			docker_note "Temporary server stopped"
+			mysql_note "Temporary server stopped"
 
 			# Remove the password file now that initialization is complete
 			rm -f "${PASSFILE}"
 			unset PASSFILE
 			echo
-			docker_note "MySQL init process done. Ready for start up."
+			mysql_note "MySQL init process done. Ready for start up."
 			echo
 		fi
 	fi
