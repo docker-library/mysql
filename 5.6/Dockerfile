@@ -14,7 +14,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 FROM oraclelinux:7-slim
 
-ARG MYSQL_SERVER_PACKAGE=mysql-community-server-minimal-5.6.43
+ARG MYSQL_SERVER_PACKAGE=mysql-community-server-minimal-5.6.44
 ARG MYSQL_SHELL_PACKAGE=
 
 # Install server

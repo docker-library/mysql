@@ -12,13 +12,13 @@ control 'server-package' do
   impact 0.5
   describe package('mysql-community-server-minimal') do
     it { should be_installed }
-    its ('version') { should match '5.7.25.*' }
+    its ('version') { should match '5.7.26.*' }
   end
 end
 control 'shell-package' do
   impact 0.5
   describe package('mysql-shell') do
     it { should be_installed }
-    its ('version') { should match '8.0.15.*' }
+    its ('version') { should match '8.0.16.*' }
   end
 end
