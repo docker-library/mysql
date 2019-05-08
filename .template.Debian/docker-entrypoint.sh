@@ -136,7 +136,7 @@ docker_verify_minimum_env() {
 }
 
 # Creates and initializes the database directory
-docker_init_database_dir() {
+docker_create_db_directories() {
 	mkdir -p "$DATADIR"
 
 	mysql_note "Initializing database files"
@@ -273,7 +273,7 @@ _main() {
 		# If this is true then there's no database, and it needs to be initialized
 		if [ ! -d "$DATADIR/mysql" ]; then
 			docker_verify_minimum_env
-			docker_init_database_dir "$@"
+			docker_create_db_directories "$@"
 			docker_init_client_command
 
 			mysql_note "Starting temporary server"
