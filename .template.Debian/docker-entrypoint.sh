@@ -112,11 +112,6 @@ docker_temp_server_start() {
 	fi
 }
 
-# Wait for the temporary server to be ready for connections.
-# It is only used for versions older than 5.7
-docker_wait_for_server() {
-}
-
 # Stop the server. When using a local socket file mysqladmin will block until
 # the shutdown is complete.
 docker_temp_server_stop() {
