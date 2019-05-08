@@ -176,6 +176,11 @@ docker_init_client_command() {
 
 # Creates initial database users and schema
 docker_setup_db() {
+	# Generate random root password
+	if [ ! -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
+		export MYSQL_ROOT_PASSWORD="$(pwgen -1 32)"
+		mysql_note "GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
+	fi
 	# Sets root password and creates root users for non-localhost hosts
 	rootCreate=
 	# default root to listen for connections from anywhere
@@ -239,12 +244,6 @@ mysql_expire_root_user() {
 	fi
 }
 
-# Generate a random root password
-docker_generate_root_password() {
-	export MYSQL_ROOT_PASSWORD="$(pwgen -1 32)"
-	mysql_note "GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
-}
-
 # Load timezone info into database
 docker_load_tzinfo() {
 	# sed is for https://bugs.mysql.com/bug.php?id=20545
@@ -283,10 +282,6 @@ _main() {
 
 			if [ -z "$MYSQL_INITDB_SKIP_TZINFO" ]; then
 				docker_load_tzinfo
-			fi
-
-			if [ ! -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
-				docker_generate_root_password
 			fi
 
 			docker_setup_db
