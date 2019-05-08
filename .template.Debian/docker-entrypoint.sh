@@ -212,7 +212,7 @@ docker_init_root_user() {
 }
 
 # Creates a custom database and user if specified
-docker_init_database_user() {
+docker_setup_db_users() {
 	if [ "$MYSQL_DATABASE" ]; then
 		mysql_note "Creating database ${MYSQL_DATABASE}"
 		echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;" | "${mysql[@]}"
@@ -297,7 +297,7 @@ _main() {
 
 			mysql_write_password_file
 
-			docker_init_database_user
+			docker_setup_db_users
 
 			echo
 			for f in /docker-entrypoint-initdb.d/*; do
