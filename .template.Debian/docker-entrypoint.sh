@@ -62,12 +62,11 @@ file_env() {
 # potentially recursively, or override the logic used in subsequent calls)
 docker_process_init_files() {
 	local f="$1"; shift
-	local mysql=( "$@" )
 
 	case "$f" in
 		*.sh)     mysql_note "$0: running $f"; . "$f" ;;
-		*.sql)    mysql_note "$0: running $f"; "${mysql[@]}" < "$f"; echo ;;
-		*.sql.gz) mysql_note "$0: running $f"; gunzip -c "$f" | "${mysql[@]}"; echo ;;
+		*.sql)    mysql_note "$0: running $f"; docker_process_sql "$(cat $f)"; echo ;;
+		*.sql.gz) mysql_note "$0: running $f"; docker_process_sql "$(gunzip -c $f)"; echo ;;
 		*)        mysql_warn "$0: ignoring $f" ;;
 	esac
 	echo
@@ -102,7 +101,7 @@ docker_temp_server_start() {
 	if [ "${MYSQL_MAJOR}" = "5.5" ] || [ "${MYSQL_MAJOR}" = "5.6" ]; then
 		mysql_note "Waiting for server startup"
 		for i in {30..0}; do
-			if echo 'SELECT 1' | "${mysql[@]}" &> /dev/null; then
+			if docker_process_sql "SELECT 1" &> /dev/null; then
 				break
 			fi
 			sleep 1
@@ -169,6 +168,16 @@ docker_setup_env() {
 	file_env 'MYSQL_ROOT_PASSWORD'
 }
 
+# Execute sql script
+docker_process_sql() {
+	SQL=$1
+	DB=$2
+	if [ -z "$SQL" ]; then
+		mysql_error "Empty sql script provided"
+	fi
+	echo "$SQL" | mysql --defaults-file="${PASSFILE}" --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" "$DB"
+}
+
 # Define the client command that's used in various places
 docker_init_client_command() {
 	mysql=( mysql --defaults-file="${PASSFILE}" --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" )
@@ -179,7 +188,7 @@ docker_setup_db() {
 	# Load timezone info into database
 	if [ -z "$MYSQL_INITDB_SKIP_TZINFO" ]; then
 		# sed is for https://bugs.mysql.com/bug.php?id=20545
-		mysql_tzinfo_to_sql /usr/share/zoneinfo | sed 's/Local time zone must be set--see zic manual page/FCTY/' | "${mysql[@]}" mysql
+		docker_process_sql "$(mysql_tzinfo_to_sql /usr/share/zoneinfo | sed 's/Local time zone must be set--see zic manual page/FCTY/')" mysql
 	fi
 	# Generate random root password
 	if [ ! -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
@@ -198,7 +207,7 @@ docker_setup_db() {
 		EOSQL
 	fi
 
-	"${mysql[@]}" <<-EOSQL
+	docker_process_sql "
 		-- What's done in this file shouldn't be replicated
 		--  or products like mysql-fabric won't work
 		SET @@SESSION.SQL_LOG_BIN=0;
@@ -208,7 +217,7 @@ docker_setup_db() {
 		${rootCreate}
 		DROP DATABASE IF EXISTS test ;
 		FLUSH PRIVILEGES ;
-	EOSQL
+	"
 
 	# Write the password to the file the client uses
 	if [ ! -z "$MYSQL_ROOT_PASSWORD" ]; then
@@ -221,19 +230,20 @@ EOF
 	# Creates a custom database and user if specified
 	if [ "$MYSQL_DATABASE" ]; then
 		mysql_note "Creating database ${MYSQL_DATABASE}"
-		echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;" | "${mysql[@]}"
+		docker_process_sql "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;"
 		mysql+=( "$MYSQL_DATABASE" )
 	fi
 
 	if [ "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
 		mysql_note "Creating user ${MYSQL_USER}"
-		echo "CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD' ;" | "${mysql[@]}"
+		docker_process_sql "CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD' ;"
 
 		if [ "$MYSQL_DATABASE" ]; then
-			echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* TO '$MYSQL_USER'@'%' ;" | "${mysql[@]}"
+			mysql_note "Giving user ${MYSQL_USER} access to schema ${MYSQL_DATABASE}"
+			docker_process_sql "GRANT ALL ON \`$MYSQL_DATABASE\`.* TO '$MYSQL_USER'@'%' ;"
 		fi
 
-		echo 'FLUSH PRIVILEGES ;' | "${mysql[@]}"
+		docker_process_sql "FLUSH PRIVILEGES ;"
 	fi
 }
 
@@ -243,9 +253,7 @@ mysql_expire_root_user() {
 	if [ "${MYSQL_MAJOR}" = "5.5" ]; then
 		mysql_warn "MySQL 5.5 does not support PASSWORD EXPIRE (required for MYSQL_ONETIME_PASSWORD)"
 	else
-		"${mysql[@]}" <<-EOSQL
-			ALTER USER 'root'@'%' PASSWORD EXPIRE;
-		EOSQL
+		docker_process_sql "ALTER USER 'root'@'%' PASSWORD EXPIRE;"
 	fi
 }
 
@@ -283,7 +291,7 @@ _main() {
 
 			echo
 			for f in /docker-entrypoint-initdb.d/*; do
-				docker_process_init_files "$f" "${mysql[@]}"
+				docker_process_init_files "$f"
 			done
 
 			if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
