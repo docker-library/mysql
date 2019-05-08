@@ -174,19 +174,9 @@ docker_init_client_command() {
 	mysql=( mysql --defaults-file="${PASSFILE}" --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" )
 }
 
-# Store root password in a file for use with the client command
-mysql_write_password_file() {
-	# Write the password to the file the client uses
-	if [ ! -z "$MYSQL_ROOT_PASSWORD" ]; then
-		cat >"${PASSFILE}" <<EOF
-[client]
-password="${MYSQL_ROOT_PASSWORD}"
-EOF
-	fi
-}
-
-# Sets root password and creates root users for non-localhost hosts
-docker_init_root_user() {
+# Creates initial database users and schema
+docker_setup_db() {
+	# Sets root password and creates root users for non-localhost hosts
 	rootCreate=
 	# default root to listen for connections from anywhere
 	if [ ! -z "$MYSQL_ROOT_HOST" -a "$MYSQL_ROOT_HOST" != 'localhost' ]; then
@@ -209,10 +199,16 @@ docker_init_root_user() {
 		DROP DATABASE IF EXISTS test ;
 		FLUSH PRIVILEGES ;
 	EOSQL
-}
 
-# Creates a custom database and user if specified
-docker_setup_db_users() {
+	# Write the password to the file the client uses
+	if [ ! -z "$MYSQL_ROOT_PASSWORD" ]; then
+		cat >"${PASSFILE}" <<EOF
+[client]
+password="${MYSQL_ROOT_PASSWORD}"
+EOF
+	fi
+
+	# Creates a custom database and user if specified
 	if [ "$MYSQL_DATABASE" ]; then
 		mysql_note "Creating database ${MYSQL_DATABASE}"
 		echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;" | "${mysql[@]}"
@@ -293,11 +289,7 @@ _main() {
 				docker_generate_root_password
 			fi
 
-			docker_init_root_user
-
-			mysql_write_password_file
-
-			docker_setup_db_users
+			docker_setup_db
 
 			echo
 			for f in /docker-entrypoint-initdb.d/*; do
