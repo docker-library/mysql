@@ -174,8 +174,13 @@ docker_init_client_command() {
 	mysql=( mysql --defaults-file="${PASSFILE}" --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" )
 }
 
-# Creates initial database users and schema
+# Initializes database with timezone info and root password, plus optional extra db/user
 docker_setup_db() {
+	# Load timezone info into database
+	if [ -z "$MYSQL_INITDB_SKIP_TZINFO" ]; then
+		# sed is for https://bugs.mysql.com/bug.php?id=20545
+		mysql_tzinfo_to_sql /usr/share/zoneinfo | sed 's/Local time zone must be set--see zic manual page/FCTY/' | "${mysql[@]}" mysql
+	fi
 	# Generate random root password
 	if [ ! -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
 		export MYSQL_ROOT_PASSWORD="$(pwgen -1 32)"
@@ -244,12 +249,6 @@ mysql_expire_root_user() {
 	fi
 }
 
-# Load timezone info into database
-docker_load_tzinfo() {
-	# sed is for https://bugs.mysql.com/bug.php?id=20545
-	mysql_tzinfo_to_sql /usr/share/zoneinfo | sed 's/Local time zone must be set--see zic manual page/FCTY/' | "${mysql[@]}" mysql
-}
-
 _main() {
 	mysql_note "Entrypoint script for MySQL Server ${MYSQL_VERSION} started."
 
@@ -279,10 +278,6 @@ _main() {
 			docker_temp_server_start "$@"
 			mysql_note "Temporary server started."
 
-
-			if [ -z "$MYSQL_INITDB_SKIP_TZINFO" ]; then
-				docker_load_tzinfo
-			fi
 
 			docker_setup_db
 
