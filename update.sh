@@ -15,31 +15,28 @@ declare -A debianVariants=(
 )
 
 # Templating
-templateVersions=( "5.5 5.6 5.7 8.0" )
 declare -A passwordset
-passwordset["5.5"]="SET PASSWORD FOR 'root'@'localhost'=PASSWORD('\${MYSQL_ROOT_PASSWORD}');"
-passwordset["5.6"]="SET PASSWORD FOR 'root'@'localhost'=PASSWORD('\${MYSQL_ROOT_PASSWORD}');"
+passwordset["5.5"]="DELETE FROM mysql.user WHERE user NOT IN ('mysql.sys', 'mysqlxsys', 'root') OR host NOT IN ('localhost') ;\nSET PASSWORD FOR 'root'@'localhost'=PASSWORD('\${MYSQL_ROOT_PASSWORD}');"
+passwordset["5.6"]="DELETE FROM mysql.user WHERE user NOT IN ('mysql.sys', 'mysqlxsys', 'root') OR host NOT IN ('localhost') ;\nSET PASSWORD FOR 'root'@'localhost'=PASSWORD('\${MYSQL_ROOT_PASSWORD}');"
 passwordset["5.7"]="ALTER USER 'root'@'localhost' IDENTIFIED BY '\${MYSQL_ROOT_PASSWORD}';"
 passwordset["8.0"]="ALTER USER 'root'@'localhost' IDENTIFIED BY '\${MYSQL_ROOT_PASSWORD}';"
 declare -A database_init
-database_init["5.5"]="mysql_install_db --datadir=\"\$DATADIR\" --rpm --basedir=\/usr\/local\/mysql \"\${@:2}\""
-database_init["5.6"]="mysql_install_db --user=mysql --datadir=\"\$DATADIR\" --rpm --keep-my-cnf"
-database_init["5.7"]="\"\$@\" --initialize-insecure"
-database_init["8.0"]="\"\$@\" --initialize-insecure"
+database_init["5.5"]='mysql_install_db --datadir="$DATADIR" --rpm --basedir=/usr/local/mysql "${@:2}"'
+database_init["5.6"]='mysql_install_db --datadir="$DATADIR" --rpm --keep-my-cnf "${@:2}"'
+database_init["5.7"]='"$@" --initialize-insecure'
+database_init["8.0"]='"$@" --initialize-insecure'
 declare -A server_startup
-server_startup["5.5"]="\"\$@\" --skip-networking --basedir=\/usr\/local\/mysql --socket=\"\${SOCKET}\" \&"
-server_startup["5.6"]="\"\$@\" --skip-networking --socket=\"\${SOCKET}\" \&"
-server_startup["5.7"]="\"\$@\" --daemonize --skip-networking --socket=\"\${SOCKET}\" || result=$?"
-server_startup["8.0"]="\"\$@\" --daemonize --skip-networking --socket=\"\${SOCKET}\" || result=$?"
-for version in ${templateVersions}; do
-	cp ".template.Debian/docker-entrypoint.sh" "${version}/"
-	sed -e 's/%%PASSWORDSET%%/'"${passwordset["$version"]}"'/g' \
-		-e 's/%%DATABASEINIT%%/'"${database_init["$version"]}"'/g' \
-		-e 's/%%SERVERSTARTUP%%/'"${server_startup["$version"]}"'/g' \
-		.template.Debian/docker-entrypoint.sh > "$version/docker-entrypoint.sh"
-done
+server_startup["5.5"]='"$@" --skip-networking --basedir=/usr/local/mysql --socket="${SOCKET}" \&'
+server_startup["5.6"]='"$@" --skip-networking --socket="${SOCKET}" \&'
+server_startup["5.7"]='"$@" --daemonize --skip-networking --socket="${SOCKET}" || result="$?"'
+server_startup["8.0"]='"$@" --daemonize --skip-networking --socket="${SOCKET}" || result="$?"'
 
 for version in "${versions[@]}"; do
+	sed -e 's!%%PASSWORDSET%%!'"${passwordset["$version"]}"'!g' \
+		-e 's!%%DATABASEINIT%%!'"${database_init["$version"]}"'!g' \
+		-e 's!%%SERVERSTARTUP%%!'"${server_startup["$version"]}"'!g' \
+		.template.Debian/docker-entrypoint.sh > "$version/docker-entrypoint.sh"
+
 	debianVariant="${debianVariants[$version]:-$defaultDebianVariant}"
 	debianSuite="${debianVariant%%-*}" # "stretch", etc
 
