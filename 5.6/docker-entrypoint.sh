@@ -85,11 +85,13 @@ docker_temp_server_start() {
 	fi
 
 	# For 5.7+ the server is ready for use as soon as startup command unblocks
-	if [ "${MYSQL_MAJOR}" = "5.5" ] || [ "${MYSQL_MAJOR}" = "5.6" ]; then
+	if [ "${MYSQL_MAJOR}" = "5.6" ]; then
 		mysql_note "Waiting for server startup"
 		local i
 		for i in {30..0}; do
-			if docker_process_sql --database=mysql <<<'SELECT 1' &> /dev/null; then
+			# unset MYSQL_ROOT_PASSWORD for just docker_process_sql
+			# so that it won't try to fill in a password file when it hasn't been set yet
+			if MYSQL_ROOT_PASSWORD= docker_process_sql --database=mysql <<<'SELECT 1' &> /dev/null; then
 				break
 			fi
 			sleep 1
@@ -104,7 +106,7 @@ docker_temp_server_start() {
 # the shutdown is complete.
 docker_temp_server_stop() {
 	local result=0
-	mysqladmin --defaults-extra-file=<( echo "${PASSFILE}" ) shutdown -uroot --socket="${SOCKET}" || result=$?
+	mysqladmin --defaults-extra-file=<( _mysql_passfile ) shutdown -uroot --socket="${SOCKET}" || result=$?
 	if [ "$result" != "0" ]; then
 		mysql_error "Unable to shut down server. Status code $result."
 	fi
@@ -170,7 +172,7 @@ docker_process_sql() {
 		set -- --database="$MYSQL_DATABASE" "$@"
 	fi
 
-	mysql --defaults-file=<( echo "${PASSFILE}" ) --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" "$@"
+	mysql --defaults-file=<( _mysql_passfile ) --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" "$@"
 }
 
 # Initializes database with timezone info and root password, plus optional extra db/user
@@ -178,17 +180,21 @@ docker_setup_db() {
 	# Load timezone info into database
 	if [ -z "$MYSQL_INITDB_SKIP_TZINFO" ]; then
 		# sed is for https://bugs.mysql.com/bug.php?id=20545
-		mysql_tzinfo_to_sql /usr/share/zoneinfo | sed 's/Local time zone must be set--see zic manual page/FCTY/' | docker_process_sql --database=mysql
+		mysql_tzinfo_to_sql /usr/share/zoneinfo \
+			| sed 's/Local time zone must be set--see zic manual page/FCTY/' \
+			| MYSQL_ROOT_PASSWORD= docker_process_sql --database=mysql
+		# unset MYSQL_ROOT_PASSWORD for just docker_process_sql
+		# so that it won't try to fill in a password file when it hasn't been set yet
 	fi
 	# Generate random root password
-	if [ ! -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
+	if [ -n "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
 		export MYSQL_ROOT_PASSWORD="$(pwgen -1 32)"
 		mysql_note "GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
 	fi
 	# Sets root password and creates root users for non-localhost hosts
 	rootCreate=
 	# default root to listen for connections from anywhere
-	if [ ! -z "$MYSQL_ROOT_HOST" -a "$MYSQL_ROOT_HOST" != 'localhost' ]; then
+	if [ -n "$MYSQL_ROOT_HOST" ] && [ "$MYSQL_ROOT_HOST" != 'localhost' ]; then
 		# no, we don't care if read finds a terminating character in this heredoc
 		# https://unix.stackexchange.com/questions/265149/why-is-set-o-errexit-breaking-this-read-heredoc-expression/265151#265151
 		read -r -d '' rootCreate <<-EOSQL || true
@@ -197,7 +203,9 @@ docker_setup_db() {
 		EOSQL
 	fi
 
-	docker_process_sql --database=mysql <<-EOSQL
+	# unset MYSQL_ROOT_PASSWORD for just docker_process_sql
+	# so that it won't try to fill in a password file when it is just now being set
+	MYSQL_ROOT_PASSWORD= docker_process_sql --database=mysql <<-EOSQL
 		-- What's done in this file shouldn't be replicated
 		--  or products like mysql-fabric won't work
 		SET @@SESSION.SQL_LOG_BIN=0;
@@ -210,27 +218,17 @@ SET PASSWORD FOR 'root'@'localhost'=PASSWORD('${MYSQL_ROOT_PASSWORD}');
 		DROP DATABASE IF EXISTS test ;
 	EOSQL
 
-	# Write the password to the "file" the client uses
-	# the client command will use process substitution to create a file on the fly
-	# ie: --defaults-file=<( echo "${PASSFILE}" )
-	if [ ! -z "$MYSQL_ROOT_PASSWORD" ]; then
-		read -r -d '' PASSFILE <<-EOF || true
-			[client]
-			password="${MYSQL_ROOT_PASSWORD}"
-		EOF
-	fi
-
 	# Creates a custom database and user if specified
-	if [ "$MYSQL_DATABASE" ]; then
+	if [ -n "$MYSQL_DATABASE" ]; then
 		mysql_note "Creating database ${MYSQL_DATABASE}"
 		docker_process_sql --database=mysql <<<"CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` ;"
 	fi
 
-	if [ "$MYSQL_USER" -a "$MYSQL_PASSWORD" ]; then
+	if [ -n "$MYSQL_USER" ] && [ -n "$MYSQL_PASSWORD" ]; then
 		mysql_note "Creating user ${MYSQL_USER}"
 		docker_process_sql --database=mysql <<<"CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD' ;"
 
-		if [ "$MYSQL_DATABASE" ]; then
+		if [ -n "$MYSQL_DATABASE" ]; then
 			mysql_note "Giving user ${MYSQL_USER} access to schema ${MYSQL_DATABASE}"
 			docker_process_sql --database=mysql <<<"GRANT ALL ON \`$MYSQL_DATABASE\`.* TO '$MYSQL_USER'@'%' ;"
 		fi
@@ -239,23 +237,31 @@ SET PASSWORD FOR 'root'@'localhost'=PASSWORD('${MYSQL_ROOT_PASSWORD}');
 	fi
 }
 
+_mysql_passfile() {
+	# echo the password to the "file" the client uses
+	# the client command will use process substitution to create a file on the fly
+	# ie: --defaults-file=<( _mysql_passfile )
+	if [ -n "$MYSQL_ROOT_PASSWORD" ]; then
+		cat <<-EOF
+			[client]
+			password="${MYSQL_ROOT_PASSWORD}"
+		EOF
+	fi
+}
+
 # Mark root user as expired so the password must be changed before anything
 # else can be done (only supported for 5.6+)
 mysql_expire_root_user() {
-	if [ ! -z "$MYSQL_ONETIME_PASSWORD" ]; then
-		if [ "${MYSQL_MAJOR}" = "5.5" ]; then
-			mysql_warn "MySQL 5.5 does not support PASSWORD EXPIRE (required for MYSQL_ONETIME_PASSWORD)"
-		else
-			docker_process_sql --database=mysql <<-EOSQL
-				ALTER USER 'root'@'%' PASSWORD EXPIRE;
-			EOSQL
-		fi
+	if [ -n "$MYSQL_ONETIME_PASSWORD" ]; then
+		docker_process_sql --database=mysql <<-EOSQL
+			ALTER USER 'root'@'%' PASSWORD EXPIRE;
+		EOSQL
 	fi
 }
 
 # check arguments for an option that would cause mysqld to stop
 # return true if there is one
-_want_help() {
+_mysql_want_help() {
 	local arg
 	for arg; do
 		case "$arg" in
@@ -274,22 +280,19 @@ _main() {
 	fi
 
 	# skip setup if they aren't running mysqld or want an option that stops mysqld
-	if [ "$1" = 'mysqld' ] && ! _want_help "$@"; then
+	if [ "$1" = 'mysqld' ] && ! _mysql_want_help "$@"; then
 		mysql_note "Entrypoint script for MySQL Server ${MYSQL_VERSION} started."
 
 		# Load various environment variables
 		docker_setup_env "$@"
 		mysql_check_config "$@"
+		docker_create_db_directories
 
 		# If container is started as root user, restart as dedicated mysql user
 		if [ "$(id -u)" = "0" ]; then
-			docker_create_db_directories
 			mysql_note "Switching to dedicated user 'mysql'"
 			exec gosu mysql "$BASH_SOURCE" "$@"
 		fi
-
-		# just in case the script was not started as root
-		docker_create_db_directories
 
 		# If this is true then there's no database, and it needs to be initialized
 		if [ ! -d "$DATADIR/mysql" ]; then
@@ -309,7 +312,6 @@ _main() {
 			docker_temp_server_stop
 			mysql_note "Temporary server stopped"
 
-			unset PASSFILE
 			echo
 			mysql_note "MySQL init process done. Ready for start up."
 			echo
