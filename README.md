@@ -16,8 +16,6 @@ Supported Tags and Respective Dockerfile Links
 
 These are tags for some of the optimized MySQL Server Docker images, created and maintained by the MySQL team at Oracle (for a full list, see [the Tags tab of this page](https://hub.docker.com/r/mysql/mysql-server/tags/)). [DS] The tags are updated directly on the posted Markdown versions by RE after eahc release, so it might remain outdated in this DocBook source file.
 
--   MySQL Server 5.5 (tag: [`5.5`, `5.5.62`, `5.5.62-1.1.8`](https://github.com/mysql/mysql-docker/blob/mysql-server/5.5/Dockerfile)) ([mysql-server/5.5/Dockerfile](https://github.com/mysql/mysql-docker/blob/mysql-server/5.5/Dockerfile))
-
 -   MySQL Server 5.6 (tag: [`5.6`, `5.6.42`, `5.6.42-1.1.8`](https://github.com/mysql/mysql-docker/blob/mysql-server/5.6/Dockerfile)) ([mysql-server/5.6/Dockerfile](https://github.com/mysql/mysql-docker/blob/mysql-server/5.6/Dockerfile))
 
 -   MySQL Server 5.7 (tag: [`5.7`, `5.7.24`, `5.7.24-1.1.8`](https://github.com/mysql/mysql-docker/blob/mysql-server/5.7/Dockerfile)) ([mysql-server/5.7/Dockerfile](https://github.com/mysql/mysql-docker/blob/mysql-server/5.7/Dockerfile))

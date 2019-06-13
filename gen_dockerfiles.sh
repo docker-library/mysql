@@ -25,19 +25,16 @@ REPO=https://repo.mysql.com; [ -n "$1" ] && REPO=$1
 
 # 33060 is the default port for the mysqlx plugin, new to 5.7
 declare -A PORTS
-PORTS["5.5"]="3306"
 PORTS["5.6"]="3306"
 PORTS["5.7"]="3306 33060"
 PORTS["8.0"]="3306 33060 33061"
 
 declare -A PASSWORDSET
-PASSWORDSET["5.5"]="SET PASSWORD FOR 'root'@'localhost'=PASSWORD('\${MYSQL_ROOT_PASSWORD}');"
-PASSWORDSET["5.6"]=${PASSWORDSET["5.5"]}
+PASSWORDSET["5.6"]="SET PASSWORD FOR 'root'@'localhost'=PASSWORD('\${MYSQL_ROOT_PASSWORD}');"
 PASSWORDSET["5.7"]="ALTER USER 'root'@'localhost' IDENTIFIED BY '\${MYSQL_ROOT_PASSWORD}';"
 PASSWORDSET["8.0"]=${PASSWORDSET["5.7"]}
 
 declare -A DATABASE_INIT
-DATABASE_INIT["5.5"]="mysql_install_db --user=mysql --datadir=\"\$DATADIR\" --rpm"
 DATABASE_INIT["5.6"]="mysql_install_db --user=mysql --datadir=\"\$DATADIR\" --rpm --keep-my-cnf"
 DATABASE_INIT["5.7"]="\"\$@\" --initialize-insecure"
 DATABASE_INIT["8.0"]="\"\$@\" --initialize-insecure"
@@ -45,7 +42,6 @@ DATABASE_INIT["8.0"]="\"\$@\" --initialize-insecure"
 # 5.7+ has the --daemonize flag, which makes the process fork and then exit when
 # the server is ready, removing the need for a fragile wait loop
 declare -A INIT_STARTUP
-INIT_STARTUP["5.5"]="\"\$@\" --skip-networking --socket=\"\$SOCKET\" \&"
 INIT_STARTUP["5.6"]="\"\$@\" --skip-networking --socket=\"\$SOCKET\" \&"
 INIT_STARTUP["5.7"]="\"\$@\" --daemonize --skip-networking --socket=\"\$SOCKET\""
 INIT_STARTUP["8.0"]="\"\$@\" --daemonize --skip-networking --socket=\"\$SOCKET\""
@@ -57,7 +53,6 @@ STARTUP["5.7"]="exec \"\$@\""
 STARTUP["8.0"]="env MYSQLD_PARENT_PID=\$\$ \"\$@\""
 
 declare -A STARTUP_WAIT
-STARTUP_WAIT["5.5"]="\"yes\""
 STARTUP_WAIT["5.6"]="\"yes\""
 STARTUP_WAIT["5.7"]="\"\""
 STARTUP_WAIT["8.0"]="\"\""
@@ -65,21 +60,18 @@ STARTUP_WAIT["8.0"]="\"\""
 # The option to set a user as expired, (forcing a password change before
 # any other action can be taken) was added in 5.6
 declare -A EXPIRE_SUPPORT
-EXPIRE_SUPPORT["5.5"]="\"\""
 EXPIRE_SUPPORT["5.6"]="\"yes\""
 EXPIRE_SUPPORT["5.7"]="\"yes\""
 EXPIRE_SUPPORT["8.0"]="\"yes\""
 
 # sed is for https://bugs.mysql.com/bug.php?id=20545
 declare -A TZINFO_WORKAROUND
-TZINFO_WORKAROUND["5.5"]="sed 's/Local time zone must be set--see zic manual page/FCTY/' | "
 TZINFO_WORKAROUND["5.6"]="sed 's/Local time zone must be set--see zic manual page/FCTY/' | "
 TZINFO_WORKAROUND["5.7"]=""
 TZINFO_WORKAROUND["8.0"]=""
 
 # Logging to console (stderr) makes server log available with the «docker logs command»
 declare -A DEFAULT_LOG
-DEFAULT_LOG["5.5"]=""
 DEFAULT_LOG["5.6"]=""
 DEFAULT_LOG["5.7"]=""
 DEFAULT_LOG["8.0"]="console"
