@@ -141,7 +141,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 			mysql_tzinfo_to_sql /usr/share/zoneinfo | sed 's/Local time zone must be set--see zic manual page/FCTY/' | "${mysql[@]}" mysql
 		fi
 
-		if [ ! -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
+		if [ ! -z "$MYSQL_RANDOM_ROOT_PASSWORD" -a "$MYSQL_RANDOM_ROOT_PASSWORD" != 'no' ]; then
 			export MYSQL_ROOT_PASSWORD="$(pwgen -1 32)"
 			echo "GENERATED ROOT PASSWORD: $MYSQL_ROOT_PASSWORD"
 		fi
