@@ -19,7 +19,7 @@ for version in "${versions[@]}"; do
 	debianSuite="${debianVariant%%-*}" # "stretch", etc
 
 	fullVersion="$(
-		curl -fsSL "http://repo.mysql.com/apt/debian/dists/$debianSuite/mysql-$version/binary-amd64/Packages.gz" \
+		curl -fsSL "https://repo.mysql.com/apt/debian/dists/$debianSuite/mysql-$version/binary-amd64/Packages.gz" \
 			| gunzip \
 			| awk -F ': ' '
 				$1 == "Package" {
