@@ -39,6 +39,12 @@ file_env() {
 	unset "$fileVar"
 }
 
+# check to see if this file is being run or sourced from another script
+_is_sourced() {
+	# https://unix.stackexchange.com/a/215279
+	[ "${FUNCNAME[${#FUNCNAME[@]} - 1]}" == 'source' ]
+}
+
 # usage: docker_process_init_files [file [file [...]]]
 #    ie: docker_process_init_files /always-initdb.d/*
 # process initializer files, based on file extensions
@@ -149,8 +155,10 @@ docker_init_database_dir() {
 }
 
 # Loads various settings that are used elsewhere in the script
+# This should be called after mysql_check_config, but before any other functions
 docker_setup_env() {
 	# Get config
+	declare -g DATADIR SOCKET
 	DATADIR="$(mysql_get_config 'datadir' "$@")"
 	SOCKET="$(mysql_get_config 'socket' "$@")"
 
@@ -282,9 +290,9 @@ _main() {
 	if [ "$1" = 'mysqld' ] && ! _mysql_want_help "$@"; then
 		mysql_note "Entrypoint script for MySQL Server ${MYSQL_VERSION} started."
 
+		mysql_check_config "$@"
 		# Load various environment variables
 		docker_setup_env "$@"
-		mysql_check_config "$@"
 		docker_create_db_directories
 
 		# If container is started as root user, restart as dedicated mysql user
@@ -319,9 +327,7 @@ _main() {
 	exec "$@"
 }
 
-# This checks if the script has been sourced from elsewhere.
-# If so we don't perform any further actions
-# https://unix.stackexchange.com/a/215279
-if [ "${FUNCNAME[${#FUNCNAME[@]} - 1]}" != 'source' ]; then
+# If we are sourced from elsewhere, don't perform any further actions
+if ! _is_sourced; then
 	_main "$@"
 fi
