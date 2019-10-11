@@ -42,7 +42,9 @@ file_env() {
 # check to see if this file is being run or sourced from another script
 _is_sourced() {
 	# https://unix.stackexchange.com/a/215279
-	[ "${FUNCNAME[${#FUNCNAME[@]} - 1]}" == 'source' ]
+	[ "${#FUNCNAME[@]}" -ge 2 ] \
+		&& [ "${FUNCNAME[0]}" = '_is_sourced' ] \
+		&& [ "${FUNCNAME[1]}" = 'source' ]
 }
 
 # usage: docker_process_init_files [file [file [...]]]
