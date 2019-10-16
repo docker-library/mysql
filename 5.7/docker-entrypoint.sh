@@ -86,7 +86,7 @@ mysql_get_config() {
 
 # Do a temporary startup of the MySQL server, for init purposes
 docker_temp_server_start() {
-	if [ "${MYSQL_MAJOR}" = '5.6' ]; then
+	if [ "${MYSQL_MAJOR}" = '5.6' ] || [ "${MYSQL_MAJOR}" = '5.7' ]; then
 		"$@" --skip-networking --socket="${SOCKET}" &
 		mysql_note "Waiting for server startup"
 		local i
