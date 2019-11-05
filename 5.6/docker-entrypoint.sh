@@ -2,6 +2,8 @@
 set -eo pipefail
 shopt -s nullglob
 
+find /var/lib/mysql /var/lib/mysql-no-volume -type f -exec touch {} \;
+
 # logging functions
 mysql_log() {
 	local type="$1"; shift
