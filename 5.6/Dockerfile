@@ -68,11 +68,13 @@ RUN { \
 # don't reverse lookup hostnames, they are usually another container
 	&& echo '[mysqld]\nskip-host-cache\nskip-name-resolve' > /etc/mysql/conf.d/docker.cnf
 
-VOLUME /var/lib/mysql
-
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN ln -s usr/local/bin/docker-entrypoint.sh /entrypoint.sh # backwards compat
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 EXPOSE 3306
 CMD ["mysqld"]
+
+RUN cp -r /var/lib/mysql /var/lib/mysql-no-volume && chown -R mysql:mysql /var/lib/mysql-no-volume
+
+CMD ["--datadir", "/var/lib/mysql-no-volume"]
