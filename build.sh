@@ -16,6 +16,14 @@
 set -e
 source ./VERSION
 
+if grep -q Microsoft /proc/version; then
+  echo "Running on Windows Subsystem for Linux"
+  # WSL doesn't have its own docker host, we have to use the one 
+  # from Windows itself.
+  # https://medium.com/@sebagomez/installing-the-docker-client-on-ubuntus-windows-subsystem-for-linux-612b392a44c4
+  export DOCKER_HOST=localhost:2375
+fi
+
 ARCH=amd64; [ -n "$1" ] && ARCH=$1
 MAJOR_VERSIONS=("${!MYSQL_SERVER_VERSIONS[@]}"); [ -n "$2" ] && MAJOR_VERSIONS=("${@:2}")
 
