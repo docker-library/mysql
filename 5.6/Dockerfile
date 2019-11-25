@@ -12,25 +12,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
-FROM oraclelinux:8-slim
+FROM oraclelinux:7-slim
 
 ARG MYSQL_SERVER_PACKAGE=mysql-community-server-minimal-5.6.46
 ARG MYSQL_SHELL_PACKAGE=
 
 # Install server
-RUN microdnf update && echo "[main]" > /etc/dnf/dnf.conf \
-  && dnf module disable -y mysql \
-  && dnf install -y yum-utils https://repo.mysql.com/mysql-community-minimal-release-el7.rpm \
+RUN yum install -y https://repo.mysql.com/mysql-community-minimal-release-el7.rpm \
       https://repo.mysql.com/mysql-community-release-el7.rpm \
-  && dnf config-manager --enable mysql56-server-minimal \
-  && dnf install -y \
+  && yum-config-manager --enable mysql56-server-minimal \
+  && yum install -y \
       $MYSQL_SERVER_PACKAGE \
       $MYSQL_SHELL_PACKAGE \
       libpwquality \
-      # password generation
-      cracklib-dicts \
-      perl-Getopt-Long \
-  && dnf clean all \
+  && yum clean all \
   && mkdir /docker-entrypoint-initdb.d
 
 VOLUME /var/lib/mysql

@@ -56,12 +56,6 @@ STARTUP_WAIT["5.6"]="\"yes\""
 STARTUP_WAIT["5.7"]="\"\""
 STARTUP_WAIT["8.0"]="\"\""
 
-declare -A EXTRA_DEPENDENCIES
-EXTRA_DEPENDENCIES["5.5"]=""
-EXTRA_DEPENDENCIES["5.6"]="perl-Getopt-Long"
-EXTRA_DEPENDENCIES["5.7"]=""
-EXTRA_DEPENDENCIES["8.0"]=""
-
 # The option to set a user as expired, (forcing a password change before
 # any other action can be taken) was added in 5.6
 declare -A EXPIRE_SUPPORT
@@ -99,7 +93,6 @@ do
   sed -i 's#%%REPO%%#'"${REPO}"'#g' tmpfile
   REPO_VERSION=${VERSION//\./}
   sed -i 's#%%REPO_VERSION%%#'"${REPO_VERSION}"'#g' tmpfile
-  sed -i 's#%%EXTRA_DEPENDENCIES%%#'"${EXTRA_DEPENDENCIES[${VERSION}]}"'#g' tmpfile
 
   if [[ ! -z ${MYSQL_SHELL_VERSIONS[${VERSION}]} ]]; then
     sed -i 's#%%MYSQL_SHELL_PACKAGE%%#'"mysql-shell-${MYSQL_SHELL_VERSIONS[${VERSION}]}"'#g' tmpfile
