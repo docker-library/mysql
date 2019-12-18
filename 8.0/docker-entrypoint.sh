@@ -347,7 +347,7 @@ _main() {
 			mysql_note "Temporary server started."
 
 			docker_setup_db
-			docker_process_init_files /docker-entrypoint-initdb.d/*
+			walk_dir "/docker-entrypoint-initdb.d/"
 
 			mysql_expire_root_user
 
@@ -361,6 +361,18 @@ _main() {
 		fi
 	fi
 	exec "$@"
+}
+
+walk_dir(){
+    for f in "$1"/*; do
+      plugin=$(basename $f)
+          [[ $plugin =~ ^(mysql-docker-entrypoint.sh)$ ]] && continue
+      if [[ -d "$f" ]]; then
+          walk_dir "$f"
+      else
+        docker_process_init_files "$f" "${mysql[@]}"
+      fi
+    done
 }
 
 # If we are sourced from elsewhere, don't perform any further actions
