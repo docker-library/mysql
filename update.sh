@@ -9,14 +9,14 @@ if [ ${#versions[@]} -eq 0 ]; then
 fi
 versions=( "${versions[@]%/}" )
 
-defaultDebianVariant='stretch-slim'
+defaultDebianVariant='buster-slim'
 declare -A debianVariants=(
 	#[5.5]='jessie'
 )
 
 for version in "${versions[@]}"; do
 	debianVariant="${debianVariants[$version]:-$defaultDebianVariant}"
-	debianSuite="${debianVariant%%-*}" # "stretch", etc
+	debianSuite="${debianVariant%%-*}" # "buster", etc
 
 	cp -a .template.Debian/docker-entrypoint.sh "$version/docker-entrypoint.sh"
 
