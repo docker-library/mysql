@@ -11,7 +11,7 @@ versions=( "${versions[@]%/}" )
 
 defaultDebianVariant='buster-slim'
 declare -A debianVariants=(
-	#[5.5]='jessie'
+	[5.6]='stretch-slim'
 )
 
 for version in "${versions[@]}"; do
