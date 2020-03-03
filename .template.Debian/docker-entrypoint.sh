@@ -341,6 +341,10 @@ _main() {
 		# there's no database, so it needs to be initialized
 		if [ -z "$DATABASE_ALREADY_EXISTS" ]; then
 			docker_verify_minimum_env
+
+			# check dir permissions to reduce likelihood of half-initialized database
+			ls /docker-entrypoint-initdb.d/ > /dev/null
+
 			docker_init_database_dir "$@"
 
 			mysql_note "Starting temporary server"
