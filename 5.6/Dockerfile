@@ -31,6 +31,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Sys::Hostname
 # Data::Dumper
 		perl \
+# install "xz-utils" for .sql.xz docker-entrypoint-initdb.d files
+		xz-utils \
 	&& rm -rf /var/lib/apt/lists/*
 
 RUN set -ex; \
@@ -44,7 +46,7 @@ RUN set -ex; \
 	apt-key list > /dev/null
 
 ENV MYSQL_MAJOR 5.6
-ENV MYSQL_VERSION 5.6.46-1debian9
+ENV MYSQL_VERSION 5.6.47-1debian9
 
 RUN echo "deb http://repo.mysql.com/apt/debian/ stretch mysql-${MYSQL_MAJOR}" > /etc/apt/sources.list.d/mysql.list
 

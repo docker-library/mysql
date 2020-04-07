@@ -61,6 +61,7 @@ docker_process_init_files() {
 			*.sh)     mysql_note "$0: running $f"; . "$f" ;;
 			*.sql)    mysql_note "$0: running $f"; docker_process_sql < "$f"; echo ;;
 			*.sql.gz) mysql_note "$0: running $f"; gunzip -c "$f" | docker_process_sql; echo ;;
+			*.sql.xz) mysql_note "$0: running $f"; xzcat "$f" | docker_process_sql; echo ;;
 			*)        mysql_warn "$0: ignoring $f" ;;
 		esac
 		echo
@@ -197,7 +198,7 @@ docker_process_sql() {
 		set -- --database="$MYSQL_DATABASE" "$@"
 	fi
 
-	mysql --defaults-file=<( _mysql_passfile "${passfileArgs[@]}") --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" "$@"
+	mysql --defaults-extra-file=<( _mysql_passfile "${passfileArgs[@]}") --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" "$@"
 }
 
 # Initializes database with timezone info and root password, plus optional extra db/user
@@ -283,7 +284,7 @@ docker_setup_db() {
 _mysql_passfile() {
 	# echo the password to the "file" the client uses
 	# the client command will use process substitution to create a file on the fly
-	# ie: --defaults-file=<( _mysql_passfile )
+	# ie: --defaults-extra-file=<( _mysql_passfile )
 	if [ '--dont-use-mysql-root-password' != "$1" ] && [ -n "$MYSQL_ROOT_PASSWORD" ]; then
 		cat <<-EOF
 			[client]
@@ -340,6 +341,10 @@ _main() {
 		# there's no database, so it needs to be initialized
 		if [ -z "$DATABASE_ALREADY_EXISTS" ]; then
 			docker_verify_minimum_env
+
+			# check dir permissions to reduce likelihood of half-initialized database
+			ls /docker-entrypoint-initdb.d/ > /dev/null
+
 			docker_init_database_dir "$@"
 
 			mysql_note "Starting temporary server"
