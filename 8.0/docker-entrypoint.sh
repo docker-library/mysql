@@ -136,11 +136,11 @@ docker_create_db_directories() {
 
 	# TODO other directories that are used by default? like /var/lib/mysql-files
 	# see https://github.com/docker-library/mysql/issues/562
-	mkdir -p "$DATADIR"
+	mkdir -p "$MYSQL_DATADIR"
 
 	if [ "$user" = "0" ]; then
 		# this will cause less disk access than `chown -R`
-		find "$DATADIR" \! -user mysql -exec chown mysql '{}' +
+		find "$MYSQL_DATADIR" \! -user mysql -exec chown mysql '{}' +
 	fi
 }
 
@@ -148,16 +148,16 @@ docker_create_db_directories() {
 docker_init_database_dir() {
 	mysql_note "Initializing database files"
 	if [ "$MYSQL_MAJOR" = '5.6' ]; then
-		mysql_install_db --datadir="$DATADIR" --rpm --keep-my-cnf "${@:2}"
+		mysql_install_db --datadir="$MYSQL_DATADIR" --rpm --keep-my-cnf "${@:2}"
 	else
 		"$@" --initialize-insecure
 	fi
 	mysql_note "Database files initialized"
 
-	if command -v mysql_ssl_rsa_setup > /dev/null && [ ! -e "$DATADIR/server-key.pem" ]; then
+	if command -v mysql_ssl_rsa_setup > /dev/null && [ ! -e "$MYSQL_DATADIR/server-key.pem" ]; then
 		# https://github.com/mysql/mysql-server/blob/23032807537d8dd8ee4ec1c4d40f0633cd4e12f9/packaging/deb-in/extra/mysql-systemd-start#L81-L84
 		mysql_note "Initializing certificates"
-		mysql_ssl_rsa_setup --datadir="$DATADIR"
+		mysql_ssl_rsa_setup --datadir="$MYSQL_DATADIR"
 		mysql_note "Certificates initialized"
 	fi
 }
@@ -167,18 +167,18 @@ docker_init_database_dir() {
 docker_setup_env() {
 	# Get config
 	declare -g DATADIR SOCKET
-	DATADIR="$(mysql_get_config 'datadir' "$@")"
 	SOCKET="$(mysql_get_config 'socket' "$@")"
 
 	# Initialize values that might be stored in a file
 	file_env 'MYSQL_ROOT_HOST' '%'
+	file_env 'MYSQL_DATADIR' "$(mysql_get_config 'datadir' "$@")"
 	file_env 'MYSQL_DATABASE'
 	file_env 'MYSQL_USER'
 	file_env 'MYSQL_PASSWORD'
 	file_env 'MYSQL_ROOT_PASSWORD'
 
 	declare -g DATABASE_ALREADY_EXISTS
-	if [ -d "$DATADIR/mysql" ]; then
+	if [ -d "$MYSQL_DATADIR/mysql" ]; then
 		DATABASE_ALREADY_EXISTS='true'
 	fi
 }
