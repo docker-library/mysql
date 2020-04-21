@@ -58,7 +58,17 @@ docker_process_init_files() {
 	local f
 	for f; do
 		case "$f" in
-			*.sh)     mysql_note "$0: running $f"; . "$f" ;;
+			*.sh)
+				# https://github.com/docker-library/postgres/issues/450#issuecomment-393167936
+				# https://github.com/docker-library/postgres/pull/452
+				if [ -x "$f" ]; then
+					mysql_note "$0: running $f"
+					"$f"
+				else
+					mysql_note "$0: sourcing $f"
+					. "$f"
+				fi
+				;;
 			*.sql)    mysql_note "$0: running $f"; docker_process_sql < "$f"; echo ;;
 			*.sql.gz) mysql_note "$0: running $f"; gunzip -c "$f" | docker_process_sql; echo ;;
 			*.sql.xz) mysql_note "$0: running $f"; xzcat "$f" | docker_process_sql; echo ;;
