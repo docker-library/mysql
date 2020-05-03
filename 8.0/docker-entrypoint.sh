@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eo pipefail
 shopt -s nullglob
-
+trap "/usr/bin/mysqldump -u root --password=root $MYSQL_DATABASE > /docker-entrypoint-initdb.d/dump.sql" SIGTERM
 # logging functions
 mysql_log() {
 	local type="$1"; shift
