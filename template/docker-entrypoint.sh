@@ -204,5 +204,5 @@ EOF
 	echo "[Entrypoint] Starting MySQL %%FULL_SERVER_VERSION%%"
 fi
 
-exec "$@"
+%%STARTUP%%
 

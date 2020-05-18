@@ -50,6 +50,12 @@ INIT_STARTUP["5.6"]="\"\$@\" --skip-networking --socket=\"\$SOCKET\" \&"
 INIT_STARTUP["5.7"]="\"\$@\" --daemonize --skip-networking --socket=\"\$SOCKET\""
 INIT_STARTUP["8.0"]="\"\$@\" --daemonize --skip-networking --socket=\"\$SOCKET\""
 
+declare -A STARTUP
+STARTUP["5.5"]="exec \"\$@\""
+STARTUP["5.6"]="exec \"\$@\""
+STARTUP["5.7"]="exec \"\$@\""
+STARTUP["8.0"]="env MYSQLD_PARENT_PID=\$\$ \"\$@\""
+
 declare -A STARTUP_WAIT
 STARTUP_WAIT["5.5"]="\"yes\""
 STARTUP_WAIT["5.6"]="\"yes\""
@@ -122,6 +128,7 @@ do
   sed -i 's#%%EXPIRE_SUPPORT%%#'"${EXPIRE_SUPPORT[${VERSION}]}"'#g' tmpfile
   sed -i 's#%%SED_TZINFO%%#'"${TZINFO_WORKAROUND[${VERSION}]}"'#g' tmpfile
   sed -i 's#%%INIT_STARTUP%%#'"${INIT_STARTUP[${VERSION}]}"'#g' tmpfile
+  sed -i 's#%%STARTUP%%#'"${STARTUP[${VERSION}]}"'#g' tmpfile
   sed -i 's#%%STARTUP_WAIT%%#'"${STARTUP_WAIT[${VERSION}]}"'#g' tmpfile
   sed -i 's#%%FULL_SERVER_VERSION%%#'"${FULL_SERVER_VERSIONS[${VERSION}]}"'#g' tmpfile
   sed -i 's#%%DEFAULT_LOG%%#'"${DEFAULT_LOG[${VERSION}]}"'#g' tmpfile
