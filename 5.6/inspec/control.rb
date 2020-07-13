@@ -12,6 +12,6 @@ control 'server-package' do
   impact 0.5
   describe package('mysql-community-server-minimal') do
     it { should be_installed }
-    its ('version') { should match '5.6.48.*' }
+    its ('version') { should match '5.6.49.*' }
   end
 end
