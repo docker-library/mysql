@@ -4,7 +4,7 @@ control 'container' do
     it { should exist }
     it { should be_running }
     its('repo') { should eq 'mysql/mysql-server' }
-    its('ports') { should eq '3306/tcp, 33060/tcp' }
+    its('ports') { should eq '%%PORTS%%' }
     its('command') { should match '/entrypoint.sh mysqld' }
   end
 end

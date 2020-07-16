@@ -28,7 +28,7 @@ declare -A PORTS
 PORTS["5.5"]="3306"
 PORTS["5.6"]="3306"
 PORTS["5.7"]="3306 33060"
-PORTS["8.0"]="3306 33060"
+PORTS["8.0"]="3306 33060 33061"
 
 declare -A PASSWORDSET
 PASSWORDSET["5.5"]="SET PASSWORD FOR 'root'@'localhost'=PASSWORD('\${MYSQL_ROOT_PASSWORD}');"
@@ -116,6 +116,11 @@ do
   if [ "${VERSION}" == "5.7" ] || [ "${VERSION}" == "8.0" ]; then
     sed 's#%%MYSQL_SERVER_VERSION%%#'"${MYSQL_SERVER_VERSIONS[${VERSION}]}"'#g' template/control.rb > tmpFile
     sed -i 's#%%MYSQL_SHELL_VERSION%%#'"${MYSQL_SHELL_VERSIONS[${VERSION}]}"'#g' tmpFile
+    if [ "${VERSION}" == "5.7" ]; then
+      sed -i 's#%%PORTS%%#'"3306/tcp, 33060/tcp"'#g' tmpFile
+    else
+      sed -i 's#%%PORTS%%#'"3306/tcp, 33060-33061/tcp"'#g' tmpFile
+    fi
     mv tmpFile "${VERSION}/inspec/control.rb"
   else
     sed 's#%%MYSQL_SERVER_VERSION%%#'"${MYSQL_SERVER_VERSIONS[${VERSION}]}"'#g' template/control_pre57.rb > tmpFile
