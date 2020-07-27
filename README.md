@@ -2,7 +2,7 @@
 
 ## Maintained by: [the Docker Community and the MySQL Team](https://github.com/docker-library/mysql)
 
-This is the Git repo of the [Docker "Official Image"](https://github.com/docker-library/official-images#what-are-official-images) for [`mysql`](https://hub.docker.com/_/mysql/) (not to be confused with any official `mysql` image provided by `mysql` upstream). See [the Docker Hub page](https://hub.docker.com/_/mysql/) for the full readme on how to use this Docker image and for information regarding contributing and issues.
+This is the Git repo of the [Docker "Official Image"](https://github.com/docker-library/official-images#what-are-official-images) for [`mysql`](https://hub.docker.com/_/mysql/) (not to be confused with [the official `mysql-server` image](https://hub.docker.com/r/mysql/mysql-server) provided by Oracle). See [the Docker Hub page](https://hub.docker.com/_/mysql/) for the full readme on how to use this Docker image and for information regarding contributing and issues.
 
 The [full image description on Docker Hub](https://hub.docker.com/_/mysql/) is generated/maintained over in [the docker-library/docs repository](https://github.com/docker-library/docs), specifically in [the `mysql` directory](https://github.com/docker-library/docs/tree/master/mysql).
 
