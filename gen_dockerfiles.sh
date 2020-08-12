@@ -87,8 +87,8 @@ DEFAULT_LOG["8.0"]="console"
 # MySQL 8.0 supports a call to validate the config, while older versions have it as a side
 # effect of running --verbose --help
 declare -A VALIDATE_CONFIG
-VALIDATE_CONFIG["5.6"]="output=\$(\"\$@\" --verbose --help 2>&1 > /dev/null) || result=\$?"
-VALIDATE_CONFIG["5.7"]="output=\$(\"\$@\" --verbose --help 2>&1 > /dev/null) || result=\$?"
+VALIDATE_CONFIG["5.6"]="output=\$(\"\$@\" --verbose --help 2>\&1 > /dev/null) || result=\$?"
+VALIDATE_CONFIG["5.7"]="output=\$(\"\$@\" --verbose --help 2>\&1 > /dev/null) || result=\$?"
 VALIDATE_CONFIG["8.0"]="output=\$(\"\$@\" --validate-config) || result=\$?"
 
 for VERSION in "${!MYSQL_SERVER_VERSIONS[@]}"
