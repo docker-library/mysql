@@ -102,7 +102,7 @@ docker_temp_server_start() {
 		mysql_note "Waiting for server startup"
 		local i
 		for i in {30..0}; do
-			# only use the root password if the database has already been initializaed
+			# only use the root password if the database has already been initialized
 			# so that it won't try to fill in a password file when it hasn't been set yet
 			extraArgs=()
 			if [ -z "$DATABASE_ALREADY_EXISTS" ]; then
