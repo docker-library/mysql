@@ -15,7 +15,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 set -e
 
-echo "[Entrypoint] MySQL Docker Image 5.7.31-1.1.17"
+echo "[Entrypoint] MySQL Docker Image 5.7.32-1.1.18"
 # Fetch value from server config
 # We use mysqld --verbose --help instead of my_print_defaults because the
 # latter only show values present in config files, and not server defaults
@@ -35,7 +35,7 @@ if [ "$1" = 'mysqld' ]; then
 	# Test that the server can start. We redirect stdout to /dev/null so
 	# only the error messages are left.
 	result=0
-	output=$("$@" --verbose --help 2>%%VALIDATE_CONFIG%%1 > /dev/null) || result=$?
+	output=$("$@" --verbose --help 2>&1 > /dev/null) || result=$?
 	if [ ! "$result" = "0" ]; then
 		echo >&2 '[Entrypoint] ERROR: Unable to start MySQL. Please check your configuration.'
 		echo >&2 "[Entrypoint] $output"
@@ -201,7 +201,7 @@ password=healthcheckpass
 EOF
 	touch /mysql-init-complete
 	chown -R mysql:mysql "$DATADIR"
-	echo "[Entrypoint] Starting MySQL 5.7.31-1.1.17"
+	echo "[Entrypoint] Starting MySQL 5.7.32-1.1.18"
 fi
 
 exec "$@"

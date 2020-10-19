@@ -14,8 +14,8 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 FROM oraclelinux:7-slim
 
-ARG MYSQL_SERVER_PACKAGE=mysql-community-server-minimal-8.0.21
-ARG MYSQL_SHELL_PACKAGE=mysql-shell-8.0.21
+ARG MYSQL_SERVER_PACKAGE=mysql-community-server-minimal-8.0.22
+ARG MYSQL_SHELL_PACKAGE=mysql-shell-8.0.22
 
 # Install server
 RUN yum install -y https://repo.mysql.com/mysql-community-minimal-release-el7.rpm \
@@ -34,6 +34,6 @@ COPY docker-entrypoint.sh /entrypoint.sh
 COPY healthcheck.sh /healthcheck.sh
 ENTRYPOINT ["/entrypoint.sh"]
 HEALTHCHECK CMD /healthcheck.sh
-EXPOSE 3306 33060
+EXPOSE 3306 33060 33061
 CMD ["mysqld"]
 
