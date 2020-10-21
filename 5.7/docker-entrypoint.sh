@@ -286,8 +286,6 @@ docker_setup_db() {
 			mysql_note "Giving user ${MYSQL_USER} access to schema ${MYSQL_DATABASE}"
 			docker_process_sql --database=mysql <<<"GRANT ALL ON \`${MYSQL_DATABASE//_/\\_}\`.* TO '$MYSQL_USER'@'%' ;"
 		fi
-
-		docker_process_sql --database=mysql <<<"FLUSH PRIVILEGES ;"
 	fi
 }
 
