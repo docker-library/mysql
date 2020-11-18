@@ -1,46 +1,7 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -Eeuo pipefail
 
 cd "$(dirname "$(readlink -f "$BASH_SOURCE")")"
 
-versions=( "$@" )
-if [ ${#versions[@]} -eq 0 ]; then
-	versions=( */ )
-fi
-versions=( "${versions[@]%/}" )
-
-defaultDebianVariant='buster-slim'
-declare -A debianVariants=(
-	[5.6]='stretch-slim'
-)
-
-for version in "${versions[@]}"; do
-	debianVariant="${debianVariants[$version]:-$defaultDebianVariant}"
-	debianSuite="${debianVariant%%-*}" # "buster", etc
-
-	cp -a .template.Debian/docker-entrypoint.sh "$version/docker-entrypoint.sh"
-
-	fullVersion="$(
-		curl -fsSL "https://repo.mysql.com/apt/debian/dists/$debianSuite/mysql-$version/binary-amd64/Packages.gz" \
-			| gunzip \
-			| awk -F ': ' '
-				$1 == "Package" {
-					pkg = $2
-					next
-				}
-				pkg == "mysql-server" && $1 == "Version" {
-					print $2
-				}
-			'
-	)"
-
-	(
-		set -x
-		sed -ri \
-			-e 's/^(ENV MYSQL_VERSION) .*/\1 '"$fullVersion"'/' \
-			-e 's/^(ENV MYSQL_MAJOR) .*/\1 '"$version"'/' \
-			-e 's/^(FROM) .*/\1 debian:'"$debianVariant"'/' \
-			-e 's!(http://repo.mysql.com/apt/debian/) [^ ]+!\1 '"$debianSuite"'!' \
-			"$version/Dockerfile"
-	)
-done
+./versions.sh "$@"
+./apply-templates.sh "$@"

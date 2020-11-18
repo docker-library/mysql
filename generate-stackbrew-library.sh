@@ -1,5 +1,5 @@
-#!/bin/bash
-set -eu
+#!/usr/bin/env bash
+set -Eeuo pipefail
 
 declare -A aliases=(
 	[5.7]='5'
@@ -9,31 +9,35 @@ declare -A aliases=(
 self="$(basename "$BASH_SOURCE")"
 cd "$(dirname "$(readlink -f "$BASH_SOURCE")")"
 
-versions=( */ )
-versions=( "${versions[@]%/}" )
+if [ "$#" -eq 0 ]; then
+	versions="$(jq -r 'keys | map(@sh) | join(" ")' versions.json)"
+	eval "set -- $versions"
+fi
 
 # sort version numbers with highest first
-IFS=$'\n'; versions=( $(echo "${versions[*]}" | sort -rV) ); unset IFS
+IFS=$'\n'; set -- $(sort -rV <<<"$*"); unset IFS
 
 # get the most recent commit which modified any of "$@"
 fileCommit() {
 	git log -1 --format='format:%H' HEAD -- "$@"
 }
 
-# get the most recent commit which modified "$1/Dockerfile" or any file COPY'd from "$1/Dockerfile"
+# get the most recent commit which modified "dir/dockerfile" or any file COPY'd from it
 dirCommit() {
 	local dir="$1"; shift
+	local df="$1"; shift
 	(
 		cd "$dir"
-		fileCommit \
-			Dockerfile \
-			$(git show HEAD:./Dockerfile | awk '
+		local files; files="$(
+			git show "HEAD:./$df" | awk '
 				toupper($1) == "COPY" {
 					for (i = 2; i < NF; i++) {
 						print $i
 					}
 				}
-			')
+			'
+		)"
+		fileCommit "$df" $files
 	)
 }
 
@@ -52,10 +56,12 @@ join() {
 	echo "${out#$sep}"
 }
 
-for version in "${versions[@]}"; do
-	commit="$(dirCommit "$version")"
+for version; do
+	export version
+	df='Dockerfile.debian'
+	commit="$(dirCommit "$version" "$df")"
 
-	fullVersion="$(git show "$commit":"$version/Dockerfile" | awk '$1 == "ENV" && $2 == "MYSQL_VERSION" { gsub(/-[0-9].*$/, "", $3); print $3; exit }')"
+	fullVersion="$(jq -r '.[env.version].version' versions.json)"
 
 	versionAliases=()
 	while [ "$fullVersion" != "$version" -a "${fullVersion%[.-]*}" != "$fullVersion" ]; do
@@ -72,5 +78,6 @@ for version in "${versions[@]}"; do
 		Tags: $(join ', ' "${versionAliases[@]}")
 		GitCommit: $commit
 		Directory: $version
+		File: $df
 	EOE
 done
