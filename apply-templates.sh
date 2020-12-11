@@ -38,7 +38,7 @@ for version; do
 		{
 			generated_warning
 			gawk -f "$jqt" "template/$dockerfile"
-		} > "$version/$dockerfile"
+		} > "$version/Dockerfile"
 	fi
 
 	cp -a template/docker-entrypoint.sh "$version/docker-entrypoint.sh"

@@ -22,22 +22,20 @@ fileCommit() {
 	git log -1 --format='format:%H' HEAD -- "$@"
 }
 
-# get the most recent commit which modified "dir/dockerfile" or any file COPY'd from it
+# get the most recent commit which modified "$1/Dockerfile" or any file COPY'd from "$1/Dockerfile"
 dirCommit() {
 	local dir="$1"; shift
-	local df="$1"; shift
 	(
 		cd "$dir"
-		local files; files="$(
-			git show "HEAD:./$df" | awk '
+		fileCommit \
+			Dockerfile \
+			$(git show HEAD:./Dockerfile | awk '
 				toupper($1) == "COPY" {
 					for (i = 2; i < NF; i++) {
 						print $i
 					}
 				}
-			'
-		)"
-		fileCommit "$df" $files
+			')
 	)
 }
 
@@ -58,8 +56,7 @@ join() {
 
 for version; do
 	export version
-	df='Dockerfile.debian'
-	commit="$(dirCommit "$version" "$df")"
+	commit="$(dirCommit "$version")"
 
 	fullVersion="$(jq -r '.[env.version].version' versions.json)"
 
@@ -78,6 +75,5 @@ for version; do
 		Tags: $(join ', ' "${versionAliases[@]}")
 		GitCommit: $commit
 		Directory: $version
-		File: $df
 	EOE
 done
