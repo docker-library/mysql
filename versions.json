@@ -5,9 +5,9 @@
         "amd64"
       ],
       "suite": "stretch",
-      "version": "5.6.50-1debian9"
+      "version": "5.6.51-1debian9"
     },
-    "version": "5.6.50"
+    "version": "5.6.51"
   },
   "5.7": {
     "debian": {

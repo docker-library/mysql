@@ -60,7 +60,7 @@ RUN set -ex; \
 	apt-key list > /dev/null
 
 ENV MYSQL_MAJOR 5.6
-ENV MYSQL_VERSION 5.6.50-1debian9
+ENV MYSQL_VERSION 5.6.51-1debian9
 
 RUN echo 'deb http://repo.mysql.com/apt/debian/ stretch mysql-5.6' > /etc/apt/sources.list.d/mysql.list
 
