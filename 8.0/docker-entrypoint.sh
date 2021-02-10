@@ -98,7 +98,7 @@ mysql_get_config() {
 # Do a temporary startup of the MySQL server, for init purposes
 docker_temp_server_start() {
 	if [ "${MYSQL_MAJOR}" = '5.6' ] || [ "${MYSQL_MAJOR}" = '5.7' ]; then
-		"$@" --skip-networking --socket="${SOCKET}" &
+		"$@" --skip-networking --default-time-zone=SYSTEM --socket="${SOCKET}" &
 		mysql_note "Waiting for server startup"
 		local i
 		for i in {30..0}; do
@@ -118,7 +118,7 @@ docker_temp_server_start() {
 		fi
 	else
 		# For 5.7+ the server is ready for use as soon as startup command unblocks
-		if ! "$@" --daemonize --skip-networking --socket="${SOCKET}"; then
+		if ! "$@" --daemonize --skip-networking --default-time-zone=SYSTEM --socket="${SOCKET}"; then
 			mysql_error "Unable to start server."
 		fi
 	fi
@@ -158,9 +158,9 @@ docker_create_db_directories() {
 docker_init_database_dir() {
 	mysql_note "Initializing database files"
 	if [ "$MYSQL_MAJOR" = '5.6' ]; then
-		mysql_install_db --datadir="$DATADIR" --rpm --keep-my-cnf "${@:2}"
+		mysql_install_db --datadir="$DATADIR" --rpm --keep-my-cnf "${@:2}" --default-time-zone=SYSTEM
 	else
-		"$@" --initialize-insecure
+		"$@" --initialize-insecure --default-time-zone=SYSTEM
 	fi
 	mysql_note "Database files initialized"
 
