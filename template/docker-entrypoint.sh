@@ -78,8 +78,14 @@ docker_process_init_files() {
 	done
 }
 
+# arguments necessary to run "mysqld --verbose --help" successfully (used for testing configuration validity and for extracting default/configured values)
+_verboseHelpArgs=(
+	--verbose --help
+	--log-bin-index="$(mktemp -u)" # https://github.com/docker-library/mysql/issues/136
+)
+
 mysql_check_config() {
-	local toRun=( "$@" --verbose --help ) errors
+	local toRun=( "$@" "${_verboseHelpArgs[@]}" ) errors
 	if ! errors="$("${toRun[@]}" 2>&1 >/dev/null)"; then
 		mysql_error $'mysqld failed while attempting to check config\n\tcommand was: '"${toRun[*]}"$'\n\t'"$errors"
 	fi
@@ -90,7 +96,7 @@ mysql_check_config() {
 # latter only show values present in config files, and not server defaults
 mysql_get_config() {
 	local conf="$1"; shift
-	"$@" --verbose --help --log-bin-index="$(mktemp -u)" 2>/dev/null \
+	"$@" "${_verboseHelpArgs[@]}" 2>/dev/null \
 		| awk -v conf="$conf" '$1 == conf && /^[^ \t]/ { sub(/^[^ \t]+[ \t]+/, ""); print; exit }'
 	# match "datadir      /some/path with/spaces in/it here" but not "--xyz=abc\n     datadir (xyz)"
 }
