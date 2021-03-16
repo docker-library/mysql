@@ -5,7 +5,10 @@ shopt -s nullglob
 # logging functions
 mysql_log() {
 	local type="$1"; shift
-	printf '%s [%s] [Entrypoint]: %s\n' "$(date --rfc-3339=seconds)" "$type" "$*"
+	# accept argument string or stdin
+	local text="$*"; if [ "$#" -eq 0 ]; then text="$(cat)"; fi
+	local dt; dt="$(date --rfc-3339=seconds)"
+	printf '%s [%s] [Entrypoint]: %s\n' "$dt" "$type" "$text"
 }
 mysql_note() {
 	mysql_log Note "$@"
@@ -141,7 +144,31 @@ docker_temp_server_stop() {
 # Verify that the minimally required password settings are set for new databases.
 docker_verify_minimum_env() {
 	if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
-		mysql_error $'Database is uninitialized and password option is not specified\n\tYou need to specify one of MYSQL_ROOT_PASSWORD, MYSQL_ALLOW_EMPTY_PASSWORD and MYSQL_RANDOM_ROOT_PASSWORD'
+		mysql_error <<-'EOF'
+			Database is uninitialized and password option is not specified
+			    You need to specify one of the following:
+			    - MYSQL_ROOT_PASSWORD
+			    - MYSQL_ALLOW_EMPTY_PASSWORD
+			    - MYSQL_RANDOM_ROOT_PASSWORD
+		EOF
+	fi
+
+	# This will prevent the CREATE USER from failing (and thus exiting with a half-initialized database)
+	if [ "$MYSQL_USER" = 'root' ]; then
+		mysql_error <<-'EOF'
+			MYSQL_USER="root", MYSQL_PASSWORD cannot be used for the root user
+			    Use one of the following to control the root user password:
+			    - MYSQL_ROOT_PASSWORD
+			    - MYSQL_ALLOW_EMPTY_PASSWORD
+			    - MYSQL_RANDOM_ROOT_PASSWORD
+		EOF
+	fi
+
+	# warn when missing one of MYSQL_USER or MYSQL_PASSWORD
+	if [ -n "$MYSQL_USER" ] && [ -z "$MYSQL_PASSWORD" ]; then
+		mysql_warn 'MYSQL_USER specified, but missing MYSQL_PASSWORD; MYSQL_USER will not be created'
+	elif [ -z "$MYSQL_USER" ] && [ -n "$MYSQL_PASSWORD" ]; then
+		mysql_warn 'MYSQL_PASSWORD specified, but missing MYSQL_USER; MYSQL_PASSWORD will be ignored'
 	fi
 }
 
