@@ -154,7 +154,7 @@ docker_verify_minimum_env() {
 	fi
 
 	# This will prevent the CREATE USER from failing (and thus exiting with a half-initialized database)
-	if [ "$MYSQL_USER" = 'root' ]; then
+	if [ "$MYSQL_USER" = 'root' ] && [ -n "$MYSQL_PASSWORD" ]; then
 		mysql_error <<-'EOF'
 			MYSQL_USER="root", MYSQL_PASSWORD cannot be used for the root user
 			    Use one of the following to control the root user password:
