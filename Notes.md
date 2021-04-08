@@ -60,8 +60,7 @@ services:
 
 ### 结果
 
-![image-20210408114724301](/Users/fancheyv/Library/Application Support/typora-user-images/image-20210408114724301.png)
-
+<img width="884" alt="数据卷同步规则" src="https://user-images.githubusercontent.com/45913187/113965882-c687c100-9860-11eb-90c8-114fdc4cf349.png">
 
 
 ### 概念理解
