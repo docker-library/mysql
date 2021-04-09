@@ -33,33 +33,6 @@ services:
 ![image](https://user-images.githubusercontent.com/45913187/114135578-02438900-993c-11eb-99d2-e7e3307abd50.png)
 
 
-### 案例compose
-
-```yml
-# add this file
-# default MySQL root password is 123456
-
-version: '3.1'
-
-services:
-
-  mysql:
-    image: mysql:5.7
-    container_name: mysql_5.7
-    restart: always
-    ports:
-     - 3305:3306
-    volumes:
-     - ./mysql_config/conf.d:/etc/mysql/conf.d
-     - ./mysql_data:/var/lib/mysql
-     - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-    environment:
-      MYSQL_ROOT_PASSWORD: 123456
-```
-
-
-
-
 ### 概念理解
 
 - 宿主机目录对应的物理储存地址被**容器**和宿主机操作系统同时管理。
