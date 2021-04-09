@@ -32,7 +32,6 @@ services:
 ### 结果
 ![image](https://user-images.githubusercontent.com/45913187/114135578-02438900-993c-11eb-99d2-e7e3307abd50.png)
 
-<img width="884" alt="数据卷同步规则" src="https://user-images.githubusercontent.com/45913187/113966242-4dd53480-9861-11eb-9382-ea223d4c494a.png">
 
 ### 案例compose
 
