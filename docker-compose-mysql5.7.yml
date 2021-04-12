@@ -11,6 +11,7 @@ services:
     restart: always
     ports:
      - 3306:3306
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     volumes:
      - ./mysql_config/conf.d:/etc/mysql/conf.d
      - ./mysql_data:/var/lib/mysql
@@ -18,7 +19,4 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 123456
 
-      
-networks:
-  default:
-      name: "apps"
+ 
