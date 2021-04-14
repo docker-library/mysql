@@ -1,0 +1,25 @@
+# add this file
+# default MySQL root password is 123456
+#默认版本5.7，如需修改两种方式1. ./.env文件 2.启动参数-e传入环境变量MYSQL_VERSION（优先级更高）
+
+version: '3.1'
+
+services:
+
+  mysql:
+    image: mysql:${MYSQL_VERSION}
+    container_name: MySQL-${MYSQL_VERSION}
+    restart: always
+    ports:
+     - 3306:3306
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+     - ./mysql_config/conf.d:/etc/mysql/conf.d
+     - ./mysql_data:/var/lib/mysql
+     - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+
+networks:
+  default:
+      name: "apps"
