@@ -15,9 +15,9 @@
         "amd64"
       ],
       "suite": "buster",
-      "version": "5.7.33-1debian10"
+      "version": "5.7.34-1debian10"
     },
-    "version": "5.7.33"
+    "version": "5.7.34"
   },
   "8.0": {
     "debian": {
