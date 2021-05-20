@@ -38,6 +38,7 @@ RUN set -eux; \
 		gzip \
 		openssl \
 		xz \
+		zstd \
 {{ if .oracle.variant | startswith("7") then "" else ( -}}
 # Oracle Linux 8+ is very slim :)
 		findutils \

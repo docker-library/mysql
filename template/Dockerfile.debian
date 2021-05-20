@@ -40,8 +40,8 @@ RUN set -eux; \
 # Sys::Hostname
 # Data::Dumper
 		perl \
-# install "xz-utils" for .sql.xz docker-entrypoint-initdb.d files
 		xz-utils \
+		zstd \
 	; \
 	rm -rf /var/lib/apt/lists/*
 

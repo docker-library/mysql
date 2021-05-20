@@ -43,6 +43,7 @@ RUN set -eux; \
 		gzip \
 		openssl \
 		xz \
+		zstd \
 	; \
 	yum clean all
 
