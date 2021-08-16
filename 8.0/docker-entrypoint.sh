@@ -220,8 +220,10 @@ docker_setup_env() {
 	file_env 'MYSQL_PASSWORD'
 	file_env 'MYSQL_ROOT_PASSWORD'
 
+    # If the directory exists but is empty (e.d. it's a volume mount),
+    # assume the database to be uninitialized.
 	declare -g DATABASE_ALREADY_EXISTS
-	if [ -d "$DATADIR/mysql" ]; then
+	if [ -d "$DATADIR/mysql" -a -z "$(ls -A1 "$DATADIR/mysql")" ]; then
 		DATABASE_ALREADY_EXISTS='true'
 	fi
 }
