@@ -38,6 +38,12 @@ file_env() {
 	elif [ "${!fileVar:-}" ]; then
 		val="$(< "${!fileVar}")"
 	fi
+        # remove newline from values which would cause troubles later if present
+        new_val=$(echo "$val"|tr -d '\n')
+        if [ "$new_val" != "$val" ]; then
+                mysql_warn "Stripping newline from ${var}."
+                val="$new_val"
+        fi
 	export "$var"="$val"
 	unset "$fileVar"
 }
