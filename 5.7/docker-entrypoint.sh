@@ -393,7 +393,7 @@ _main() {
 			mysql_note "Temporary server started."
 
 			docker_setup_db
-			docker_process_init_files /docker-entrypoint-initdb.d/*
+			docker_process_init_files $(find /docker-entrypoint-initdb.d/  -type f | sort )
 
 			mysql_expire_root_user
 
