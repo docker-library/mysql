@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 defaultDebianSuite='buster'
 declare -A debianSuites=(
-	[5.6]='stretch'
+	#[5.6]='stretch'
 )
 
 cd "$(dirname "$(readlink -f "$BASH_SOURCE")")"
