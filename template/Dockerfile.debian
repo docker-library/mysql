@@ -33,12 +33,8 @@ RUN mkdir /docker-entrypoint-initdb.d
 RUN apt-get update && apt-get install -y --no-install-recommends \
 # for MYSQL_RANDOM_ROOT_PASSWORD
 		pwgen \
-{{
-	if env.version != "5.6" then (
--}}
 # for mysql_ssl_rsa_setup
 		openssl \
-{{ ) else "" end -}}
 # FATAL ERROR: please install the following Perl modules before executing /usr/local/mysql/scripts/mysql_install_db:
 # File::Basename
 # File::Copy
@@ -50,8 +46,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	&& rm -rf /var/lib/apt/lists/*
 
 RUN set -ex; \
-# gpg: key 5072E1F5: public key "MySQL Release Engineering <mysql-build@oss.oracle.com>" imported
-	key='A4A9406876FCBD3C456770C88C718D3B5072E1F5'; \
+# gpg: key 3A79BD29: public key "MySQL Release Engineering <mysql-build@oss.oracle.com>" imported
+	key='859BE8D7C586F538430B19C2467B942D3A79BD29'; \
 	export GNUPGHOME="$(mktemp -d)"; \
 	gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key"; \
 	gpg --batch --export "$key" > /etc/apt/trusted.gpg.d/mysql.gpg; \
@@ -74,7 +70,7 @@ RUN { \
 	} | debconf-set-selections \
 	&& apt-get update \
 	&& apt-get install -y \
-{{ if env.version == "5.6" or env.version == "5.7" then ( -}}
+{{ if env.version == "5.7" then ( -}}
 		mysql-server="${MYSQL_VERSION}" \
 # comment out a few problematic configuration values
 	&& find /etc/mysql/ -name '*.cnf' -print0 \
@@ -94,7 +90,7 @@ RUN { \
 
 VOLUME /var/lib/mysql
 
-{{ if env.version != "5.6" and env.version != "5.7" then ( -}}
+{{ if env.version != "5.7" then ( -}}
 # Config files
 COPY config/ /etc/mysql/
 {{ ) else "" end -}}
@@ -102,9 +98,5 @@ COPY docker-entrypoint.sh /usr/local/bin/
 RUN ln -s usr/local/bin/docker-entrypoint.sh /entrypoint.sh # backwards compat
 ENTRYPOINT ["docker-entrypoint.sh"]
 
-{{ if env.version != "5.6" then ( -}}
 EXPOSE 3306 33060
-{{ ) else ( -}}
-EXPOSE 3306
-{{ ) end -}}
 CMD ["mysqld"]

@@ -1,23 +1,13 @@
 {
-  "5.6": {
-    "debian": {
-      "architectures": [
-        "amd64"
-      ],
-      "suite": "stretch",
-      "version": "5.6.51-1debian9"
-    },
-    "version": "5.6.51"
-  },
   "5.7": {
     "debian": {
       "architectures": [
         "amd64"
       ],
       "suite": "buster",
-      "version": "5.7.36-1debian10"
+      "version": "5.7.37-1debian10"
     },
-    "version": "5.7.36"
+    "version": "5.7.37"
   },
   "8.0": {
     "debian": {
@@ -25,8 +15,8 @@
         "amd64"
       ],
       "suite": "buster",
-      "version": "8.0.27-1debian10"
+      "version": "8.0.28-1debian10"
     },
-    "version": "8.0.27"
+    "version": "8.0.28"
   }
 }
