@@ -6,6 +6,12 @@ declare -A aliases=(
 	[8.0]='8 latest'
 )
 
+defaultDefaultVariant='oracle'
+declare -A defaultVariants=(
+	[5.7]='debian'
+	[8.0]='debian'
+)
+
 self="$(basename "$BASH_SOURCE")"
 cd "$(dirname "$(readlink -f "$BASH_SOURCE")")"
 
@@ -58,9 +64,8 @@ join() {
 
 for version; do
 	export version
-	df='Dockerfile.debian'
-	commit="$(dirCommit "$version" "$df")"
 
+	defaultVariant="${defaultVariants[$version]:-$defaultDefaultVariant}"
 	fullVersion="$(jq -r '.[env.version].version' versions.json)"
 
 	versionAliases=()
@@ -73,11 +78,27 @@ for version; do
 		${aliases[$version]:-}
 	)
 
-	echo
-	cat <<-EOE
-		Tags: $(join ', ' "${versionAliases[@]}")
-		GitCommit: $commit
-		Directory: $version
-		File: $df
-	EOE
+	for variant in oracle debian; do
+		df="Dockerfile.$variant"
+		commit="$(dirCommit "$version" "$df")"
+
+		variantAliases=( "${versionAliases[@]/%/-$variant}" )
+		variantAliases=( "${variantAliases[@]//latest-/}" )
+		if [ "$variant" = "$defaultVariant" ]; then
+			variantAliases=( "${versionAliases[@]}" "${variantAliases[@]}" )
+		fi
+
+		# TODO if the list of architectures supported by MySQL ever is greater than that of the base image it's FROM, this list will need to be filtered
+		export variant
+		variantArches="$(jq -r '.[env.version][env.variant].architectures | join(", ")' versions.json)"
+
+		echo
+		cat <<-EOE
+			Tags: $(join ', ' "${variantAliases[@]}")
+			Architectures: $variantArches
+			GitCommit: $commit
+			Directory: $version
+			File: $df
+		EOE
+	done
 done

@@ -31,15 +31,18 @@ generated_warning() {
 for version; do
 	export version
 
-	debianVersion="$(jq -r '.[env.version].debian // ""' versions.json)"
-	if [ -n "$debianVersion" ]; then
-		dockerfile='Dockerfile.debian'
+	for variant in oracle debian; do
+		export variant
 
-		{
-			generated_warning
-			gawk -f "$jqt" "template/$dockerfile"
-		} > "$version/$dockerfile"
-	fi
+		variantVersion="$(jq -r '.[env.version][env.variant] // {} | .version // ""' versions.json)"
+		if [ -n "$variantVersion" ]; then
+			dockerfile="Dockerfile.$variant"
+			{
+				generated_warning
+				gawk -f "$jqt" "template/$dockerfile"
+			} > "$version/$dockerfile"
+		fi
+	done
 
 	cp -a template/docker-entrypoint.sh "$version/docker-entrypoint.sh"
 done
