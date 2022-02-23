@@ -36,10 +36,9 @@ RUN set -eux; \
 
 RUN mkdir /docker-entrypoint-initdb.d
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-# for MYSQL_RANDOM_ROOT_PASSWORD
-		pwgen \
-# for mysql_ssl_rsa_setup
+RUN set -eux; \
+	apt-get update; \
+	apt-get install -y --no-install-recommends \
 		openssl \
 # FATAL ERROR: please install the following Perl modules before executing /usr/local/mysql/scripts/mysql_install_db:
 # File::Basename
@@ -49,9 +48,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 		perl \
 # install "xz-utils" for .sql.xz docker-entrypoint-initdb.d files
 		xz-utils \
-	&& rm -rf /var/lib/apt/lists/*
+	; \
+	rm -rf /var/lib/apt/lists/*
 
-RUN set -ex; \
+RUN set -eux; \
 # gpg: key 3A79BD29: public key "MySQL Release Engineering <mysql-build@oss.oracle.com>" imported
 	key='859BE8D7C586F538430B19C2467B942D3A79BD29'; \
 	export GNUPGHOME="$(mktemp -d)"; \

@@ -34,6 +34,17 @@ RUN set -eux; \
 	gosu nobody true
 
 RUN set -eux; \
+	{{ dnf }} install -y \
+		gzip \
+		xz \
+{{ if .oracle.variant | startswith("7") then "" else ( -}}
+# Oracle Linux 8+ is very slim :)
+		findutils \
+{{ ) end -}}
+	; \
+	{{ dnf }} clean all
+
+RUN set -eux; \
 # https://dev.mysql.com/doc/refman/8.0/en/checking-gpg-signature.html
 # gpg: key 3A79BD29: public key "MySQL Release Engineering <mysql-build@oss.oracle.com>" imported
 	key='859BE8D7C586F538430B19C2467B942D3A79BD29'; \
@@ -42,11 +53,6 @@ RUN set -eux; \
 	gpg --batch --export --armor "$key" > /etc/pki/rpm-gpg/RPM-GPG-KEY-mysql; \
 	rm -rf "$GNUPGHOME"
 
-{{ if .oracle.variant | startswith("7") then "" else ( -}}
-# Oracle Linux 8+ is very slim :)
-RUN set -eux; {{ dnf }} install -y findutils; {{ dnf }} clean all
-
-{{ ) end -}}
 ENV MYSQL_MAJOR {{ env.version }}
 ENV MYSQL_VERSION {{ .oracle.version }}
 

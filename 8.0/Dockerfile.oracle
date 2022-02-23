@@ -39,6 +39,15 @@ RUN set -eux; \
 	gosu nobody true
 
 RUN set -eux; \
+	microdnf install -y \
+		gzip \
+		xz \
+# Oracle Linux 8+ is very slim :)
+		findutils \
+	; \
+	microdnf clean all
+
+RUN set -eux; \
 # https://dev.mysql.com/doc/refman/8.0/en/checking-gpg-signature.html
 # gpg: key 3A79BD29: public key "MySQL Release Engineering <mysql-build@oss.oracle.com>" imported
 	key='859BE8D7C586F538430B19C2467B942D3A79BD29'; \
@@ -46,9 +55,6 @@ RUN set -eux; \
 	gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key"; \
 	gpg --batch --export --armor "$key" > /etc/pki/rpm-gpg/RPM-GPG-KEY-mysql; \
 	rm -rf "$GNUPGHOME"
-
-# Oracle Linux 8+ is very slim :)
-RUN set -eux; microdnf install -y findutils; microdnf clean all
 
 ENV MYSQL_MAJOR 8.0
 ENV MYSQL_VERSION 8.0.28-1.el8
