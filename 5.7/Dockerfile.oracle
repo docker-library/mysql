@@ -78,6 +78,7 @@ RUN set -eux; \
 	grep -F 'socket=/var/lib/mysql/mysql.sock' /etc/my.cnf; \
 	sed -i 's!^socket=.*!socket=/var/run/mysqld/mysqld.sock!' /etc/my.cnf; \
 	grep -F 'socket=/var/run/mysqld/mysqld.sock' /etc/my.cnf; \
+	{ echo '[client]'; echo 'socket=/var/run/mysqld/mysqld.sock'; } >> /etc/my.cnf; \
 	\
 # make sure users dumping files in "/etc/mysql/conf.d" still works
 	! grep -F '!includedir' /etc/my.cnf; \
