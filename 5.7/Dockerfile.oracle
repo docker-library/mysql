@@ -41,6 +41,7 @@ RUN set -eux; \
 RUN set -eux; \
 	yum install -y \
 		gzip \
+		openssl \
 		xz \
 	; \
 	yum clean all

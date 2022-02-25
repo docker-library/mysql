@@ -41,6 +41,7 @@ RUN set -eux; \
 RUN set -eux; \
 	microdnf install -y \
 		gzip \
+		openssl \
 		xz \
 # Oracle Linux 8+ is very slim :)
 		findutils \

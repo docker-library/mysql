@@ -36,6 +36,7 @@ RUN set -eux; \
 RUN set -eux; \
 	{{ dnf }} install -y \
 		gzip \
+		openssl \
 		xz \
 {{ if .oracle.variant | startswith("7") then "" else ( -}}
 # Oracle Linux 8+ is very slim :)
