@@ -104,6 +104,18 @@ mysql_get_config() {
 	# match "datadir      /some/path with/spaces in/it here" but not "--xyz=abc\n     datadir (xyz)"
 }
 
+# Ensure that the package default socket can also be used
+# since rpm packages are compiled with a different socket location
+# and "mysqlsh --mysql" doesn't read the [client] config
+# related to https://github.com/docker-library/mysql/issues/829
+mysql_socket_fix() {
+	local defaultSocket
+	defaultSocket="$(mysql_get_config 'socket' mysqld --no-defaults)"
+	if [ "$defaultSocket" != "$SOCKET" ]; then
+		ln -sfTv "$SOCKET" "$defaultSocket" || :
+	fi
+}
+
 # Do a temporary startup of the MySQL server, for init purposes
 docker_temp_server_start() {
 	if [ "${MYSQL_MAJOR}" = '5.7' ]; then
@@ -366,6 +378,7 @@ _main() {
 			docker_temp_server_start "$@"
 			mysql_note "Temporary server started."
 
+			mysql_socket_fix
 			docker_setup_db
 			docker_process_init_files /docker-entrypoint-initdb.d/*
 
@@ -378,6 +391,8 @@ _main() {
 			echo
 			mysql_note "MySQL init process done. Ready for start up."
 			echo
+		else
+			mysql_socket_fix
 		fi
 	fi
 	exec "$@"
