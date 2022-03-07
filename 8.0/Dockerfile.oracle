@@ -43,6 +43,7 @@ RUN set -eux; \
 		gzip \
 		openssl \
 		xz \
+		zstd \
 # Oracle Linux 8+ is very slim :)
 		findutils \
 	; \
