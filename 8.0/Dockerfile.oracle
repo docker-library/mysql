@@ -59,7 +59,7 @@ RUN set -eux; \
 	rm -rf "$GNUPGHOME"
 
 ENV MYSQL_MAJOR 8.0
-ENV MYSQL_VERSION 8.0.28-1.el8
+ENV MYSQL_VERSION 8.0.29-1.el8
 
 RUN set -eu; \
 	. /etc/os-release; \
@@ -104,7 +104,7 @@ RUN set -eu; \
 # https://github.com/docker-library/mysql/pull/680#issuecomment-825930524
 		echo 'module_hotfixes=true'; \
 	} | tee /etc/yum.repos.d/mysql-community-tools.repo
-ENV MYSQL_SHELL_VERSION 8.0.28-1.el8
+ENV MYSQL_SHELL_VERSION 8.0.29-1.el8
 RUN set -eux; \
 	microdnf install -y "mysql-shell-$MYSQL_SHELL_VERSION"; \
 	microdnf clean all; \

@@ -25,10 +25,10 @@
         "amd64"
       ],
       "suite": "buster",
-      "version": "8.0.28-1debian10"
+      "version": "8.0.29-1debian10"
     },
     "mysql-shell": {
-      "version": "8.0.28-1.el8"
+      "version": "8.0.29-1.el8"
     },
     "oracle": {
       "architectures": [
@@ -36,8 +36,8 @@
         "arm64v8"
       ],
       "variant": "8-slim",
-      "version": "8.0.28-1.el8"
+      "version": "8.0.29-1.el8"
     },
-    "version": "8.0.28"
+    "version": "8.0.29"
   }
 }
