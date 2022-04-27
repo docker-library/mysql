@@ -57,7 +57,7 @@ RUN set -eux; \
 	rm -rf "$GNUPGHOME"
 
 ENV MYSQL_MAJOR 5.7
-ENV MYSQL_VERSION 5.7.37-1.el7
+ENV MYSQL_VERSION 5.7.38-1.el7
 
 RUN set -eu; \
 	. /etc/os-release; \
@@ -102,7 +102,7 @@ RUN set -eu; \
 # https://github.com/docker-library/mysql/pull/680#issuecomment-825930524
 		echo 'module_hotfixes=true'; \
 	} | tee /etc/yum.repos.d/mysql-community-tools.repo
-ENV MYSQL_SHELL_VERSION 8.0.28-1.el7
+ENV MYSQL_SHELL_VERSION 8.0.29-1.el7
 RUN set -eux; \
 	yum install -y "mysql-shell-$MYSQL_SHELL_VERSION"; \
 	yum clean all; \
