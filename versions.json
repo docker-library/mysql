@@ -24,8 +24,8 @@
       "architectures": [
         "amd64"
       ],
-      "suite": "buster",
-      "version": "8.0.29-1debian10"
+      "suite": "bullseye",
+      "version": "8.0.29-1debian11"
     },
     "mysql-shell": {
       "version": "8.0.29-1.el8"

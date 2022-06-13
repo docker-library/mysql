@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-defaultDebianSuite='buster'
+defaultDebianSuite='bullseye'
 declare -A debianSuites=(
-	#[8.0]='stretch'
+	[5.7]='buster'
 )
 
 defaultOracleVariant='8-slim'
