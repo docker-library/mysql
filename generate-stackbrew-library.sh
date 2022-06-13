@@ -8,8 +8,8 @@ declare -A aliases=(
 
 defaultDefaultVariant='oracle'
 declare -A defaultVariants=(
-	[5.7]='debian'
-	[8.0]='debian'
+	#[5.7]='debian'
+	#[8.0]='debian'
 )
 
 self="$(basename "$BASH_SOURCE")"
