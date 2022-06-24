@@ -35,6 +35,7 @@ RUN set -eux; \
 
 RUN set -eux; \
 	{{ dnf }} install -y \
+		bzip2 \
 		gzip \
 		openssl \
 		xz \
