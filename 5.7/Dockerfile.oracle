@@ -39,7 +39,9 @@ RUN set -eux; \
 	gosu nobody true
 
 RUN set -eux; \
-	yum install -y \
+# https://github.com/docker-library/mysql/pull/871#issuecomment-1167954236
+	yum install -y --setopt=skip_missing_names_on_install=False oracle-epel-release-el7; \
+	yum install -y --setopt=skip_missing_names_on_install=False \
 		bzip2 \
 		gzip \
 		openssl \
@@ -74,7 +76,7 @@ RUN set -eu; \
 	} | tee /etc/yum.repos.d/mysql-community-minimal.repo
 
 RUN set -eux; \
-	yum install -y "mysql-community-server-minimal-$MYSQL_VERSION"; \
+	yum install -y --setopt=skip_missing_names_on_install=False "mysql-community-server-minimal-$MYSQL_VERSION"; \
 	yum clean all; \
 # the "socket" value in the Oracle packages is set to "/var/lib/mysql" which isn't a great place for the socket (we want it in "/var/run/mysqld" instead)
 # https://github.com/docker-library/mysql/pull/680#issuecomment-636121520
@@ -105,7 +107,7 @@ RUN set -eu; \
 	} | tee /etc/yum.repos.d/mysql-community-tools.repo
 ENV MYSQL_SHELL_VERSION 8.0.29-1.el7
 RUN set -eux; \
-	yum install -y "mysql-shell-$MYSQL_SHELL_VERSION"; \
+	yum install -y --setopt=skip_missing_names_on_install=False "mysql-shell-$MYSQL_SHELL_VERSION"; \
 	yum clean all; \
 	\
 	mysqlsh --version
