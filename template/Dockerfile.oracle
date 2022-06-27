@@ -1,4 +1,18 @@
-{{ def dnf: if .oracle.variant | startswith("7") then "yum" else "microdnf" end -}}
+{{
+	def dnf:
+		if .oracle.variant | startswith("7") then
+			"yum"
+		else
+			"microdnf"
+		end
+	;
+	def dnf_install:
+		dnf + " install -y"
+		| if . == "yum install -y" then
+			# --setopt=skip_missing_names_on_install=False: https://unix.stackexchange.com/a/477127/153467
+			. + " --setopt=skip_missing_names_on_install=False"
+		else . end
+-}}
 FROM oraclelinux:{{ .oracle.variant }}
 
 RUN set -eux; \
@@ -34,7 +48,11 @@ RUN set -eux; \
 	gosu nobody true
 
 RUN set -eux; \
-	{{ dnf }} install -y \
+{{ if .oracle.variant | startswith("7") then ( -}}
+# https://github.com/docker-library/mysql/pull/871#issuecomment-1167954236
+	{{ dnf_install }} oracle-epel-release-el7; \
+{{ ) else "" end -}}
+	{{ dnf_install }} \
 		bzip2 \
 		gzip \
 		openssl \
@@ -73,7 +91,7 @@ RUN set -eu; \
 	} | tee /etc/yum.repos.d/mysql-community-minimal.repo
 
 RUN set -eux; \
-	{{ dnf }} install -y "mysql-community-server-minimal-$MYSQL_VERSION"; \
+	{{ dnf_install }} "mysql-community-server-minimal-$MYSQL_VERSION"; \
 	{{ dnf }} clean all; \
 # the "socket" value in the Oracle packages is set to "/var/lib/mysql" which isn't a great place for the socket (we want it in "/var/run/mysqld" instead)
 # https://github.com/docker-library/mysql/pull/680#issuecomment-636121520
@@ -104,7 +122,7 @@ RUN set -eu; \
 	} | tee /etc/yum.repos.d/mysql-community-tools.repo
 ENV MYSQL_SHELL_VERSION {{ .["mysql-shell"].version }}
 RUN set -eux; \
-	{{ dnf }} install -y "mysql-shell-$MYSQL_SHELL_VERSION"; \
+	{{ dnf_install }} "mysql-shell-$MYSQL_SHELL_VERSION"; \
 	{{ dnf }} clean all; \
 	\
 	mysqlsh --version
