@@ -130,6 +130,9 @@ RUN set -eux; \
 VOLUME /var/lib/mysql
 
 COPY docker-entrypoint.sh /usr/local/bin/
+{{ if [ "5.7", "8.0" ] | index(env.version) then ( -}}
+RUN ln -s usr/local/bin/docker-entrypoint.sh /entrypoint.sh # backwards compat
+{{ ) else "" end -}}
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 EXPOSE 3306 33060
