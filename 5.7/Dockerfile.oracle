@@ -8,14 +8,7 @@ FROM oraclelinux:7-slim
 
 RUN set -eux; \
 	groupadd --system --gid 999 mysql; \
-	useradd --system --uid 999 --gid 999 --home-dir /var/lib/mysql --no-create-home mysql; \
-	\
-	mkdir /var/lib/mysql /var/run/mysqld; \
-	chown mysql:mysql /var/lib/mysql /var/run/mysqld; \
-# ensure that /var/run/mysqld (used for socket and lock files) is writable regardless of the UID our mysqld instance ends up having at runtime
-	chmod 1777 /var/lib/mysql /var/run/mysqld; \
-	\
-	mkdir /docker-entrypoint-initdb.d
+	useradd --system --uid 999 --gid 999 --home-dir /var/lib/mysql --no-create-home mysql
 
 # add gosu for easy step-down from root
 # https://github.com/tianon/gosu/releases
@@ -92,6 +85,20 @@ RUN set -eux; \
 # 5.7 Debian-based images also included "/etc/mysql/mysql.conf.d" so let's include it too
 	{ echo '!includedir /etc/mysql/mysql.conf.d/'; } >> /etc/my.cnf; \
 	mkdir -p /etc/mysql/mysql.conf.d; \
+	\
+# comment out a few problematic configuration values
+	find /etc/my.cnf /etc/mysql/ -name '*.cnf' -print0 \
+		| xargs -0 grep -lZE '^(bind-address|log)' \
+		| xargs -rt -0 sed -Ei 's/^(bind-address|log)/#&/'; \
+	\
+# ensure these directories exist and have useful permissions
+# the rpm package has different opinions on the mode of `/var/run/mysqld`, so this needs to be after install
+	mkdir -p /var/lib/mysql /var/run/mysqld; \
+	chown mysql:mysql /var/lib/mysql /var/run/mysqld; \
+# ensure that /var/run/mysqld (used for socket and lock files) is writable regardless of the UID our mysqld instance ends up having at runtime
+	chmod 1777 /var/lib/mysql /var/run/mysqld; \
+	\
+	mkdir /docker-entrypoint-initdb.d; \
 	\
 	mysqld --version; \
 	mysql --version

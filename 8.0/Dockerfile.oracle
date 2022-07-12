@@ -8,14 +8,7 @@ FROM oraclelinux:8-slim
 
 RUN set -eux; \
 	groupadd --system --gid 999 mysql; \
-	useradd --system --uid 999 --gid 999 --home-dir /var/lib/mysql --no-create-home mysql; \
-	\
-	mkdir /var/lib/mysql /var/run/mysqld; \
-	chown mysql:mysql /var/lib/mysql /var/run/mysqld; \
-# ensure that /var/run/mysqld (used for socket and lock files) is writable regardless of the UID our mysqld instance ends up having at runtime
-	chmod 1777 /var/lib/mysql /var/run/mysqld; \
-	\
-	mkdir /docker-entrypoint-initdb.d
+	useradd --system --uid 999 --gid 999 --home-dir /var/lib/mysql --no-create-home mysql
 
 # add gosu for easy step-down from root
 # https://github.com/tianon/gosu/releases
@@ -89,6 +82,14 @@ RUN set -eux; \
 	! grep -F '!includedir' /etc/my.cnf; \
 	{ echo; echo '!includedir /etc/mysql/conf.d/'; } >> /etc/my.cnf; \
 	mkdir -p /etc/mysql/conf.d; \
+# ensure these directories exist and have useful permissions
+# the rpm package has different opinions on the mode of `/var/run/mysqld`, so this needs to be after install
+	mkdir -p /var/lib/mysql /var/run/mysqld; \
+	chown mysql:mysql /var/lib/mysql /var/run/mysqld; \
+# ensure that /var/run/mysqld (used for socket and lock files) is writable regardless of the UID our mysqld instance ends up having at runtime
+	chmod 1777 /var/lib/mysql /var/run/mysqld; \
+	\
+	mkdir /docker-entrypoint-initdb.d; \
 	\
 	mysqld --version; \
 	mysql --version
