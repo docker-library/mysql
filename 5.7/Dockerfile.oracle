@@ -89,6 +89,9 @@ RUN set -eux; \
 	! grep -F '!includedir' /etc/my.cnf; \
 	{ echo; echo '!includedir /etc/mysql/conf.d/'; } >> /etc/my.cnf; \
 	mkdir -p /etc/mysql/conf.d; \
+# 5.7 Debian-based images also included "/etc/mysql/mysql.conf.d" so let's include it too
+	{ echo '!includedir /etc/mysql/mysql.conf.d/'; } >> /etc/my.cnf; \
+	mkdir -p /etc/mysql/mysql.conf.d; \
 	\
 	mysqld --version; \
 	mysql --version
