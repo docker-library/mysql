@@ -25,10 +25,10 @@
         "amd64"
       ],
       "suite": "bullseye",
-      "version": "8.0.29-1debian11"
+      "version": "8.0.30-1debian11"
     },
     "mysql-shell": {
-      "version": "8.0.29-1.el8"
+      "version": "8.0.30-1.el8"
     },
     "oracle": {
       "architectures": [
@@ -36,8 +36,8 @@
         "arm64v8"
       ],
       "variant": "8-slim",
-      "version": "8.0.29-1.el8"
+      "version": "8.0.30-1.el8"
     },
-    "version": "8.0.29"
+    "version": "8.0.30"
   }
 }
