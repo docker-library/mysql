@@ -208,7 +208,7 @@ docker_create_db_directories() {
 		dir="$(mysql_get_config "$conf" "$@")"
 
 		# skip empty values
-		if [ -z "$dir" ]; then
+		if [ -z "$dir" ] || [ "$dir" = 'NULL' ]; then
 			continue
 		fi
 		case "$conf" in
