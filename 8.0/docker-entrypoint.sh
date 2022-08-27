@@ -160,7 +160,7 @@ docker_verify_minimum_env() {
 	if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
 		mysql_error <<-'EOF'
 			Database is uninitialized and password option is not specified
-			    You need to specify one of the following:
+			    You need to specify one of the following as an environment variable:
 			    - MYSQL_ROOT_PASSWORD
 			    - MYSQL_ALLOW_EMPTY_PASSWORD
 			    - MYSQL_RANDOM_ROOT_PASSWORD
