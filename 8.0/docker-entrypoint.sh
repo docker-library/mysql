@@ -179,7 +179,7 @@ docker_verify_minimum_env() {
 	fi
 
 	# warn when missing one of MYSQL_USER or MYSQL_PASSWORD
-	if [ -n "$MYSQL_USER" ] && [ -z "$MYSQL_PASSWORD" ]; then
+	if [ -n "$MYSQL_USER" ] && [ -z "$MYSQL_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" ]; then
 		mysql_warn 'MYSQL_USER specified, but missing MYSQL_PASSWORD; MYSQL_USER will not be created'
 	elif [ -z "$MYSQL_USER" ] && [ -n "$MYSQL_PASSWORD" ]; then
 		mysql_warn 'MYSQL_PASSWORD specified, but missing MYSQL_USER; MYSQL_PASSWORD will be ignored'
