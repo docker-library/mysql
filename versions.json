@@ -5,19 +5,19 @@
         "amd64"
       ],
       "suite": "buster",
-      "version": "5.7.40-1debian10"
+      "version": "5.7.41-1debian10"
     },
     "mysql-shell": {
-      "version": "8.0.31-1.el7"
+      "version": "8.0.32-1.el7"
     },
     "oracle": {
       "architectures": [
         "amd64"
       ],
       "variant": "7-slim",
-      "version": "5.7.40-1.el7"
+      "version": "5.7.41-1.el7"
     },
-    "version": "5.7.40"
+    "version": "5.7.41"
   },
   "8.0": {
     "debian": {
