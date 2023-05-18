@@ -80,6 +80,9 @@ RUN { \
 # don't reverse lookup hostnames, they are usually another container
 	&& echo '[mysqld]\nskip-host-cache\nskip-name-resolve' > /etc/mysql/conf.d/docker.cnf \
 {{ ) else ( -}}
+        mysql-common="${MYSQL_VERSION}" \
+        mysql-community-client-plugins="${MYSQL_VERSION}" \
+        mysql-community-client-core="${MYSQL_VERSION}" \
 		mysql-community-client="${MYSQL_VERSION}" \
 		mysql-community-server-core="${MYSQL_VERSION}" \
 {{ ) end -}}
