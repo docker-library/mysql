@@ -79,17 +79,33 @@ for version; do
 	)
 
 	for variant in oracle debian; do
+		export variant
+
 		df="Dockerfile.$variant"
 		commit="$(dirCommit "$version" "$df")"
 
 		variantAliases=( "${versionAliases[@]/%/-$variant}" )
 		variantAliases=( "${variantAliases[@]//latest-/}" )
+
+		case "$variant" in
+			debian)
+				suite="$(jq -r '.[env.version][env.variant].suite' versions.json)"
+				variantAliases=( "${versionAliases[@]/%/-$suite}" "${variantAliases[@]}" )
+				variantAliases=( "${variantAliases[@]//latest-/}" )
+				;;
+
+			oracle)
+				ol="$(jq -r '.[env.version][env.variant].variant | split("-")[0]' versions.json)"
+				variantAliases=( "${versionAliases[@]/%/-oraclelinux$ol}" "${variantAliases[@]}" )
+				variantAliases=( "${variantAliases[@]//latest-/}" )
+				;;
+		esac
+
 		if [ "$variant" = "$defaultVariant" ]; then
 			variantAliases=( "${versionAliases[@]}" "${variantAliases[@]}" )
 		fi
 
 		# TODO if the list of architectures supported by MySQL ever is greater than that of the base image it's FROM, this list will need to be filtered
-		export variant
 		variantArches="$(jq -r '.[env.version][env.variant].architectures | join(", ")' versions.json)"
 
 		echo
