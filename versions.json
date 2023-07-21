@@ -8,7 +8,7 @@
       "version": "5.7.42-1debian10"
     },
     "mysql-shell": {
-      "version": "8.0.33-1.el7"
+      "version": "8.0.34-1.el7"
     },
     "oracle": {
       "architectures": [
