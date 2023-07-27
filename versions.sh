@@ -54,7 +54,7 @@ cd "$(dirname "$(readlink -f "$BASH_SOURCE")")"
 
 versions=( "$@" )
 if [ ${#versions[@]} -eq 0 ]; then
-	versions=( *.*/ )
+	versions=( */ )
 	json='{}'
 else
 	json="$(< versions.json)"
@@ -62,11 +62,12 @@ fi
 versions=( "${versions[@]%/}" )
 
 for version in "${versions[@]}"; do
+	[ "$version" != 'template' ] || continue
 	export version
 
 	doc='{}'
 
-	if [[ "$version" == 5.* ]] || [ "$version" = '8.0' ]; then
+	if [ "$version" = '8.0' ]; then
 		debianSuite="${debianSuites[$version]:-$defaultDebianSuite}"
 		debianVersion="$(
 			curl -fsSL "https://repo.mysql.com/apt/debian/dists/$debianSuite/mysql-$version/binary-amd64/Packages.gz" \

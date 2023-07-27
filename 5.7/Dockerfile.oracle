@@ -53,7 +53,7 @@ RUN set -eux; \
 	rm -rf "$GNUPGHOME"
 
 ENV MYSQL_MAJOR 5.7
-ENV MYSQL_VERSION 5.7.42-1.el7
+ENV MYSQL_VERSION 5.7.43-1.el7
 
 RUN set -eu; \
 	. /etc/os-release; \
