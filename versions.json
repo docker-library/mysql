@@ -39,5 +39,19 @@
       "version": "8.0.34-1.el8"
     },
     "version": "8.0.34"
+  },
+  "innovation": {
+    "mysql-shell": {
+      "version": "8.0.34-1.el8"
+    },
+    "oracle": {
+      "architectures": [
+        "amd64",
+        "arm64v8"
+      ],
+      "variant": "8-slim",
+      "version": "8.1.0-1.el8"
+    },
+    "version": "8.1.0"
   }
 }

@@ -110,7 +110,6 @@ for version in "${versions[@]}"; do
 		rpmRepo="https://repo.mysql.com/yum/mysql-$version-community/docker/el/$oracleVersion"
 		archVersions="$(
 			fetch_rpm_versions "$rpmRepo" "$rpmArch" "$oracleVersion" 'mysql-community-server-minimal' \
-				| grep -E "^$version[.]" \
 				|| :
 		)"
 		archVersion="$(head -1 <<<"$archVersions")"
