@@ -32,6 +32,8 @@ generated_warning() {
 for version; do
 	export version
 
+	rm -f "$version"/Dockerfile.*
+
 	for variant in oracle debian; do
 		export variant
 

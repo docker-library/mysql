@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 declare -A aliases=(
 	[5.7]='5'
-	[8.0]='8 latest'
+	[innovation]='latest'
 )
 
 defaultDefaultVariant='oracle'
@@ -73,13 +73,15 @@ for version; do
 		versionAliases+=( $fullVersion )
 		fullVersion="${fullVersion%[.-]*}"
 	done
-	versionAliases+=(
-		$version
-		${aliases[$version]:-}
-	)
+	versionAliases+=( $fullVersion )
+	if [ "$version" != "$fullVersion" ]; then
+		versionAliases+=( $version )
+	fi
+	versionAliases+=( ${aliases[$version]:-} )
 
 	for variant in oracle debian; do
 		df="Dockerfile.$variant"
+		[ -s "$version/$df" ] || continue
 		commit="$(dirCommit "$version" "$df")"
 
 		variantAliases=( "${versionAliases[@]/%/-$variant}" )
