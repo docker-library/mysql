@@ -13,6 +13,13 @@ elif [ "$BASH_SOURCE" -nt "$jqt" ]; then
 	wget -qO "$jqt" 'https://github.com/docker-library/bashbrew/raw/9f6a35772ac863a0241f147c820354e4008edf38/scripts/jq-template.awk'
 fi
 
+jqf='.template-helper-functions.jq'
+if [ -n "${BASHBREW_SCRIPTS:-}" ]; then
+	jqf="$BASHBREW_SCRIPTS/template-helper-functions.jq"
+elif [ "$BASH_SOURCE" -nt "$jqf" ]; then
+	wget -qO "$jqf" 'https://github.com/docker-library/bashbrew/raw/master/scripts/template-helper-functions.jq'
+fi
+
 if [ "$#" -eq 0 ]; then
 	versions="$(jq -r 'keys | map(@sh) | join(" ")' versions.json)"
 	eval "set -- $versions"

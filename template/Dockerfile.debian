@@ -1,3 +1,4 @@
+{{ include ".template-helper-functions" -}}
 FROM debian:{{ .debian.suite }}-slim
 
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
@@ -7,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends gnupg && rm -rf
 
 # add gosu for easy step-down from root
 # https://github.com/tianon/gosu/releases
-ENV GOSU_VERSION 1.16
+ENV GOSU_VERSION {{ .gosu.version }}
 RUN set -eux; \
 	savedAptMark="$(apt-mark showmanual)"; \
 	apt-get update; \
@@ -26,7 +27,20 @@ RUN set -eux; \
 	apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
 	chmod +x /usr/local/bin/gosu; \
 	gosu --version; \
-	gosu nobody true
+	gosu nobody true; \
+	echo {{
+		{
+			name: "gosu",
+			version: .gosu.version,
+			params: {
+				os_name: "debian",
+				os_version: .debian.suite
+			},
+			licenses: [
+				"Apache-2.0"
+			]
+		} | sbom | tostring | @sh
+	}} > /usr/local/gosu.spdx.json
 
 RUN mkdir /docker-entrypoint-initdb.d
 

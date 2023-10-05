@@ -1,4 +1,5 @@
 {{
+	include ".template-helper-functions";
 	def dnf:
 		if .oracle.variant | startswith("7") then
 			"yum"
@@ -21,7 +22,7 @@ RUN set -eux; \
 
 # add gosu for easy step-down from root
 # https://github.com/tianon/gosu/releases
-ENV GOSU_VERSION 1.16
+ENV GOSU_VERSION {{ .gosu.version }}
 RUN set -eux; \
 # TODO find a better userspace architecture detection method than querying the kernel
 	arch="$(uname -m)"; \
@@ -38,7 +39,20 @@ RUN set -eux; \
 	rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc; \
 	chmod +x /usr/local/bin/gosu; \
 	gosu --version; \
-	gosu nobody true
+	gosu nobody true; \
+	echo {{
+		{
+			name: "gosu",
+			version: .gosu.version,
+			params: {
+				os_name: "oraclelinux",
+				os_version: .oracle.variant
+			},
+			licenses: [
+				"Apache-2.0"
+			]
+		} | sbom | tostring | @sh
+	}} > /usr/local/gosu.spdx.json
 
 RUN set -eux; \
 {{ if .oracle.variant | startswith("7") then ( -}}

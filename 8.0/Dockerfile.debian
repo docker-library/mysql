@@ -32,7 +32,8 @@ RUN set -eux; \
 	apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
 	chmod +x /usr/local/bin/gosu; \
 	gosu --version; \
-	gosu nobody true
+	gosu nobody true; \
+	echo '{"spdxVersion":"SPDX-2.3","SPDXID":"SPDXRef-DOCUMENT","name":"gosu-sbom","packages":[{"name":"gosu","versionInfo":"1.16","SPDXID":"SPDXRef-Package--gosu","externalRefs":[{"referenceCategory":"PACKAGE-MANAGER","referenceType":"purl","referenceLocator":"pkg:generic/gosu@1.16?os_name=debian&os_version=bullseye"}],"licenseDeclared":"Apache-2.0"}]}' > /usr/local/gosu.spdx.json
 
 RUN mkdir /docker-entrypoint-initdb.d
 

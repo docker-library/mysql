@@ -1,5 +1,8 @@
 {
   "5.7": {
+    "gosu": {
+      "version": "1.16"
+    },
     "mysql-shell": {
       "version": "8.0.34-1.el7"
     },
@@ -20,6 +23,9 @@
       "suite": "bullseye",
       "version": "8.0.34-1debian11"
     },
+    "gosu": {
+      "version": "1.16"
+    },
     "mysql-shell": {
       "version": "8.0.34-1.el8"
     },
@@ -34,6 +40,9 @@
     "version": "8.0.34"
   },
   "innovation": {
+    "gosu": {
+      "version": "1.16"
+    },
     "mysql-shell": {
       "version": "8.0.34-1.el8"
     },

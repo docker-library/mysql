@@ -17,6 +17,8 @@ declare -A bashbrewArchToRpmArch=(
 	[arm64v8]='aarch64'
 )
 
+gosuVersion='1.16'
+
 fetch_rpm_versions() {
 	local repo="$1"; shift
 	local arch="$1"; shift
@@ -144,7 +146,7 @@ for version in "${versions[@]}"; do
 		echo >&2 "error: Oracle and Debian version mismatch! ('$oracleBaseVersion' vs '$baseVersion')"
 		exit 1
 	fi
-	export baseVersion rpmVersion shellVersion oracleVariant
+	export baseVersion rpmVersion shellVersion oracleVariant gosuVersion
 	doc="$(jq <<<"$doc" -c '
 		. += {
 			version: env.baseVersion,
@@ -155,6 +157,9 @@ for version in "${versions[@]}"; do
 			"mysql-shell": {
 				version: env.shellVersion,
 			},
+			"gosu": {
+				version: env.gosuVersion
+			}
 		}
 	')"
 
