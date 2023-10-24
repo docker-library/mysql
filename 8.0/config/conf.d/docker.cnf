@@ -1,3 +1,3 @@
 [mysqld]
-SET GLOBAL host_cache_size=0
+host_cache_size=0
 skip-name-resolve
