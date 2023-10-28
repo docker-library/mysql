@@ -1,16 +1,16 @@
 {
   "5.7": {
     "mysql-shell": {
-      "version": "8.0.34-1.el7"
+      "version": "8.0.35-1.el7"
     },
     "oracle": {
       "architectures": [
         "amd64"
       ],
       "variant": "7-slim",
-      "version": "5.7.43-1.el7"
+      "version": "5.7.44-1.el7"
     },
-    "version": "5.7.43"
+    "version": "5.7.44"
   },
   "8.0": {
     "debian": {
@@ -18,10 +18,10 @@
         "amd64"
       ],
       "suite": "bullseye",
-      "version": "8.0.34-1debian11"
+      "version": "8.0.35-1debian11"
     },
     "mysql-shell": {
-      "version": "8.0.34-1.el8"
+      "version": "8.0.35-1.el8"
     },
     "oracle": {
       "architectures": [
@@ -29,13 +29,13 @@
         "arm64v8"
       ],
       "variant": "8-slim",
-      "version": "8.0.34-1.el8"
+      "version": "8.0.35-1.el8"
     },
-    "version": "8.0.34"
+    "version": "8.0.35"
   },
   "innovation": {
     "mysql-shell": {
-      "version": "8.0.34-1.el8"
+      "version": "8.0.35-1.el8"
     },
     "oracle": {
       "architectures": [
@@ -43,8 +43,8 @@
         "arm64v8"
       ],
       "variant": "8-slim",
-      "version": "8.1.0-1.el8"
+      "version": "8.2.0-1.el8"
     },
-    "version": "8.1.0"
+    "version": "8.2.0"
   }
 }
