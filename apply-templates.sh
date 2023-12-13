@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+shopt -s extglob # support globs like !(foo)
 
 [ -f versions.json ] # run "versions.sh" first
 
@@ -32,10 +33,13 @@ generated_warning() {
 for version; do
 	export version
 
-	rm -f "$version"/Dockerfile.*
+	rm -f "$version"/!(config)
+	mkdir -p "$version"
 
 	for variant in oracle debian; do
 		export variant
+
+		echo "processing $version ($variant) ..."
 
 		variantVersion="$(jq -r '.[env.version][env.variant] // {} | .version // ""' versions.json)"
 		if [ -n "$variantVersion" ]; then

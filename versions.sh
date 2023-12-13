@@ -103,12 +103,22 @@ for version in "${versions[@]}"; do
 
 	oracleVariant="${oracleVariants[$version]:-$defaultOracleVariant}"
 	oracleVersion="${oracleVariant%%-*}" # "7", etc
+
+	rpmRepo="https://repo.mysql.com/yum/mysql-$version-community/docker/el/$oracleVersion"
+	case "$version" in
+		innovation) toolsRepo="https://repo.mysql.com/yum/mysql-tools-innovation-community/el/$oracleVersion" ;;
+		*)          toolsRepo="https://repo.mysql.com/yum/mysql-tools-community/el/$oracleVersion" ;;
+	esac
+	export rpmRepo toolsRepo
+
 	rpmVersion=
 	shellVersion=
-	doc="$(jq <<<"$doc" -c '. += { oracle: { architectures: [] } }')"
+	doc="$(jq <<<"$doc" -c '. += {
+		oracle: { architectures: [], repo: env.rpmRepo },
+		"mysql-shell": { repo: env.toolsRepo },
+	}')"
 	for bashbrewArch in $(xargs -n1 <<<"${!bashbrewArchToRpmArch[*]}" | sort | xargs); do
 		rpmArch="${bashbrewArchToRpmArch[$bashbrewArch]}"
-		rpmRepo="https://repo.mysql.com/yum/mysql-$version-community/docker/el/$oracleVersion"
 		archVersions="$(
 			fetch_rpm_versions "$rpmRepo" "$rpmArch" "$oracleVersion" 'mysql-community-server-minimal' \
 				|| :
@@ -121,7 +131,7 @@ for version in "${versions[@]}"; do
 			echo >&2 "error: $version architecture version mismatch! ('$rpmVersion' vs '$archVersion' on '$rpmArch'/'$bashbrewArch')"
 			exit 1
 		fi
-		shellArchVersions="$(fetch_rpm_versions "https://repo.mysql.com/yum/mysql-tools-community/el/$oracleVersion" "$rpmArch" "$oracleVersion" 'mysql-shell')"
+		shellArchVersions="$(fetch_rpm_versions "$toolsRepo" "$rpmArch" "$oracleVersion" 'mysql-shell')"
 		shellArchVersion="$(head -1 <<<"$shellArchVersions")"
 		if [ -z "$shellVersion" ]; then
 			shellVersion="$shellArchVersion"
@@ -152,9 +162,9 @@ for version in "${versions[@]}"; do
 				version: env.rpmVersion,
 				variant: env.oracleVariant,
 			}),
-			"mysql-shell": {
+			"mysql-shell": (.["mysql-shell"] + {
 				version: env.shellVersion,
-			},
+			}),
 		}
 	')"
 

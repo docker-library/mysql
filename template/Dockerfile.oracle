@@ -71,12 +71,11 @@ ENV MYSQL_MAJOR {{ env.version }}
 ENV MYSQL_VERSION {{ .oracle.version }}
 
 RUN set -eu; \
-	. /etc/os-release; \
 	{ \
 		echo '[mysql{{ env.version }}-server-minimal]'; \
 		echo 'name=MySQL {{ env.version }} Server Minimal'; \
 		echo 'enabled=1'; \
-		echo "baseurl=https://repo.mysql.com/yum/mysql-{{ env.version }}-community/docker/el/${VERSION_ID%%[.-]*}/\$basearch/"; \
+		echo {{ "baseurl=" + .oracle.repo + "/$basearch/" | @sh }}; \
 		echo 'gpgcheck=1'; \
 		echo 'gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-mysql'; \
 # https://github.com/docker-library/mysql/pull/680#issuecomment-825930524
@@ -121,11 +120,10 @@ RUN set -eux; \
 	mysql --version
 
 RUN set -eu; \
-	. /etc/os-release; \
 	{ \
 		echo '[mysql-tools-community]'; \
 		echo 'name=MySQL Tools Community'; \
-		echo "baseurl=https://repo.mysql.com/yum/mysql-tools-community/el/${VERSION_ID%%[.-]*}/\$basearch/"; \
+		echo {{ "baseurl=" + .["mysql-shell"].repo + "/$basearch/" | @sh }}; \
 		echo 'enabled=1'; \
 		echo 'gpgcheck=1'; \
 		echo 'gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-mysql'; \
