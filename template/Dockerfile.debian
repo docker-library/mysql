@@ -73,7 +73,7 @@ RUN { \
 		echo mysql-community-server mysql-community-server/remove-test-db select false; \
 	} | debconf-set-selections \
 	&& apt-get update \
-	&& apt-get install -y \
+	&& apt-get install -y --no-install-recommends \
 {{ if env.version == "5.7" then ( -}}
 		mysql-server="${MYSQL_VERSION}" \
 # comment out a few problematic configuration values
