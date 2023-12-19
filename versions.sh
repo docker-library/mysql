@@ -62,7 +62,6 @@ fi
 versions=( "${versions[@]%/}" )
 
 for version in "${versions[@]}"; do
-	[ "$version" != 'template' ] || continue
 	export version
 
 	doc='{}'
