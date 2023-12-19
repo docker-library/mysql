@@ -1,19 +1,4 @@
 {
-  "5.7": {
-    "mysql-shell": {
-      "repo": "https://repo.mysql.com/yum/mysql-tools-community/el/7",
-      "version": "8.0.35-1.el7"
-    },
-    "oracle": {
-      "architectures": [
-        "amd64"
-      ],
-      "repo": "https://repo.mysql.com/yum/mysql-5.7-community/docker/el/7",
-      "variant": "7-slim",
-      "version": "5.7.44-1.el7"
-    },
-    "version": "5.7.44"
-  },
   "8.0": {
     "debian": {
       "architectures": [

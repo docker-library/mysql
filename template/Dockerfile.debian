@@ -74,18 +74,8 @@ RUN { \
 	} | debconf-set-selections \
 	&& apt-get update \
 	&& apt-get install -y \
-{{ if env.version == "5.7" then ( -}}
-		mysql-server="${MYSQL_VERSION}" \
-# comment out a few problematic configuration values
-	&& find /etc/mysql/ -name '*.cnf' -print0 \
-		| xargs -0 grep -lZE '^(bind-address|log)' \
-		| xargs -rt -0 sed -Ei 's/^(bind-address|log)/#&/' \
-# don't reverse lookup hostnames, they are usually another container
-	&& echo '[mysqld]\nskip-host-cache\nskip-name-resolve' > /etc/mysql/conf.d/docker.cnf \
-{{ ) else ( -}}
 		mysql-community-client="${MYSQL_VERSION}" \
 		mysql-community-server-core="${MYSQL_VERSION}" \
-{{ ) end -}}
 	&& rm -rf /var/lib/apt/lists/* \
 	&& rm -rf /var/lib/mysql && mkdir -p /var/lib/mysql /var/run/mysqld \
 	&& chown -R mysql:mysql /var/lib/mysql /var/run/mysqld \
@@ -94,12 +84,10 @@ RUN { \
 
 VOLUME /var/lib/mysql
 
-{{ if env.version != "5.7" then ( -}}
 # Config files
 COPY config/ /etc/mysql/
-{{ ) else "" end -}}
 COPY docker-entrypoint.sh /usr/local/bin/
-{{ if [ "5.7", "8.0" ] | index(env.version) then ( -}}
+{{ if [ "8.0" ] | index(env.version) then ( -}}
 RUN ln -s usr/local/bin/docker-entrypoint.sh /entrypoint.sh # backwards compat
 {{ ) else "" end -}}
 ENTRYPOINT ["docker-entrypoint.sh"]

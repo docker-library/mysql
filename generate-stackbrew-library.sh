@@ -2,13 +2,11 @@
 set -Eeuo pipefail
 
 declare -A aliases=(
-	[5.7]='5'
 	[innovation]='latest'
 )
 
 defaultDefaultVariant='oracle'
 declare -A defaultVariants=(
-	#[5.7]='debian'
 	#[8.0]='debian'
 )
 

@@ -120,30 +120,9 @@ mysql_socket_fix() {
 
 # Do a temporary startup of the MySQL server, for init purposes
 docker_temp_server_start() {
-	if [ "${MYSQL_MAJOR}" = '5.7' ]; then
-		"$@" --skip-networking --default-time-zone=SYSTEM --socket="${SOCKET}" &
-		mysql_note "Waiting for server startup"
-		local i
-		for i in {30..0}; do
-			# only use the root password if the database has already been initialized
-			# so that it won't try to fill in a password file when it hasn't been set yet
-			extraArgs=()
-			if [ -z "$DATABASE_ALREADY_EXISTS" ]; then
-				extraArgs+=( '--dont-use-mysql-root-password' )
-			fi
-			if docker_process_sql "${extraArgs[@]}" --database=mysql <<<'SELECT 1' &> /dev/null; then
-				break
-			fi
-			sleep 1
-		done
-		if [ "$i" = 0 ]; then
-			mysql_error "Unable to start server."
-		fi
-	else
-		# For 5.7+ the server is ready for use as soon as startup command unblocks
-		if ! "$@" --daemonize --skip-networking --default-time-zone=SYSTEM --socket="${SOCKET}"; then
-			mysql_error "Unable to start server."
-		fi
+	# For 5.7+ the server is ready for use as soon as startup command unblocks
+	if ! "$@" --daemonize --skip-networking --default-time-zone=SYSTEM --socket="${SOCKET}"; then
+		mysql_error "Unable to start server."
 	fi
 }
 
