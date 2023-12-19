@@ -46,10 +46,10 @@ for version; do
 			dockerfile="Dockerfile.$variant"
 			{
 				generated_warning
-				gawk -f "$jqt" "template/$dockerfile"
+				gawk -f "$jqt" "$dockerfile"
 			} > "$version/$dockerfile"
 		fi
 	done
 
-	cp -a template/docker-entrypoint.sh "$version/docker-entrypoint.sh"
+	cp -a docker-entrypoint.sh "$version/docker-entrypoint.sh"
 done
