@@ -25,7 +25,7 @@
   "innovation": {
     "mysql-shell": {
       "repo": "https://repo.mysql.com/yum/mysql-tools-innovation-community/el/8",
-      "version": "8.2.1-1.el8"
+      "version": "8.3.0-1.el8"
     },
     "oracle": {
       "architectures": [
@@ -34,8 +34,8 @@
       ],
       "repo": "https://repo.mysql.com/yum/mysql-innovation-community/docker/el/8",
       "variant": "8-slim",
-      "version": "8.2.0-1.el8"
+      "version": "8.3.0-1.el8"
     },
-    "version": "8.2.0"
+    "version": "8.3.0"
   }
 }
