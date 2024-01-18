@@ -45,15 +45,18 @@ RUN set -eux; \
 
 RUN set -eux; \
 # https://dev.mysql.com/doc/refman/8.0/en/checking-gpg-signature.html
-# gpg: key 3A79BD29: public key "MySQL Release Engineering <mysql-build@oss.oracle.com>" imported
-	key='859BE8D7C586F538430B19C2467B942D3A79BD29'; \
+# pub   rsa4096 2023-10-23 [SC] [expires: 2025-10-22]
+#       BCA4 3417 C3B4 85DD 128E  C6D4 B7B3 B788 A8D3 785C
+# uid           [ unknown] MySQL Release Engineering <mysql-build@oss.oracle.com>
+# sub   rsa4096 2023-10-23 [E] [expires: 2025-10-22]
+	key='BCA4 3417 C3B4 85DD 128E C6D4 B7B3 B788 A8D3 785C'; \
 	export GNUPGHOME="$(mktemp -d)"; \
 	gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key"; \
 	gpg --batch --export --armor "$key" > /etc/pki/rpm-gpg/RPM-GPG-KEY-mysql; \
 	rm -rf "$GNUPGHOME"
 
 ENV MYSQL_MAJOR innovation
-ENV MYSQL_VERSION 8.2.0-1.el8
+ENV MYSQL_VERSION 8.3.0-1.el8
 
 RUN set -eu; \
 	{ \
@@ -104,7 +107,7 @@ RUN set -eu; \
 # https://github.com/docker-library/mysql/pull/680#issuecomment-825930524
 		echo 'module_hotfixes=true'; \
 	} | tee /etc/yum.repos.d/mysql-community-tools.repo
-ENV MYSQL_SHELL_VERSION 8.2.1-1.el8
+ENV MYSQL_SHELL_VERSION 8.3.0-1.el8
 RUN set -eux; \
 	microdnf install -y "mysql-shell-$MYSQL_SHELL_VERSION"; \
 	microdnf clean all; \
