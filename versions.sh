@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-defaultDebianSuite='bullseye'
+defaultDebianSuite='bookworm'
 declare -A debianSuites=(
 	#[5.7]='buster'
 )
