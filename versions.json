@@ -4,8 +4,8 @@
       "architectures": [
         "amd64"
       ],
-      "suite": "bullseye",
-      "version": "8.0.36-1debian11"
+      "suite": "bookworm",
+      "version": "8.0.36-1debian12"
     },
     "mysql-shell": {
       "repo": "https://repo.mysql.com/yum/mysql-tools-community/el/8",
