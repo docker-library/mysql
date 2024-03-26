@@ -12,7 +12,7 @@ RUN set -eux; \
 
 # add gosu for easy step-down from root
 # https://github.com/tianon/gosu/releases
-ENV GOSU_VERSION 1.16
+ENV GOSU_VERSION 1.17
 RUN set -eux; \
 # TODO find a better userspace architecture detection method than querying the kernel
 	arch="$(uname -m)"; \
