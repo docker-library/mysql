@@ -105,8 +105,8 @@ for version in "${versions[@]}"; do
 
 	rpmRepo="https://repo.mysql.com/yum/mysql-$version-community/docker/el/$oracleVersion"
 	case "$version" in
-		innovation) toolsRepo="https://repo.mysql.com/yum/mysql-tools-innovation-community/el/$oracleVersion" ;;
-		*)          toolsRepo="https://repo.mysql.com/yum/mysql-tools-community/el/$oracleVersion" ;;
+		8.0) toolsRepo="https://repo.mysql.com/yum/mysql-tools-community/el/$oracleVersion" ;;
+		*)   toolsRepo="https://repo.mysql.com/yum/mysql-tools-$version-community/el/$oracleVersion" ;;
 	esac
 	export rpmRepo toolsRepo
 
