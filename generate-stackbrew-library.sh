@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 declare -A aliases=(
-	[8.4]='lts'
+	[8.4]='8 lts'
 )
 
 defaultDefaultVariant='oracle'
