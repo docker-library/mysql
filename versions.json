@@ -5,11 +5,11 @@
         "amd64"
       ],
       "suite": "bookworm",
-      "version": "8.0.36-1debian12"
+      "version": "8.0.37-1debian12"
     },
     "mysql-shell": {
       "repo": "https://repo.mysql.com/yum/mysql-tools-community/el/8",
-      "version": "8.0.36-1.el8"
+      "version": "8.0.37-1.el8"
     },
     "oracle": {
       "architectures": [
@@ -18,9 +18,9 @@
       ],
       "repo": "https://repo.mysql.com/yum/mysql-8.0-community/docker/el/8",
       "variant": "8-slim",
-      "version": "8.0.36-1.el8"
+      "version": "8.0.37-1.el8"
     },
-    "version": "8.0.36"
+    "version": "8.0.37"
   },
   "innovation": {
     "mysql-shell": {
