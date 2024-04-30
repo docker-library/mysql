@@ -105,8 +105,8 @@ for version in "${versions[@]}"; do
 
 	rpmRepo="https://repo.mysql.com/yum/mysql-$version-community/docker/el/$oracleVersion"
 	case "$version" in
-		innovation) toolsRepo="https://repo.mysql.com/yum/mysql-tools-innovation-community/el/$oracleVersion" ;;
-		*)          toolsRepo="https://repo.mysql.com/yum/mysql-tools-community/el/$oracleVersion" ;;
+		8.0) toolsRepo="https://repo.mysql.com/yum/mysql-tools-community/el/$oracleVersion" ;;
+		*)   toolsRepo="https://repo.mysql.com/yum/mysql-tools-$version-community/el/$oracleVersion" ;;
 	esac
 	export rpmRepo toolsRepo
 
@@ -172,4 +172,16 @@ for version in "${versions[@]}"; do
 	json="$(jq <<<"$json" -c --argjson doc "$doc" '.[env.version] = $doc')"
 done
 
-jq <<<"$json" -S . > versions.json
+jq <<<"$json" '
+	# sort entries in descending version order so that it is easier to determine later (in "generate-stackbrew-library.sh") if "innovation" should be included or not, and which entry to give the "latest" alias to (the first one!)
+	# https://github.com/docker-library/mysql/pull/1046#issuecomment-2087323746
+	to_entries
+	| sort_by(
+		# very rough "sort by version number"
+		.value.version
+		| split(".")
+		| map(tonumber? // .)
+	)
+	| reverse
+	| from_entries
+' > versions.json

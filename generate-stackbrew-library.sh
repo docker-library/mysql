@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 declare -A aliases=(
-	[innovation]='latest'
+	[8.4]='lts'
 )
 
 defaultDefaultVariant='oracle'
@@ -12,6 +12,10 @@ declare -A defaultVariants=(
 
 self="$(basename "$BASH_SOURCE")"
 cd "$(dirname "$(readlink -f "$BASH_SOURCE")")"
+
+# add the "latest" alias to the "newest" version (LTS vs innovation; see sorting in "versions.sh")
+latest="$(jq -r 'keys_unsorted[0]' versions.json)"
+aliases["$latest"]+=' latest'
 
 if [ "$#" -eq 0 ]; then
 	versions="$(jq -r 'keys | map(@sh) | join(" ")' versions.json)"
@@ -63,8 +67,18 @@ join() {
 for version; do
 	export version
 
-	defaultVariant="${defaultVariants[$version]:-$defaultDefaultVariant}"
-	fullVersion="$(jq -r '.[env.version].version' versions.json)"
+	if ! fullVersion="$(jq -re '
+		if env.version == "innovation" and keys_unsorted[0] != env.version then
+			# https://github.com/docker-library/mysql/pull/1046#issuecomment-2087323746
+			# if any explicit/LTS release is *newer* than the current innovation release, we should skip innovation
+			# (because we pre-sorted the full list in "versions.sh", we just need to check whether "innovation" is first 🚀)
+			false
+		else
+			.[env.version].version
+		end
+	' versions.json)"; then
+		continue
+	fi
 
 	versionAliases=()
 	while [ "$fullVersion" != "$version" -a "${fullVersion%[.-]*}" != "$fullVersion" ]; do
@@ -77,6 +91,7 @@ for version; do
 	fi
 	versionAliases+=( ${aliases[$version]:-} )
 
+	defaultVariant="${defaultVariants[$version]:-$defaultDefaultVariant}"
 	for variant in oracle debian; do
 		export variant
 

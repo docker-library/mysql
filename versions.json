@@ -1,5 +1,38 @@
 {
+  "8.4": {
+    "oracle": {
+      "architectures": [
+        "amd64",
+        "arm64v8"
+      ],
+      "repo": "https://repo.mysql.com/yum/mysql-8.4-community/docker/el/8",
+      "version": "8.4.0-1.el8",
+      "variant": "8-slim"
+    },
+    "mysql-shell": {
+      "repo": "https://repo.mysql.com/yum/mysql-tools-8.4-community/el/8",
+      "version": "8.4.0-1.el8"
+    },
+    "version": "8.4.0"
+  },
+  "innovation": {
+    "oracle": {
+      "architectures": [
+        "amd64",
+        "arm64v8"
+      ],
+      "repo": "https://repo.mysql.com/yum/mysql-innovation-community/docker/el/8",
+      "version": "8.3.0-1.el8",
+      "variant": "8-slim"
+    },
+    "mysql-shell": {
+      "repo": "https://repo.mysql.com/yum/mysql-tools-innovation-community/el/8",
+      "version": "8.4.0-1.el8"
+    },
+    "version": "8.3.0"
+  },
   "8.0": {
+    "version": "8.0.37",
     "debian": {
       "architectures": [
         "amd64"
@@ -7,35 +40,18 @@
       "suite": "bookworm",
       "version": "8.0.37-1debian12"
     },
-    "mysql-shell": {
-      "repo": "https://repo.mysql.com/yum/mysql-tools-community/el/8",
-      "version": "8.0.37-1.el8"
-    },
     "oracle": {
       "architectures": [
         "amd64",
         "arm64v8"
       ],
       "repo": "https://repo.mysql.com/yum/mysql-8.0-community/docker/el/8",
-      "variant": "8-slim",
-      "version": "8.0.37-1.el8"
+      "version": "8.0.37-1.el8",
+      "variant": "8-slim"
     },
-    "version": "8.0.37"
-  },
-  "innovation": {
     "mysql-shell": {
-      "repo": "https://repo.mysql.com/yum/mysql-tools-innovation-community/el/8",
-      "version": "8.4.0-1.el8"
-    },
-    "oracle": {
-      "architectures": [
-        "amd64",
-        "arm64v8"
-      ],
-      "repo": "https://repo.mysql.com/yum/mysql-innovation-community/docker/el/8",
-      "variant": "8-slim",
-      "version": "8.3.0-1.el8"
-    },
-    "version": "8.3.0"
+      "repo": "https://repo.mysql.com/yum/mysql-tools-community/el/8",
+      "version": "8.0.37-1.el8"
+    }
   }
 }
