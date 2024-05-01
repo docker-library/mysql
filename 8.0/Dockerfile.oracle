@@ -4,7 +4,7 @@
 # PLEASE DO NOT EDIT IT DIRECTLY.
 #
 
-FROM oraclelinux:8-slim
+FROM oraclelinux:9-slim
 
 RUN set -eux; \
 	groupadd --system --gid 999 mysql; \
@@ -56,14 +56,14 @@ RUN set -eux; \
 	rm -rf "$GNUPGHOME"
 
 ENV MYSQL_MAJOR 8.0
-ENV MYSQL_VERSION 8.0.37-1.el8
+ENV MYSQL_VERSION 8.0.37-1.el9
 
 RUN set -eu; \
 	{ \
 		echo '[mysql8.0-server-minimal]'; \
 		echo 'name=MySQL 8.0 Server Minimal'; \
 		echo 'enabled=1'; \
-		echo 'baseurl=https://repo.mysql.com/yum/mysql-8.0-community/docker/el/8/$basearch/'; \
+		echo 'baseurl=https://repo.mysql.com/yum/mysql-8.0-community/docker/el/9/$basearch/'; \
 		echo 'gpgcheck=1'; \
 		echo 'gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-mysql'; \
 # https://github.com/docker-library/mysql/pull/680#issuecomment-825930524
@@ -100,14 +100,14 @@ RUN set -eu; \
 	{ \
 		echo '[mysql-tools-community]'; \
 		echo 'name=MySQL Tools Community'; \
-		echo 'baseurl=https://repo.mysql.com/yum/mysql-tools-community/el/8/$basearch/'; \
+		echo 'baseurl=https://repo.mysql.com/yum/mysql-tools-community/el/9/$basearch/'; \
 		echo 'enabled=1'; \
 		echo 'gpgcheck=1'; \
 		echo 'gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-mysql'; \
 # https://github.com/docker-library/mysql/pull/680#issuecomment-825930524
 		echo 'module_hotfixes=true'; \
 	} | tee /etc/yum.repos.d/mysql-community-tools.repo
-ENV MYSQL_SHELL_VERSION 8.0.37-1.el8
+ENV MYSQL_SHELL_VERSION 8.0.37-1.el9
 RUN set -eux; \
 	microdnf install -y "mysql-shell-$MYSQL_SHELL_VERSION"; \
 	microdnf clean all; \
