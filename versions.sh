@@ -177,10 +177,17 @@ jq <<<"$json" '
 	# https://github.com/docker-library/mysql/pull/1046#issuecomment-2087323746
 	to_entries
 	| sort_by(
-		# very rough "sort by version number"
-		.value.version
-		| split(".")
-		| map(tonumber? // .)
+		[
+			(
+				# very rough "sort by version number"
+				.value.version
+				| split(".")
+				| map(tonumber? // .)
+			),
+			# when two versions are equal (8.4.0 copied to "innovation" *and* in "8.4", for example), prefer the LTS/explicit release over "innovation"
+			.key != "innovation"
+			# (false sorts above true, but then we reverse)
+		]
 	)
 	| reverse
 	| from_entries
