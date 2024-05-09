@@ -16,6 +16,11 @@ cd "$(dirname "$(readlink -f "$BASH_SOURCE")")"
 # add the "latest" alias to the "newest" version (LTS vs innovation; see sorting in "versions.sh")
 latest="$(jq -r 'keys_unsorted[0]' versions.json)"
 aliases["$latest"]+=' latest'
+# if "innovation" currently is in line with an LTS, add the "innovation" alias to the LTS release
+innovation="$(jq -r 'to_entries | if .[0].value.version == .[1].value.version and .[1].key == "innovation" then .[0].key else "innovation" end' versions.json)"
+if [ "$innovation" != 'innovation' ]; then
+	aliases["$innovation"]+=' innovation'
+fi
 
 if [ "$#" -eq 0 ]; then
 	versions="$(jq -r 'keys | map(@sh) | join(" ")' versions.json)"
