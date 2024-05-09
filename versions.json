@@ -22,14 +22,14 @@
         "arm64v8"
       ],
       "repo": "https://repo.mysql.com/yum/mysql-innovation-community/docker/el/8",
-      "version": "8.3.0-1.el8",
+      "version": "8.4.0-1.el8",
       "variant": "8-slim"
     },
     "mysql-shell": {
       "repo": "https://repo.mysql.com/yum/mysql-tools-innovation-community/el/8",
       "version": "8.4.0-1.el8"
     },
-    "version": "8.3.0"
+    "version": "8.4.0"
   },
   "8.0": {
     "version": "8.0.37",
