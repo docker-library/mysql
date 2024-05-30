@@ -214,7 +214,8 @@ docker_create_db_directories() {
 # initializes the database directory
 docker_init_database_dir() {
 	mysql_note "Initializing database files"
-	"$@" --initialize-insecure --default-time-zone=SYSTEM
+	"$@" --initialize-insecure --default-time-zone=SYSTEM --autocommit=1
+	# explicitly enable autocommit to combat https://bugs.mysql.com/bug.php?id=110535 (TODO remove this when 8.0 is EOL; see https://github.com/mysql/mysql-server/commit/7dbf4f80ed15f3c925cfb2b834142f23a2de719a)
 	mysql_note "Database files initialized"
 }
 
@@ -292,6 +293,9 @@ docker_setup_db() {
 
 	# tell docker_process_sql to not use MYSQL_ROOT_PASSWORD since it is just now being set
 	docker_process_sql --dont-use-mysql-root-password --database=mysql <<-EOSQL
+		-- enable autocommit explicitly (in case it was disabled globally)
+		SET autocommit = 1;
+
 		-- What's done in this file shouldn't be replicated
 		--  or products like mysql-fabric won't work
 		SET @@SESSION.SQL_LOG_BIN=0;
