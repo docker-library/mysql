@@ -27,7 +27,7 @@
     },
     "mysql-shell": {
       "repo": "https://repo.mysql.com/yum/mysql-tools-innovation-community/el/8",
-      "version": "8.4.0-1.el8"
+      "version": "9.0.0-1.el8"
     },
     "version": "8.4.0"
   },
