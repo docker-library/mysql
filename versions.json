@@ -32,13 +32,13 @@
     "version": "8.4.2"
   },
   "8.0": {
-    "version": "8.0.39",
+    "version": "8.0.32",
     "debian": {
       "architectures": [
         "amd64"
       ],
       "suite": "bookworm",
-      "version": "8.0.39-1debian12"
+      "version": "8.0.32-1debian12"
     },
     "oracle": {
       "architectures": [
@@ -46,12 +46,12 @@
         "arm64v8"
       ],
       "repo": "https://repo.mysql.com/yum/mysql-8.0-community/docker/el/9",
-      "version": "8.0.39-1.el9",
+      "version": "8.0.32-1.el9",
       "variant": "9-slim"
     },
     "mysql-shell": {
       "repo": "https://repo.mysql.com/yum/mysql-tools-community/el/9",
-      "version": "8.0.38-1.el9"
+      "version": "8.0.32-1.el9"
     }
   }
 }
