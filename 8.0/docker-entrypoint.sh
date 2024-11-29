@@ -360,6 +360,61 @@ _mysql_want_help() {
 	return 1
 }
 
+queries_for_replication() {
+    if [ -n "$MASTER_SLAVE_ROLE" ]; then
+        if [ "$MASTER_SLAVE_ROLE" == "MASTER" ]; then
+            if [ -z "$MYSQL_REPLICATION_USER" ] || [ -z "$MYSQL_REPLICATION_PASSWORD" ]; then
+                mysql_note "MYSQL_REPLICATION_USER and MYSQL_REPLICATION_PASSWORD must be set when MASTER_SLAVE_ROLE is MASTER"
+            else
+                docker_process_sql --database=mysql <<-EOSQL
+					CREATE USER '$MYSQL_REPLICATION_USER'@'%' IDENTIFIED WITH 'mysql_native_password' BY '$MYSQL_REPLICATION_PASSWORD';
+					GRANT REPLICATION SLAVE ON *.* TO '$MYSQL_REPLICATION_USER'@'%';
+				EOSQL
+                mysql_note "Replication user '$MYSQL_REPLICATION_USER' created."
+            fi
+        elif [ "$MASTER_SLAVE_ROLE" == "SLAVE" ]; then
+            if [ -z "$MYSQL_MASTER_SERVICE_HOST" ] || [ -z "$MYSQL_REPLICATION_USER" ] || [ -z "$MYSQL_REPLICATION_PASSWORD" ]; then
+                mysql_note "MYSQL_MASTER_SERVICE_HOST, MYSQL_REPLICATION_USER, and MYSQL_REPLICATION_PASSWORD must be set when MASTER_SLAVE_ROLE is SLAVE"
+            else
+					docker_process_sql --database=mysql <<-EOSQL
+						STOP SLAVE;
+						CHANGE MASTER TO MASTER_HOST='$MYSQL_MASTER_SERVICE_HOST', MASTER_USER='$MYSQL_REPLICATION_USER', MASTER_PASSWORD='$MYSQL_REPLICATION_PASSWORD';
+						START SLAVE;
+					EOSQL
+                mysql_note "Replication configured for slave with master host '$MYSQL_MASTER_SERVICE_HOST'."
+            fi
+        else
+            mysql_note "Invalid value for MASTER_SLAVE_ROLE: $MASTER_SLAVE_ROLE. Must be MASTER or SLAVE."
+        fi
+    fi
+}
+
+
+core_config_for_replication(){
+
+    if [ -n "$MASTER_SLAVE_ROLE" ]; then
+        if [ "$MASTER_SLAVE_ROLE" == "MASTER" ]; then
+	
+            sed '/\[mysqld\]/a server-id=1\nlog-bin\nbind-address=0.0.0.0' /etc/mysql/my.cnf > /tmp/my.cnf && cat /tmp/my.cnf > /etc/mysql/my.cnf
+			
+            mysql_note "Server id is 1 now and bind-address set to 0.0.0.0"
+			
+        elif [ "$MASTER_SLAVE_ROLE" == "SLAVE" ]; then
+		
+            RAND="$(date +%s | rev | cut -c 1-2)$(echo ${RANDOM})" 
+            sed '/\[mysqld\]/a server-id='$RAND'\nlog-bin\nbind-address=0.0.0.0' /etc/mysql/my.cnf > /tmp/my.cnf && cat /tmp/my.cnf > /etc/mysql/my.cnf
+			
+            mysql_note "Server id set randomly and bind-address set to 0.0.0.0"
+
+        else
+		
+            mysql_note "Invalid value for MASTER_SLAVE_ROLE: $MASTER_SLAVE_ROLE. Must be MASTER or SLAVE."
+
+        fi
+    fi
+
+}
+
 _main() {
 	# if command starts with an option, prepend mysqld
 	if [ "${1:0:1}" = '-' ]; then
@@ -374,6 +429,19 @@ _main() {
 		# Load various environment variables
 		docker_setup_env "$@"
 		docker_create_db_directories "$@"
+		
+		###################
+		
+		if [ -z "$DATABASE_ALREADY_EXISTS" ]; then
+			
+			
+			core_config_for_replication
+			
+			mysql_note "before switch mysql user. i did replication_config"
+			
+		fi
+		
+		############		
 
 		# If container is started as root user, restart as dedicated mysql user
 		if [ "$(id -u)" = "0" ]; then
@@ -399,6 +467,9 @@ _main() {
 			docker_process_init_files /docker-entrypoint-initdb.d/*
 
 			mysql_expire_root_user
+			
+			queries_for_replication
+
 
 			mysql_note "Stopping temporary server"
 			docker_temp_server_stop
