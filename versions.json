@@ -6,14 +6,14 @@
         "arm64v8"
       ],
       "repo": "https://repo.mysql.com/yum/mysql-innovation-community/docker/el/9",
-      "version": "9.1.0-1.el9",
+      "version": "9.2.0-1.el9",
       "variant": "9-slim"
     },
     "mysql-shell": {
       "repo": "https://repo.mysql.com/yum/mysql-tools-innovation-community/el/9",
       "version": "9.1.0-1.el9"
     },
-    "version": "9.1.0"
+    "version": "9.2.0"
   },
   "8.4": {
     "oracle": {
