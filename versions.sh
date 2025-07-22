@@ -6,9 +6,9 @@ declare -A debianSuites=(
 	#[5.7]='buster'
 )
 
-defaultOracleVariant='9-slim'
+defaultOracleVariant='10-slim'
 declare -A oracleVariants=(
-	#[innovation]='8-slim'
+	[8.0]='9-slim'
 )
 
 # https://repo.mysql.com/yum/mysql-8.0-community/docker/
