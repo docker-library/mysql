@@ -5,13 +5,13 @@
         "amd64",
         "arm64v8"
       ],
-      "repo": "https://repo.mysql.com/yum/mysql-innovation-community/docker/el/9",
-      "version": "9.4.0-1.el9",
+      "repo": "https://repo.mysql.com/yum/mysql-innovation-community/docker/el/10",
+      "version": "9.4.0-1.el10",
       "variant": "9-slim"
     },
     "mysql-shell": {
-      "repo": "https://repo.mysql.com/yum/mysql-tools-innovation-community/el/9",
-      "version": "9.4.0-1.el9"
+      "repo": "https://repo.mysql.com/yum/mysql-tools-innovation-community/el/10",
+      "version": "9.4.0-1.el10"
     },
     "version": "9.4.0"
   },
@@ -21,13 +21,13 @@
         "amd64",
         "arm64v8"
       ],
-      "repo": "https://repo.mysql.com/yum/mysql-8.4-community/docker/el/9",
-      "version": "8.4.6-1.el9",
+      "repo": "https://repo.mysql.com/yum/mysql-8.4-community/docker/el/10",
+      "version": "8.4.6-1.el10",
       "variant": "9-slim"
     },
     "mysql-shell": {
-      "repo": "https://repo.mysql.com/yum/mysql-tools-8.4-community/el/9",
-      "version": "8.4.6-1.el9"
+      "repo": "https://repo.mysql.com/yum/mysql-tools-8.4-community/el/10",
+      "version": "8.4.6-1.el10"
     },
     "version": "8.4.6"
   },
