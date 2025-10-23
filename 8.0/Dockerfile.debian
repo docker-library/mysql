@@ -53,10 +53,10 @@ RUN set -eux; \
 	rm -rf /var/lib/apt/lists/*
 
 RUN set -eux; \
-# pub   rsa4096 2023-10-23 [SC] [expires: 2025-10-22]
+# pub   rsa4096 2023-10-23 [SC] [expires: 2027-10-23]
 #       BCA4 3417 C3B4 85DD 128E  C6D4 B7B3 B788 A8D3 785C
 # uid           [ unknown] MySQL Release Engineering <mysql-build@oss.oracle.com>
-# sub   rsa4096 2023-10-23 [E] [expires: 2025-10-22]
+# sub   rsa4096 2023-10-23 [E] [expires: 2027-10-23]
 	key='BCA4 3417 C3B4 85DD 128E C6D4 B7B3 B788 A8D3 785C'; \
 	export GNUPGHOME="$(mktemp -d)"; \
 	gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key"; \
