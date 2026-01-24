@@ -6,9 +6,13 @@
 
 FROM oraclelinux:9-slim
 
+# Args to pass host UID/GID (default to 999 if not provided)
+ARG USER_UID=999
+ARG USER_GID=999
+
 RUN set -eux; \
-	groupadd --system --gid 999 mysql; \
-	useradd --system --uid 999 --gid 999 --home-dir /var/lib/mysql --no-create-home mysql
+	groupadd --system --gid ${USER_GID} mysql; \
+	useradd --system --uid ${USER_UID} --gid ${USER_GID} --home-dir /var/lib/mysql --no-create-home mysql
 
 # add gosu for easy step-down from root
 # https://github.com/tianon/gosu/releases
