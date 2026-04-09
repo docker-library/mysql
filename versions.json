@@ -18,6 +18,7 @@
   "8.4": {
     "oracle": {
       "architectures": [
+        "amd64",
         "arm64v8"
       ],
       "repo": "https://repo.mysql.com/yum/mysql-8.4-community/docker/el/9",
