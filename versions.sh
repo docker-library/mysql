@@ -66,48 +66,11 @@ for version in "${versions[@]}"; do
 
 	doc='{}'
 
-	if [ "$version" = '8.0' ]; then
-		debianSuite="${debianSuites[$version]:-$defaultDebianSuite}"
-		debianVersion="$(
-			curl -fsSL "https://repo.mysql.com/apt/debian/dists/$debianSuite/mysql-$version/binary-amd64/Packages.gz" \
-				| gunzip \
-				| awk -F ': ' '
-					$1 == "Package" {
-						pkg = $2
-						next
-					}
-					pkg == "mysql-server" && $1 == "Version" {
-						print $2
-					}
-				'
-		)"
-
-		# example 8.0.22-1debian10 => 8.0.22
-		baseVersion="${debianVersion%-*}"
-
-		export baseVersion debianSuite debianVersion
-		doc="$(
-			jq <<<"$doc" -c '
-				. += {
-					version: env.baseVersion,
-					debian: {
-						architectures: [ "amd64" ],
-						suite: env.debianSuite,
-						version: env.debianVersion,
-					},
-				}
-			'
-		)"
-	fi
-
 	oracleVariant="${oracleVariants[$version]:-$defaultOracleVariant}"
 	oracleVersion="${oracleVariant%%-*}" # "7", etc
 
 	rpmRepo="https://repo.mysql.com/yum/mysql-$version-community/docker/el/$oracleVersion"
-	case "$version" in
-		8.0) toolsRepo="https://repo.mysql.com/yum/mysql-tools-community/el/$oracleVersion" ;;
-		*)   toolsRepo="https://repo.mysql.com/yum/mysql-tools-$version-community/el/$oracleVersion" ;;
-	esac
+	toolsRepo="https://repo.mysql.com/yum/mysql-tools-$version-community/el/$oracleVersion"
 	export rpmRepo toolsRepo
 
 	rpmVersion=
