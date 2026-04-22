@@ -1,4 +1,20 @@
 {
+  "9.7": {
+    "oracle": {
+      "architectures": [
+        "amd64",
+        "arm64v8"
+      ],
+      "repo": "https://repo.mysql.com/yum/mysql-9.7-community/docker/el/9",
+      "version": "9.7.0-1.el9",
+      "variant": "9-slim"
+    },
+    "mysql-shell": {
+      "repo": "https://repo.mysql.com/yum/mysql-tools-9.7-community/el/9",
+      "version": "9.7.0-1.el9"
+    },
+    "version": "9.7.0"
+  },
   "innovation": {
     "oracle": {
       "architectures": [
