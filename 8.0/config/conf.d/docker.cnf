@@ -1,3 +1,0 @@
-[mysqld]
-host_cache_size=0
-skip-name-resolve
