@@ -11,7 +11,7 @@ declare -A oracleVariants=(
 	#[innovation]='8-slim'
 )
 
-# https://repo.mysql.com/yum/mysql-8.0-community/docker/
+# https://repo.mysql.com/yum/mysql-9.7-community/docker/
 declare -A bashbrewArchToRpmArch=(
 	[amd64]='x86_64'
 	[arm64v8]='aarch64'

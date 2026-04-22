@@ -59,7 +59,7 @@ RUN set -eux; \
 	{{ dnf }} clean all
 
 RUN set -eux; \
-# https://dev.mysql.com/doc/refman/8.0/en/checking-gpg-signature.html
+# https://dev.mysql.com/doc/refman/9.7/en/checking-gpg-signature.html
 # pub   rsa4096 2023-10-23 [SC] [expires: 2025-10-22]
 #       BCA4 3417 C3B4 85DD 128E  C6D4 B7B3 B788 A8D3 785C
 # uid           [ unknown] MySQL Release Engineering <mysql-build@oss.oracle.com>
