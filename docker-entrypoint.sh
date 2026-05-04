@@ -214,8 +214,7 @@ docker_create_db_directories() {
 # initializes the database directory
 docker_init_database_dir() {
 	mysql_note "Initializing database files"
-	"$@" --initialize-insecure --default-time-zone=SYSTEM --autocommit=1
-	# explicitly enable autocommit to combat https://bugs.mysql.com/bug.php?id=110535 (TODO remove this when 8.0 is EOL; see https://github.com/mysql/mysql-server/commit/7dbf4f80ed15f3c925cfb2b834142f23a2de719a)
+	"$@" --initialize-insecure --default-time-zone=SYSTEM
 	mysql_note "Database files initialized"
 }
 

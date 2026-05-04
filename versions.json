@@ -46,28 +46,5 @@
       "version": "8.4.9-1.el9"
     },
     "version": "8.4.9"
-  },
-  "8.0": {
-    "version": "8.0.46",
-    "debian": {
-      "architectures": [
-        "amd64"
-      ],
-      "suite": "bookworm",
-      "version": "8.0.46-1debian12"
-    },
-    "oracle": {
-      "architectures": [
-        "amd64",
-        "arm64v8"
-      ],
-      "repo": "https://repo.mysql.com/yum/mysql-8.0-community/docker/el/9",
-      "version": "8.0.46-1.el9",
-      "variant": "9-slim"
-    },
-    "mysql-shell": {
-      "repo": "https://repo.mysql.com/yum/mysql-tools-community/el/9",
-      "version": "8.0.46-1.el9"
-    }
   }
 }
