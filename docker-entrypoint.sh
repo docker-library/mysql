@@ -406,7 +406,7 @@ _main() {
 			echo
 			mysql_note "MySQL init process done. Ready for start up."
 			echo
-		else if find /docker-entrypoint-startdb.d/ -type f | read -r _; then
+		elif find /docker-entrypoint-startdb.d/ -type f | read -r _; then
 			mysql_note "Starting temporary server"
 			docker_temp_server_start "$@"
 			mysql_note "Temporary server started."
