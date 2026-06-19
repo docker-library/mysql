@@ -56,7 +56,6 @@ _is_sourced() {
 docker_process_init_files() {
 	# mysql here for backwards compatibility "${mysql[@]}"
 	mysql=( docker_process_sql )
-	echo executing script $1
 	echo
 	local f
 	for f; do
@@ -77,6 +76,38 @@ docker_process_init_files() {
 			*.sql.gz)  mysql_note "$0: running $f"; gunzip -c "$f" | docker_process_sql; echo ;;
 			*.sql.xz)  mysql_note "$0: running $f"; xzcat "$f" | docker_process_sql; echo ;;
 			*.sql.zst) mysql_note "$0: running $f"; zstd -dc "$f" | docker_process_sql; echo ;;
+			*)         mysql_warn "$0: ignoring $f" ;;
+		esac
+		echo
+	done
+}
+
+# usage: docker_process_start_files [file [file [...]]]
+#    ie: docker_process_start_files /always-initdb.d/*
+# process startup files, based on file extensions
+docker_process_start_files() {
+	# mysql here for backwards compatibility "${mysql[@]}"
+	mysql=( docker_process_sql )
+	echo
+	local f
+	for f; do
+		case "$f" in
+			*.sh)
+				# https://github.com/docker-library/postgres/issues/450#issuecomment-393167936
+				# https://github.com/docker-library/postgres/pull/452
+				if [ -x "$f" ]; then
+					mysql_note "$0: running $f"
+					"$f"
+				else
+					mysql_note "$0: sourcing $f"
+					. "$f"
+				fi
+				;;
+			*.sql)     mysql_note "$0: running $f"; docker_process_sql --database=$MYSQL_DATABASE < "$f"; echo ;;
+			*.sql.bz2) mysql_note "$0: running $f"; bunzip2 -c "$f" | docker_process_sql --database=$MYSQL_DATABASE; echo ;;
+			*.sql.gz)  mysql_note "$0: running $f"; gunzip -c "$f" | docker_process_sql --database=$MYSQL_DATABASE; echo ;;
+			*.sql.xz)  mysql_note "$0: running $f"; xzcat "$f" | docker_process_sql --database=$MYSQL_DATABASE; echo ;;
+			*.sql.zst) mysql_note "$0: running $f"; zstd -dc "$f" | docker_process_sql --database=$MYSQL_DATABASE; echo ;;
 			*)         mysql_warn "$0: ignoring $f" ;;
 		esac
 		echo
@@ -406,13 +437,13 @@ _main() {
 			echo
 			mysql_note "MySQL init process done. Ready for start up."
 			echo
-		elif find /docker-entrypoint-startdb.d/ -type f | read -r _; then
+		elif [ -n "$MYSQL_DATABASE" ] && find /docker-entrypoint-startdb.d/ -type f | read -r _; then
 			mysql_note "Starting temporary server"
 			docker_temp_server_start "$@"
 			mysql_note "Temporary server started."
 
 			mysql_socket_fix
-			docker_process_init_files /docker-entrypoint-startdb.d/*
+			docker_process_start_files /docker-entrypoint-startdb.d/*
 
 			mysql_note "Stopping temporary server"
 			docker_temp_server_stop
