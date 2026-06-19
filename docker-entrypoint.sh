@@ -409,6 +409,8 @@ _main() {
 		else
 			mysql_socket_fix
 		fi
+		
+		docker_process_init_files /docker-entrypoint-startdb.d/*
 	fi
 	exec "$@"
 }

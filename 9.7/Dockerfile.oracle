@@ -92,6 +92,7 @@ RUN set -eux; \
 	chmod 1777 /var/lib/mysql /var/run/mysqld; \
 	\
 	mkdir /docker-entrypoint-initdb.d; \
+	mkdir /docker-entrypoint-startdb.d; \
 	\
 	mysqld --version; \
 	mysql --version
