@@ -56,7 +56,7 @@ _is_sourced() {
 docker_process_init_files() {
 	# mysql here for backwards compatibility "${mysql[@]}"
 	mysql=( docker_process_sql )
-	echo executing scripts in $1
+	echo executing script $1
 	echo
 	local f
 	for f; do
@@ -406,11 +406,24 @@ _main() {
 			echo
 			mysql_note "MySQL init process done. Ready for start up."
 			echo
+		else if find /docker-entrypoint-startdb.d/ -type f | read -r _; then
+			mysql_note "Starting temporary server"
+			docker_temp_server_start "$@"
+			mysql_note "Temporary server started."
+
+			mysql_socket_fix
+			docker_process_init_files /docker-entrypoint-startdb.d/*
+
+			mysql_note "Stopping temporary server"
+			docker_temp_server_stop
+			mysql_note "Temporary server stopped"
+
+			echo
+			mysql_note "MySQL pre-start process done. Ready for start up."
+			echo
 		else
 			mysql_socket_fix
 		fi
-		
-		docker_process_init_files /docker-entrypoint-startdb.d/*
 	fi
 	exec "$@"
 }
