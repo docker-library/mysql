@@ -129,7 +129,7 @@ docker_temp_server_start() {
 # Stop the server. When using a local socket file mysqladmin will block until
 # the shutdown is complete.
 docker_temp_server_stop() {
-	if ! mysqladmin --defaults-extra-file=<( _mysql_passfile ) shutdown -uroot --socket="${SOCKET}"; then
+	if ! mysqladmin --defaults-extra-file=<( _mysql_passfile ) shutdown --socket="${SOCKET}"; then
 		mysql_error "Unable to shut down server."
 	fi
 }
@@ -254,7 +254,7 @@ docker_process_sql() {
 		set -- --database="$MYSQL_DATABASE" "$@"
 	fi
 
-	mysql --defaults-extra-file=<( _mysql_passfile "${passfileArgs[@]}") --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" --comments "$@"
+	mysql --defaults-extra-file=<( _mysql_passfile "${passfileArgs[@]}") --protocol=socket -hlocalhost --socket="${SOCKET}" --comments "$@"
 }
 
 # Initializes database with timezone info and root password, plus optional extra db/user
@@ -327,12 +327,16 @@ _mysql_passfile() {
 	# echo the password to the "file" the client uses
 	# the client command will use process substitution to create a file on the fly
 	# ie: --defaults-extra-file=<( _mysql_passfile )
-	if [ '--dont-use-mysql-root-password' != "$1" ] && [ -n "$MYSQL_ROOT_PASSWORD" ]; then
-		cat <<-EOF
-			[client]
-			password="${MYSQL_ROOT_PASSWORD}"
-		EOF
+	if [ '--dont-use-mysql-root-password' = "$1" ] || [ -z "$MYSQL_ROOT_PASSWORD" ]; then
+		return
 	fi
+
+	local user="${MYSQL_ROOT_USER:-root}"
+	cat <<-EOF
+		[client]
+		user="${user}"
+		password="${MYSQL_ROOT_PASSWORD}"
+	EOF
 }
 
 # Mark root user as expired so the password must be changed before anything
