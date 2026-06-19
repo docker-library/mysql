@@ -56,7 +56,7 @@ _is_sourced() {
 docker_process_init_files() {
 	# mysql here for backwards compatibility "${mysql[@]}"
 	mysql=( docker_process_sql )
-
+	echo execution scripts in $1
 	echo
 	local f
 	for f; do
