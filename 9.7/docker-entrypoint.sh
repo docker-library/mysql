@@ -56,7 +56,7 @@ _is_sourced() {
 docker_process_init_files() {
 	# mysql here for backwards compatibility "${mysql[@]}"
 	mysql=( docker_process_sql )
-	
+
 	echo
 	local f
 	for f; do
@@ -286,7 +286,7 @@ docker_process_sql() {
 		set -- --database="$MYSQL_DATABASE" "$@"
 	fi
 
-	mysql --defaults-extra-file=<( _mysql_passfile "${passfileArgs[@]}") --protocol=socket -hlocalhost -uroot --socket="${SOCKET}" --comments "$@"
+	mysql --defaults-extra-file=<( _mysql_passfile "${passfileArgs[@]}") --protocol=socket -uroot -hlocalhost --socket="${SOCKET}" --comments "$@"
 }
 
 # Initializes database with timezone info and root password, plus optional extra db/user
@@ -359,16 +359,12 @@ _mysql_passfile() {
 	# echo the password to the "file" the client uses
 	# the client command will use process substitution to create a file on the fly
 	# ie: --defaults-extra-file=<( _mysql_passfile )
-	if [ '--dont-use-mysql-root-password' = "$1" ] || [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-		return
+	if [ '--dont-use-mysql-root-password' != "$1" ] && [ -n "$MYSQL_ROOT_PASSWORD" ]; then
+		cat <<-EOF
+			[client]
+			password="${MYSQL_ROOT_PASSWORD}"
+		EOF
 	fi
-
-
-	cat <<-EOF
-		[client]
-		user=root
-		password="${MYSQL_ROOT_PASSWORD}"
-	EOF
 }
 
 # Mark root user as expired so the password must be changed before anything
