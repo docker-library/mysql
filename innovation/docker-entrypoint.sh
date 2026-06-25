@@ -254,7 +254,7 @@ docker_process_sql() {
 		set -- --database="$MYSQL_DATABASE" "$@"
 	fi
 
-	mysql --defaults-extra-file=<( _mysql_passfile "${passfileArgs[@]}") --protocol=socket -hlocalhost --socket="${SOCKET}" --comments "$@"
+	mysql --defaults-extra-file=<( _mysql_passfile "${passfileArgs[@]}") --protocol=socket -hlocalhost -uroot --socket="${SOCKET}" --comments "$@"
 }
 
 # Initializes database with timezone info and root password, plus optional extra db/user

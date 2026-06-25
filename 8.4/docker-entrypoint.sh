@@ -56,6 +56,7 @@ _is_sourced() {
 docker_process_init_files() {
 	# mysql here for backwards compatibility "${mysql[@]}"
 	mysql=( docker_process_sql )
+	
 	echo
 	local f
 	for f; do
@@ -160,7 +161,7 @@ docker_temp_server_start() {
 # Stop the server. When using a local socket file mysqladmin will block until
 # the shutdown is complete.
 docker_temp_server_stop() {
-	if ! mysqladmin --defaults-extra-file=<( _mysql_passfile ) shutdown --socket="${SOCKET}"; then
+	if ! mysqladmin --defaults-extra-file=<( _mysql_passfile ) shutdown -uroot --socket="${SOCKET}"; then
 		mysql_error "Unable to shut down server."
 	fi
 }
@@ -285,7 +286,7 @@ docker_process_sql() {
 		set -- --database="$MYSQL_DATABASE" "$@"
 	fi
 
-	mysql --defaults-extra-file=<( _mysql_passfile "${passfileArgs[@]}") --protocol=socket -hlocalhost --socket="${SOCKET}" --comments "$@"
+	mysql --defaults-extra-file=<( _mysql_passfile "${passfileArgs[@]}") --protocol=socket -hlocalhost -uroot --socket="${SOCKET}" --comments "$@"
 }
 
 # Initializes database with timezone info and root password, plus optional extra db/user
