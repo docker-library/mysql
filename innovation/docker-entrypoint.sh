@@ -331,10 +331,10 @@ _mysql_passfile() {
 		return
 	fi
 
-	local user="${MYSQL_ROOT_USER:-root}"
+
 	cat <<-EOF
 		[client]
-		user="${user}"
+		user=root
 		password="${MYSQL_ROOT_PASSWORD}"
 	EOF
 }
