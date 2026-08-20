@@ -66,17 +66,17 @@ docker_process_init_files() {
 				# https://github.com/docker-library/postgres/pull/452
 				if [ -x "$f" ]; then
 					mysql_note "$0: running $f"
-					"$f"
+					"$f" || mysql_error "$0: failed while running $f"
 				else
 					mysql_note "$0: sourcing $f"
-					. "$f"
+					. "$f" || mysql_error "$0: failed while sourcing $f"
 				fi
 				;;
-			*.sql)     mysql_note "$0: running $f"; docker_process_sql < "$f"; echo ;;
-			*.sql.bz2) mysql_note "$0: running $f"; bunzip2 -c "$f" | docker_process_sql; echo ;;
-			*.sql.gz)  mysql_note "$0: running $f"; gunzip -c "$f" | docker_process_sql; echo ;;
-			*.sql.xz)  mysql_note "$0: running $f"; xzcat "$f" | docker_process_sql; echo ;;
-			*.sql.zst) mysql_note "$0: running $f"; zstd -dc "$f" | docker_process_sql; echo ;;
+			*.sql)     mysql_note "$0: running $f"; docker_process_sql < "$f" || mysql_error "$0: failed while running $f"; echo ;;
+			*.sql.bz2) mysql_note "$0: running $f"; bunzip2 -c "$f" | docker_process_sql || mysql_error "$0: failed while running $f"; echo ;;
+			*.sql.gz)  mysql_note "$0: running $f"; gunzip -c "$f" | docker_process_sql || mysql_error "$0: failed while running $f"; echo ;;
+			*.sql.xz)  mysql_note "$0: running $f"; xzcat "$f" | docker_process_sql || mysql_error "$0: failed while running $f"; echo ;;
+			*.sql.zst) mysql_note "$0: running $f"; zstd -dc "$f" | docker_process_sql || mysql_error "$0: failed while running $f"; echo ;;
 			*)         mysql_warn "$0: ignoring $f" ;;
 		esac
 		echo
